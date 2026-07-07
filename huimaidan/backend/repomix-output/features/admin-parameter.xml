@@ -1,0 +1,295 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: app/controller/admin/parameter/**/*.php, route/admin/parameter.php, app/common/repositories/parameter/**/*.php, app/common/dao/parameter/**/*.php, app/common/model/parameter/**/*.php, app/validate/admin/*Parameter*.php, crmeb/services/parameter/**/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/controller/admin/parameter/ParameterTemplate.php
+app/validate/admin/ParameterTemplateValidate.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/controller/admin/parameter/ParameterTemplate.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace app\controller\admin\parameter;
+ 14: 
+ 15: use app\common\repositories\store\parameter\ParameterValueRepository;
+ 16: use app\common\repositories\store\parameter\ParameterTemplateRepository;
+ 17: use app\validate\admin\ParameterTemplateValidate;
+ 18: use think\App;
+ 19: use crmeb\basic\BaseController;
+ 20: use think\exception\ValidateException;
+ 21: use app\common\repositories\store\StoreCategoryRepository;
+ 22: 
+ 23: /**
+ 24:  * 商品参数模板
+ 25:  */
+ 26: class ParameterTemplate extends BaseController
+ 27: {
+ 28:     protected $repository;
+ 29: 
+ 30:     /**
+ 31:      * City constructor.
+ 32:      * @param App $app
+ 33:      * @param ParameterTemplateRepository $repository
+ 34:      */
+ 35:     public function __construct(App $app, ParameterTemplateRepository $repository)
+ 36:     {
+ 37:         parent::__construct($app);
+ 38:         $this->repository = $repository;
+ 39:     }
+ 40: 
+ 41:     /**
+ 42:      *  列表
+ 43:      * @Author:Qinii
+ 44:      * @Date: 2020/5/8
+ 45:      * @Time: 14:40
+ 46:      * @return mixed
+ 47:      */
+ 48:     public function lst()
+ 49:     {
+ 50:         [$page, $limit] = $this->getPage();
+ 51:         $where = $this->request->params(['template_name', 'cate_ids', 'mer_name', 'mer_id']);
+ 52:         $where['is_mer'] = $this->request->param('is_mer', 1);
+ 53:         if ($merId = $this->request->merId()) {
+ 54:             $where['mer_id'] = $merId;
+ 55:             unset($where['is_mer']);
+ 56:         }
+ 57:         // 处理分类id
+ 58:         if (!empty($where['cate_ids'])) {
+ 59:             $where['cate_id'] = end($where['cate_ids']);
+ 60:             if(count($where['cate_ids']) !== 3) {
+ 61:                 $cartWhere = [
+ 62:                     ['path', 'like', '%/'.$where['cate_id'].'/%'],
+ 63:                     ['is_show', '=', 1]
+ 64:                 ];
+ 65:                 $categories = app()->make(StoreCategoryRepository::class)->selectWhere($cartWhere, 'store_category_id')->toArray();
+ 66:                 $storeCategoryIds = array_column($categories, 'store_category_id');
+ 67:                 $where['cate_id'] = $storeCategoryIds;
+ 68:             }
+ 69:             unset($where['cate_ids']);
+ 70:         }
+ 71:         $data = $this->repository->getList($where, $page, $limit);
+ 72:         return app('json')->success($data);
+ 73:     }
+ 74: 
+ 75:     /**
+ 76:      *  详情
+ 77:      * @param $id
+ 78:      * @return \think\response\Json
+ 79:      * @author Qinii
+ 80:      */
+ 81:     public function detail($id)
+ 82:     {
+ 83:         $data = $this->repository->detail($id, $this->request->merId());
+ 84:         return app('json')->success($data);
+ 85:     }
+ 86: 
+ 87:     /**
+ 88:      *  添加
+ 89:      * @return \think\response\Json
+ 90:      * @author Qinii
+ 91:      */
+ 92:     public function create()
+ 93:     {
+ 94:         $data = $this->checkParams(1);
+ 95:         $this->repository->create($this->request->merId(), $data);
+ 96:         return app('json')->success('添加成功');
+ 97:     }
+ 98: 
+ 99:     /**
+100:      *  编辑
+101:      * @param $id
+102:      * @return \think\response\Json
+103:      * @author Qinii
+104:      */
+105:     public function update($id)
+106:     {
+107:         $data = $this->checkParams();
+108:         $where['template_id'] = $id;
+109:         if ($merId = $this->request->merId()) {
+110:             $where['mer_id'] = $merId;
+111:         }
+112:         if (!$res = $this->repository->getWhere($where)) {
+113:             return app('json')->fail('数据不存在');
+114:         }
+115:         $this->repository->update($id, $data, $merId);
+116:         return app('json')->success('编辑成功');
+117:     }
+118: 
+119:     public function deleteValue($id, ParameterValueRepository $repository)
+120:     {
+121:         $repository->dostory($id, $this->request->merId());
+122:         return app('json')->success('删除成功');
+123:     }
+124: 
+125:     /**
+126:      *  删除
+127:      * @param $id
+128:      * @return \think\response\Json
+129:      * @author Qinii
+130:      */
+131:     public function delete($id)
+132:     {
+133:         $where['template_id'] = $id;
+134:         if ($merId = $this->request->merId()) {
+135:             $where['mer_id'] = $merId;
+136:         }
+137:         if (!$this->repository->getWhere($where)) {
+138:             return app('json')->fail('数据不存在');
+139:         }
+140:         $this->repository->delete($id);
+141:         return app('json')->success('操作成功');
+142:     }
+143: 
+144:     /**
+145:      *  根据cate_id获取参数模板列表
+146:      * @return \think\response\Json
+147:      * @author Qinii
+148:      * @day 2022/11/22
+149:      */
+150:     public function select()
+151:     {
+152:         $where = $this->request->params(['cate_id', 0]);
+153:         $where['mer_id'] = 0;
+154:         $data['sys'] = $this->repository->getSelect($where);
+155: 
+156:         $where = ['mer_id' => $this->request->merId()];
+157:         $data['mer'] = $this->repository->getSelect($where);
+158: 
+159:         return app('json')->success($data);
+160:     }
+161: 
+162:     /**
+163:      *  根据模板id 获取参数
+164:      * @param $id
+165:      * @return \think\response\Json
+166:      * @author Qinii
+167:      * @day 2022/11/22
+168:      */
+169:     public function show()
+170:     {
+171:         $template_ids = $this->request->param('template_ids');
+172:         if (!$template_ids) return app('json')->success([]);
+173:         $where['template_ids'] = $template_ids;
+174:         $data = $this->repository->show($where);
+175:         return app('json')->success($data);
+176:     }
+177: 
+178:     /**
+179:      *  验证参数
+180:      * @param $isCreate
+181:      * @return array
+182:      * @author Qinii
+183:      */
+184:     public function checkParams($isCreate = 0)
+185:     {
+186:         $mer_id = $this->request->merId();
+187:         $data = $this->request->params(['template_name', ['cate_ids', []], 'sort', 'params','delete_params']);
+188:         app()->make(ParameterTemplateValidate::class)->check($data);
+189:         if ($mer_id == 0 && empty($data['cate_ids'])) {
+190:             throw new ValidateException('请选择商品分类');
+191:         }
+192:         if ($isCreate) {
+193:             foreach ($data['params'] as $item) {
+194:                 foreach ($item['values'] as &$subArray) {
+195:                     if (isset($subArray['parameter_value_id'])) {
+196:                         unset($subArray['parameter_value_id']);
+197:                     }
+198:                 }
+199:                 if (isset($item['parameter_id'])) unset($item['parameter_id']);
+200:                 if (isset($item['template_id'])) unset($item['template_id']);
+201:                 $params[] = $item;
+202:             }
+203:             $data['params'] = $params;
+204:         }
+205:         return $data;
+206:     }
+207: }
+</file>
+
+<file path="app/validate/admin/ParameterTemplateValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\admin;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class ParameterTemplateValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'template_name|模板名称' => 'require|max:25',
+25:         'params|参数'           => 'require|array',
+26:     ];
+27: }
+</file>
+
+</files>

@@ -1,0 +1,2343 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: app/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/AppService.php
+app/common.php
+app/event.php
+app/ExceptionHandle.php
+app/middleware.php
+app/provider.php
+app/Request.php
+app/service.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/AppService.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: declare (strict_types = 1);
+13: 
+14: namespace app;
+15: 
+16: use think\Service;
+17: 
+18: /**
+19:  * 应用服务类
+20:  */
+21: class AppService extends Service
+22: {
+23: 
+24:     public function register()
+25:     {
+26:         defined('TOP_PRECISION') || define('TOP_PRECISION', 2);
+27:         // 服务注册
+28:     }
+29: 
+30:     public function boot()
+31:     {
+32:         // 服务启动
+33:     }
+34: }
+</file>
+
+<file path="app/common.php">
+   1: <?php
+   2: // +----------------------------------------------------------------------
+   3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+   4: // +----------------------------------------------------------------------
+   5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+   6: // +----------------------------------------------------------------------
+   7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+   8: // +----------------------------------------------------------------------
+   9: // | Author: CRMEB Team <admin@crmeb.com>
+  10: // +----------------------------------------------------------------------
+  11: 
+  12: // 应用公共文件
+  13: 
+  14: use app\common\repositories\system\config\ConfigValueRepository;
+  15: use app\common\repositories\system\groupData\GroupDataRepository;
+  16: use app\common\repositories\system\StorageRepository;
+  17: use crmeb\services\UploadService;
+  18: use Swoole\Lock;
+  19: use think\db\BaseQuery;
+  20: 
+  21: if (!function_exists('go')) {
+  22:     function go(): bool
+  23:     {
+  24:         return \Swoole\Coroutine::create(...func_get_args());
+  25:     }
+  26: }
+  27: 
+  28: if (!function_exists('isDebug')) {
+  29:     function isDebug(): bool
+  30:     {
+  31:         return !!env('APP_DEBUG');
+  32:     }
+  33: }
+  34: 
+  35: if (!function_exists('formToData')) {
+  36:     function formToData($form): array
+  37:     {
+  38:         $rule = $form->formRule();
+  39:         $action = $form->getAction();
+  40:         $method = $form->getMethod();
+  41:         $title = $form->getTitle();
+  42:         $config = (object)$form->formConfig();
+  43:         $admin = config('admin.api_admin_prefix');
+  44:         $merchant = config('admin.api_merchant_prefix');
+  45:         $api = $action;
+  46:         if (strpos($api, '/' . $admin) === 0) {
+  47:             $api = substr($api, strlen($admin) + 1);
+  48:         } else if (strpos($api, '/' . $merchant) === 0) {
+  49:             $api = substr($api, strlen($merchant) + 1);
+  50:         }
+  51:         $api = str_replace('.html', '', $api);
+  52:         return compact('rule', 'action', 'method', 'title', 'config', 'api');
+  53:     }
+  54: }
+  55: 
+  56: if (!function_exists('getDistance')) {
+  57: 
+  58:     function getDistance($lat1, $lng1, $lat2, $lng2)
+  59:     {
+  60:         //将角度转为狐度
+  61:         $radLat1 = deg2rad($lat1); //deg2rad()函数将角度转换为弧度
+  62:         $radLat2 = deg2rad($lat2);
+  63:         $radLng1 = deg2rad($lng1);
+  64:         $radLng2 = deg2rad($lng2);
+  65:         $a = $radLat1 - $radLat2;
+  66:         $b = $radLng1 - $radLng2;
+  67:         $s = 2 * asin(sqrt(pow(sin($a / 2), 2) + cos($radLat1) * cos($radLat2) * pow(sin($b / 2), 2))) * 6371;
+  68:         return round($s, 1);
+  69:     }
+  70: }
+  71: 
+  72: /**
+  73:  * 无线级分类处理
+  74:  *
+  75:  * @param array $data 数据源
+  76:  * @param string $idName 主键
+  77:  * @param string $fieldName 父级字段
+  78:  * @param string $childrenKey 子级字段名
+  79:  * @return array
+  80:  * @author 张先生
+  81:  * @date 2020-03-27
+  82:  */
+  83: if (!function_exists('formatCategory')) {
+  84:     function formatCategory(array $data, string $idName = "id", string $fieldName = 'pid', $childrenKey = 'children')
+  85:     {
+  86:         $items = [];
+  87:         foreach ($data as $item) {
+  88:             $items[$item[$idName]] = $item;
+  89:         }
+  90:         $result = array();
+  91:         foreach ($items as $item) {
+  92:             if (isset($items[$item[$fieldName]])) {
+  93:                 $items[$item[$fieldName]][$childrenKey][] = &$items[$item[$idName]];
+  94:             } else if ($item[$fieldName] == 0) {
+  95:                 $result[] = &$items[$item[$idName]];
+  96:             } else {
+  97:                 $result[] = &$items[$item[$idName]];
+  98:             }
+  99:         }
+ 100:         return $result;
+ 101:     }
+ 102: }
+ 103: 
+ 104: if (!function_exists('formatTreeList')) {
+ 105:     function formatTreeList(&$options, $name, $pidName = 'pid', $pid = 0, $level = 0, &$data = []): array
+ 106:     {
+ 107:         $_options = $options;
+ 108:         foreach ($_options as $k => $option) {
+ 109:             if ($option[$pidName] == $pid) {
+ 110:                 $data[] = ['value' => $k, 'label' => str_repeat('|---', $level + 1) . $option[$name]];
+ 111:                 unset($options[$k]);
+ 112:                 formatTreeList($options, $name, $pidName, $k, $level + 1, $data);
+ 113:             }
+ 114:         }
+ 115:         return $data;
+ 116:     }
+ 117: }
+ 118: 
+ 119: if (!function_exists('formatTree')) {
+ 120:     function formatTree(&$options, $name, $pidName = 'pid', $pid = 0, $level = 0, $data = []): array
+ 121:     {
+ 122:         $_options = $options;
+ 123:         foreach ($_options as $k => $option) {
+ 124:             if ($option[$pidName] == $pid) {
+ 125:                 $value = ['id' => $k, 'title' => $option[$name]];
+ 126:                 unset($options[$k]);
+ 127:                 $value['children'] = formatTree($options, $name, $pidName, $k, $level + 1);
+ 128:                 $data[] = $value;
+ 129:             }
+ 130:         }
+ 131:         return $data;
+ 132:     }
+ 133: }
+ 134: 
+ 135: if (!function_exists('formatCascaderData')) {
+ 136:     function formatCascaderData(&$options, $name, $baseLevel = 0, $pidName = 'pid', $pid = 0, $level = 0, $data =
+ 137:     [], $disabled = []): array
+ 138:     {
+ 139:         $_options = $options;
+ 140:         foreach ($_options as $k => $option) {
+ 141:             if ($option[$pidName] == $pid) {
+ 142:                 $value = ['value' => $k, 'label' => $option[$name],'disabled' => false];
+ 143:                 $value = array_merge($value, $option);
+ 144:                 if ($disabled) {
+ 145:                     $value['disabled'] = in_array($k,$disabled) ? false : true;
+ 146:                 }
+ 147:                 unset($options[$k]);
+ 148:                 $value['children'] = formatCascaderData($options, $name, $baseLevel, $pidName, $k, $level + 1,[],$disabled);
+ 149:                 if (!count($value['children'])) unset($value['children']);
+ 150:                 $data[] = $value;
+ 151:             }
+ 152:         }
+ 153:         return $data;
+ 154:     }
+ 155: }
+ 156: 
+ 157: 
+ 158: /**
+ 159:  * @function toMap 数组重新组装
+ 160:  * @param array $data 数据
+ 161:  * @param string $field key
+ 162:  * @param string $value value default null
+ 163:  * @return array
+ 164:  * @author 张先生
+ 165:  * @date 2020-04-01
+ 166:  */
+ 167: if (!function_exists('toMap')) {
+ 168:     function toMap(array $data, $field = 'id', $value = '')
+ 169:     {
+ 170:         $result = array();
+ 171: 
+ 172:         if (empty($data)) {
+ 173:             return $result;
+ 174:         }
+ 175: 
+ 176:         //开始处理数据
+ 177:         foreach ($data as $item) {
+ 178:             $val = $item;
+ 179:             if (!empty($value)) {
+ 180:                 $val = $item[$value];
+ 181:             }
+ 182:             $result[$item[$field]] = $val;
+ 183:         }
+ 184: 
+ 185:         return $result;
+ 186:     }
+ 187: }
+ 188: 
+ 189: /**
+ 190:  * @function getUniqueListByArray 从数组中获取某个字段的值，重新拼装成新的一维数组
+ 191:  * @param array $data 数据
+ 192:  * @param string $field key
+ 193:  * @return array
+ 194:  * @author 张先生
+ 195:  * @date 2020-04-01
+ 196:  */
+ 197: if (!function_exists('getUniqueListByArray')) {
+ 198:     function getUniqueListByArray(array $data, $field = 'id')
+ 199:     {
+ 200:         return array_unique(array_values(array_column($data, $field)));
+ 201:     }
+ 202: }
+ 203: 
+ 204: 
+ 205: if (!function_exists('isPhone')) {
+ 206:     function isPhone($test)
+ 207:     {
+ 208:         return !preg_match("/^1[3456789]{1}\d{9}$/", $test);
+ 209:     }
+ 210: }
+ 211: 
+ 212: if (!function_exists('getMonth')) {
+ 213:     /**
+ 214:      * 获取本季度 time
+ 215:      * @param int|string $time
+ 216:      * @param int $offset 0:当前时间，-1:上一个季度，1:下一个季度
+ 217:      * @param $ceil
+ 218:      * @return array
+ 219:      */
+ 220:     function getMonth($time = null, $offset = 0)
+ 221:     {
+ 222:         // 处理时间参数
+ 223:         if ($time === null) {
+ 224:             $timestamp = time();
+ 225:         } elseif (is_numeric($time)) {
+ 226:             $timestamp = (int)$time;
+ 227:         } else {
+ 228:             $timestamp = strtotime($time);
+ 229:         }
+ 230: 
+ 231:         // 获取当前月份和年份
+ 232:         $currentMonth = (int)date('n', $timestamp);
+ 233:         $currentYear = (int)date('Y', $timestamp);
+ 234:         // 计算当前季度 (1-4)
+ 235:         $currentQuarter = (int)ceil($currentMonth / 3);
+ 236: 
+ 237:         // 应用偏移量
+ 238:         $targetQuarter = $currentQuarter + $offset;
+ 239:         $targetYear = $currentYear;
+ 240: 
+ 241:         // 处理跨年的情况
+ 242:         if ($targetQuarter > 4) {
+ 243:             $targetQuarter -= 4;
+ 244:             $targetYear += 1;
+ 245:         } elseif ($targetQuarter < 1) {
+ 246:             $targetQuarter += 4;
+ 247:             $targetYear -= 1;
+ 248:         }
+ 249:         // 计算季度的首月和末月
+ 250:         $firstMonth = ($targetQuarter - 1) * 3 + 1;
+ 251:         $lastMonth = $targetQuarter * 3;
+ 252: 
+ 253:         // 生成季度的首日和末日
+ 254:         $firstDay = date('Y-m-01', mktime(0, 0, 0, $firstMonth, 1, $targetYear));
+ 255:         $lastDay = date('Y-m-t', mktime(0, 0, 0, $lastMonth, 1, $targetYear));
+ 256: 
+ 257:         return [$firstDay, $lastDay];
+ 258:     }
+ 259: }
+ 260: 
+ 261: 
+ 262: if (!function_exists('getModelTime')) {
+ 263:     /**
+ 264:      * @param BaseQuery $model
+ 265:      * @param string $section
+ 266:      * @param string $prefix
+ 267:      * @param string $field
+ 268:      * @return mixed
+ 269:      * @author xaboy
+ 270:      * @day 2020-04-29
+ 271:      */
+ 272:     function getModelTime(BaseQuery $model, string $section, $prefix = 'create_time', $field = '-',$time = '')
+ 273:     {
+ 274:         if (!isset($section)) return $model;
+ 275:         switch ($section) {
+ 276:             case 'today':
+ 277:                 $model->whereBetween($prefix, [date('Y-m-d H:i:s', strtotime('today')), date('Y-m-d H:i:s', strtotime('tomorrow -1second'))]);
+ 278:                 break;
+ 279:             case 'week':
+ 280:                 $model->whereBetween($prefix, [date('Y-m-d H:i:s', strtotime('this week 00:00:00')), date('Y-m-d H:i:s', strtotime('next week 00:00:00 -1second'))]);
+ 281:                 break;
+ 282:             case 'month':
+ 283:                 $model->whereBetween($prefix, [date('Y-m-d H:i:s', strtotime('first Day of this month 00:00:00')), date('Y-m-d H:i:s', strtotime('first Day of next month 00:00:00 -1second'))]);
+ 284:                 break;
+ 285:             case 'year':
+ 286:                 $model->whereBetween($prefix, [date('Y-m-d H:i:s', strtotime('this year 1/1')), date('Y-m-d H:i:s', strtotime('next year 1/1 -1second'))]);
+ 287:                 break;
+ 288:             case 'yesterday':
+ 289:                 $model->whereBetween($prefix, [date('Y-m-d H:i:s', strtotime('yesterday')), date('Y-m-d H:i:s', strtotime('today -1second'))]);
+ 290:                 break;
+ 291:             case 'quarter':
+ 292:                 list($startTime, $endTime) = getMonth();
+ 293:                 $model = $model->where($prefix, '>', $startTime);
+ 294:                 $model = $model->where($prefix, '<', $endTime);
+ 295:                 break;
+ 296:             case 'lately7':
+ 297:                 $model = $model->where($prefix, 'between', [date('Y-m-d H:i:s', strtotime("-7 day")), date('Y-m-d H:i:s')]);
+ 298:                 break;
+ 299:             case 'lately30':
+ 300:                 $model = $model->where($prefix, 'between', [date('Y-m-d H:i:s', strtotime("-30 day")), date('Y-m-d H:i:s')]);
+ 301:                 break;
+ 302:             default:
+ 303:                 if (strstr($section, $field) !== false) {
+ 304:                     list($startTime, $endTime) = explode($field, $section);
+ 305:                     if (strlen($startTime) == 4) {
+ 306:                         $model->whereBetweenTime($prefix, date('Y-m-d H:i:s', strtotime($section)), date('Y-m-d H:i:s', strtotime($section . ' +1day -1second')));
+ 307:                     } else {
+ 308:                         if ($startTime == $endTime) {
+ 309:                             $model = $model->whereBetweenTime($prefix, date('Y-m-d 0:0:0', strtotime($startTime)), date('Y-m-d 23:59:59', strtotime($endTime)));
+ 310:                         } else if(strpos($startTime, ':')) {
+ 311:                             $model = $model->whereBetweenTime($prefix, $startTime, $endTime);
+ 312:                         } else {
+ 313:                             $model = $model->whereBetweenTime($prefix, date('Y-m-d H:i:s', strtotime($startTime)), date('Y-m-d H:i:s', strtotime($endTime . ' +1day -1second')));
+ 314:                         }
+ 315:                     }
+ 316:                 }
+ 317:                 break;
+ 318:         }
+ 319:         return $model;
+ 320:     }
+ 321: }
+ 322: 
+ 323: 
+ 324: /**
+ 325:  * 通过传入时间，获取到对应的环比时间
+ 326:  * @param $section
+ 327:  * @return void
+ 328:  * @author Qinii
+ 329:  */
+ 330: if (!function_exists('momTime')) {
+ 331:     function momTime(BaseQuery $model, string $section, $prefix = 'create_time', $field = '-')
+ 332:     {
+ 333:         switch ($section) {
+ 334:             case 'today':
+ 335:                 $model->whereDay($prefix, 'yesterday');
+ 336:                 break;
+ 337:             case 'week':
+ 338:                 $model->whereWeek($prefix, 'last week');
+ 339:                 break;
+ 340:             case 'month':
+ 341:                 $model->whereMonth($prefix, 'last month');
+ 342:                 break;
+ 343:             case 'year':
+ 344:                 $model->whereYear($prefix, 'last year');
+ 345:                 break;
+ 346:             case 'yesterday':
+ 347:                 $yesterday = date('Y-m-d', strtotime('-2 day'));
+ 348:                 $model->whereDay($prefix, $yesterday);
+ 349:                 break;
+ 350:             case 'quarter':
+ 351:                 //获取上季度开始时间
+ 352:                 list($startTime, $endTime) = getMonth($section, -1);
+ 353:                 $model = $model->whereBetweenTime($prefix, $startTime , $endTime);
+ 354:                 break;
+ 355:             case 'lately7':
+ 356:                 $model = $model->whereBetweenTime($prefix, date('Y-m-d H:i:s', strtotime("-14 day")), date('Y-m-d H:i:s',
+ 357:                     strtotime("-7 day")));
+ 358:                 break;
+ 359:             case 'lately30':
+ 360:                 $model = $model->whereBetweenTime($prefix,date('Y-m-d H:i:s', strtotime("-60 day")), date('Y-m-d H:i:s',
+ 361:                     strtotime("-30 day")));
+ 362:                 break;
+ 363:             default:
+ 364:                 // 单日 → 上周同期
+ 365:                 //1周内 → 上月同期
+ 366:                 //1月内 → 上季度同期
+ 367:                 //超过1月 → 去年同期
+ 368:                 if (strstr($section, $field) !== false) {
+ 369:                     list($startTime, $endTime) = explode($field, $section);
+ 370:                     // 计算时间跨度（天数）
+ 371:                     $daysDiff = (strtotime($endTime) - strtotime($startTime)) / 86400 + 1;
+ 372:                     // 根据时间跨度选择环比周期
+ 373:                     if ($daysDiff == 1) {
+ 374:                         // 单日：按周环比（上周同一天）
+ 375:                         $interval = '-1 week';
+ 376:                     } else if ($daysDiff <= 7) {
+ 377:                         // 1周内：按月环比（上月同期）
+ 378:                         $interval = '-1 month';
+ 379:                     } else if ($daysDiff <= 30) {
+ 380:                         // 1月内：按季度环比（上季度同期）
+ 381:                         $interval = '-3 month';
+ 382:                     } else {
+ 383:                         // 超过1月：按年环比（去年同期）
+ 384:                         $interval = '-1 year';
+ 385:                     }
+ 386:                     $compareStart = date('Y-m-d H:i:s', strtotime($startTime . $interval));
+ 387:                     $compareEnd = date('Y-m-d H:i:s', strtotime($endTime . $interval));
+ 388: 
+ 389:                     $model->whereBetweenTime($prefix, $compareStart, $compareEnd);
+ 390:                 }
+ 391:                 break;
+ 392:         }
+ 393:     }
+ 394: }
+ 395: 
+ 396: 
+ 397: if (!function_exists('hasMany')) {
+ 398:     function hasMany($collection, $field, $model, $searchKey, $insertKey, $where = [] ,$select = '*')
+ 399:     {
+ 400:         $ids = [];
+ 401:         $link = [];
+ 402: 
+ 403:         if (!$collection) return [];
+ 404:         $collection = $collection->toArray();
+ 405:         foreach ($collection as $k => $item) {
+ 406:             if (is_array($item[$field])) {
+ 407:                 $link[$k] = array_unique($item[$field]);
+ 408:                 $ids = array_merge($item[$field], $ids);
+ 409:             } else {
+ 410:                 $link[$k] = array_unique(explode(',', $item[$field]));
+ 411:             }
+ 412:             $ids = array_merge($link[$k], $ids);
+ 413:             if (isset($collection[$k][$insertKey])) unset($collection[$k][$insertKey]);
+ 414:         }
+ 415:         $ids = array_filter(array_unique($ids));
+ 416:         if (!count($ids)) {
+ 417:             return $collection;
+ 418:         }
+ 419:         $many = $model::whereIn($searchKey, array_unique($ids))->where($where)->field($select)->select();
+ 420: 
+ 421:         if (!$many) return $collection;
+ 422:         $many = $many->toArray();
+ 423:         foreach ($link as $k => $val) {
+ 424:             foreach ($many as $item) {
+ 425:                 if (in_array($item[$searchKey], $val)) {
+ 426: 
+ 427:                     if (!isset($collection[$k][$insertKey])) $collection[$k][$insertKey] = [];
+ 428: 
+ 429:                     $collection[$k][$insertKey][] = $item;
+ 430:                 }
+ 431:             }
+ 432:         }
+ 433: 
+ 434:         return $collection;
+ 435:     }
+ 436: }
+ 437: 
+ 438: if (!function_exists('activeProductSku')) {
+ 439:     //格式活动商品SKU
+ 440:     function activeProductSku($activeData, $type = null)
+ 441:     {
+ 442:         $make = app()->make(\app\common\repositories\store\product\ProductRepository::class);
+ 443:         $price = 0;
+ 444:         $data = [];
+ 445:         foreach($activeData as $key => $value) {
+ 446:             $maxPrice = 0;
+ 447:             $must_price = 0;
+ 448:             $attrValue = [];
+ 449:             if(is_null($value['product'])) continue;
+ 450:             $productSku = $value['productSku'];
+ 451:             $productAttr = $value['product']['attr'];
+ 452:             $productAttrValue = $value['product']['attrValue'];
+ 453:             unset($value['productSku'], $value['product']['attrValue'], $value['product']['attr']);
+ 454:             foreach ($productAttrValue as $attr_value) {
+ 455:                 if (!empty($productSku)){
+ 456:                     foreach ($productSku as $sk => $sv) {
+ 457:                         if ( $sv['unique'] == $attr_value['unique']) {
+ 458:                             if ($type == 'discounts') {
+ 459:                                 unset($attr_value['ot_price'], $attr_value['price']);
+ 460:                                 $attr_value['ot_price'] = $sv['price'];
+ 461:                                 $attr_value['price']    = $sv['active_price'];
+ 462:                                 $_price = bcsub($sv['price'], $sv['active_price'], 2);
+ 463:                                 if ($value['type']){
+ 464:                                     $must_price = $must_price > $_price ? $must_price : $_price;
+ 465:                                 } else {
+ 466:                                     $maxPrice = $maxPrice > $_price ? $maxPrice : $_price;
+ 467:                                 }
+ 468:                             } else {
+ 469:                                 $attr_value['productSku'] = $sv;
+ 470:                             }
+ 471:                             $attrValue[] = $attr_value;
+ 472:                         }
+ 473:                     }
+ 474:                 }
+ 475:             }
+ 476:             $attr = $make->detailAttr($productAttr);
+ 477:             if ($type == 'discounts') {
+ 478:                 $sku = $make->detailAttrValue($attrValue, null);
+ 479:                 $value['product']['sku'] = $sku;
+ 480: 
+ 481:             } else {
+ 482:                 $value['product']['attrValue'] = $attrValue;
+ 483:             }
+ 484:             $value['product']['attr'] = $attr;
+ 485:             $price = bcadd($price, bcadd($must_price,$maxPrice,2), 2);
+ 486:             if ($value['type'] == 1) {
+ 487:                 array_unshift($data,$value);
+ 488:             }else {
+ 489:                 $data[] = $value;
+ 490:             }
+ 491:         }
+ 492:         return compact('data', 'price');
+ 493:     }
+ 494: }
+ 495: 
+ 496: 
+ 497: if (!function_exists('systemConfig')) {
+ 498:     /**
+ 499:      * 获取系统配置
+ 500:      *
+ 501:      * @param string|string[] $key
+ 502:      * @return mixed
+ 503:      * @author xaboy
+ 504:      * @day 2020-05-08
+ 505:      */
+ 506:     function systemConfig($key)
+ 507:     {
+ 508:         return merchantConfig(0, $key);
+ 509:     }
+ 510: }
+ 511: 
+ 512: if (!function_exists('systemConfigNoCache')) {
+ 513:     /**
+ 514:      * 获取系统配置 不读缓存
+ 515:      *
+ 516:      * @param string|string[] $key
+ 517:      * @return mixed
+ 518:      * @author xaboy
+ 519:      */
+ 520:     function systemConfigNoCache($key)
+ 521:     {
+ 522:         return merchantConfigNoCache(0, $key);
+ 523:     }
+ 524: }
+ 525: 
+ 526: if (!function_exists('merchantConfigNoCache')) {
+ 527:     /**
+ 528:      * 获取商户配置 不读缓存
+ 529:      *
+ 530:      * @param int $merId
+ 531:      * @param string|string[] $key
+ 532:      * @return mixed
+ 533:      * @author xaboy
+ 534:      */
+ 535:     function merchantConfigNoCache(int $merId, $key)
+ 536:     {
+ 537:         $request = app('request');
+ 538:         $make = app()->make(ConfigValueRepository::class);
+ 539:         if (is_array($key)) {
+ 540:             $_key = [];
+ 541:             $cacheData = [];
+ 542:             foreach ($key as $v) {
+ 543:                 if ($request->hasCache($merId, $v)) {
+ 544:                     $cacheData[$v] = $request->getCache($merId, $v);
+ 545:                 } else {
+ 546:                     $_key[] = $v;
+ 547:                 }
+ 548:             }
+ 549:             if (!count($_key)) return $cacheData;
+ 550:             $data = $make->more($_key, $merId);
+ 551:             $request->setCache($merId, $data);
+ 552:             $data += $cacheData;
+ 553:         } else {
+ 554:             if ($request->hasCache($merId, $key)) {
+ 555:                 $data = $request->getCache($merId, $key);
+ 556:             } else {
+ 557:                 $data = $make->get($key, $merId);
+ 558:                 $request->setCache($merId, $key, $data);
+ 559:             }
+ 560:         }
+ 561:         return $data;
+ 562:     }
+ 563: }
+ 564: 
+ 565: if (!function_exists('merchantConfig')) {
+ 566:     /**
+ 567:      * 获取商户配置
+ 568:      *
+ 569:      * @param int $merId
+ 570:      * @param string|string[] $key
+ 571:      * @return mixed
+ 572:      * @author xaboy
+ 573:      * @day 2020-05-08
+ 574:      */
+ 575:     function merchantConfig(int $merId, $key)
+ 576:     {
+ 577:         return app()->make(ConfigValueRepository::class)->getConfig($merId,$key);
+ 578:     }
+ 579: }
+ 580: 
+ 581: if (!function_exists('getDatesBetweenTwoDays')) {
+ 582:     function getDatesBetweenTwoDays($startDate, $endDate, $md = 'm-d')
+ 583:     {
+ 584:         $dates = [];
+ 585:         if (strtotime($startDate) > strtotime($endDate)) {
+ 586:             //如果开始日期大于结束日期，直接return 防止下面的循环出现死循环
+ 587:             return $dates;
+ 588:         } elseif ($startDate == $endDate) {
+ 589:             //开始日期与结束日期是同一天时
+ 590:             array_push($dates, date($md, strtotime($startDate)));
+ 591:             return $dates;
+ 592:         } else {
+ 593:             array_push($dates, date($md, strtotime($startDate)));
+ 594:             $currentDate = $startDate;
+ 595:             do {
+ 596:                 $nextDate = date('Y-m-d', strtotime($currentDate . ' +1 days'));
+ 597:                 array_push($dates, date($md, strtotime($currentDate . ' +1 days')));
+ 598:                 $currentDate = $nextDate;
+ 599:             } while ($endDate != $currentDate);
+ 600:             return $dates;
+ 601:         }
+ 602:     }
+ 603: }
+ 604: 
+ 605: if (!function_exists('getStartModelTime')) {
+ 606:     function getStartModelTime(string $section)
+ 607:     {
+ 608:         switch ($section) {
+ 609:             case 'today':
+ 610:             case 'yesterday':
+ 611:                 return date('Y-m-d', strtotime($section));
+ 612:             case 'week':
+ 613:                 return date('Y-m-d', strtotime('this week'));
+ 614:             case 'month':
+ 615:                 return date('Y-m-d', strtotime('first Day of this month'));
+ 616:             case 'year':
+ 617:                 return date('Y-m-d', strtotime('this year 1/1'));
+ 618:             case 'quarter':
+ 619:                 list($startTime, $endTime) = getMonth();
+ 620:                 return $startTime;
+ 621:             case 'lately7':
+ 622:                 return date('Y-m-d', strtotime("-7 day"));
+ 623:             case 'lately30':
+ 624:                 return date('Y-m-d', strtotime("-30 day"));
+ 625:             default:
+ 626:                 if (strstr($section, '-') !== false) {
+ 627:                     list($startTime, $endTime) = explode('-', $section);
+ 628:                     return date('Y-m-d H:i:s', strtotime($startTime));
+ 629:                 }
+ 630:                 return date('Y-m-d H:i:s');
+ 631:         }
+ 632:     }
+ 633: }
+ 634: 
+ 635: 
+ 636: 
+ 637: if (!function_exists('systemGroupData')) {
+ 638:     /**
+ 639:      * 获取总后台组合数据配置
+ 640:      *
+ 641:      * @param string $key
+ 642:      * @param int|null $page
+ 643:      * @param int|null $limit
+ 644:      * @return array
+ 645:      * @author xaboy
+ 646:      * @day 2020/5/27
+ 647:      */
+ 648:     function systemGroupData(string $key, ?int $page = null, ?int $limit = 10)
+ 649:     {
+ 650:         $make = app()->make(GroupDataRepository::class);
+ 651:         return $make->groupData($key, 0, $page, $limit);
+ 652:     }
+ 653: }
+ 654: 
+ 655: if (!function_exists('merchantGroupData')) {
+ 656:     /**
+ 657:      * 获取商户后台组合数据配置
+ 658:      *
+ 659:      * @param int $merId
+ 660:      * @param string $key
+ 661:      * @param int|null $page
+ 662:      * @param int|null $limit
+ 663:      * @return array
+ 664:      * @author xaboy
+ 665:      * @day 2020/5/27
+ 666:      */
+ 667:     function merchantGroupData(int $merId, string $key, ?int $page = null, ?int $limit = 10)
+ 668:     {
+ 669:         $make = app()->make(GroupDataRepository::class);
+ 670:         return $make->groupData($key, $merId, $page, $limit);
+ 671:     }
+ 672: }
+ 673: 
+ 674: if (!function_exists('filter_emoji')) {
+ 675: 
+ 676:     // 过滤掉emoji表情
+ 677:     function filter_emoji($str)
+ 678:     {
+ 679:         $str = preg_replace_callback(    //执行一个正则表达式搜索并且使用一个回调进行替换
+ 680:             '/./u',
+ 681:             function (array $match) {
+ 682:                 return strlen($match[0]) >= 4 ? '' : $match[0];
+ 683:             },
+ 684:             $str
+ 685:         );
+ 686:         return $str;
+ 687:     }
+ 688: }
+ 689: 
+ 690: if (!function_exists('setHttpType')) {
+ 691: 
+ 692:     /**
+ 693:      *  修改 https 和 http 移动到common
+ 694:      * @param string $url 域名
+ 695:      * @param int $type 0 返回https 1 返回 http
+ 696:      * @return string
+ 697:      */
+ 698:     function setHttpType($url, $type = 0)
+ 699:     {
+ 700:         $domainTop = substr($url, 0, 5);
+ 701:         if ($type) {
+ 702:             if ($domainTop == 'https') $url = 'http' . substr($url, 5, strlen($url));
+ 703:         } else {
+ 704:             if ($domainTop != 'https') $url = 'https:' . substr($url, 5, strlen($url));
+ 705:         }
+ 706:         return $url;
+ 707:     }
+ 708: }
+ 709: 
+ 710: if (!function_exists('remoteImage')) {
+ 711: 
+ 712:     /**
+ 713:      *  获取小程序二维码是否生成
+ 714:      * @param $url
+ 715:      * @return array
+ 716:      */
+ 717:     function remoteImage($url)
+ 718:     {
+ 719:         $curl = curl_init();
+ 720:         curl_setopt($curl, CURLOPT_URL, $url);
+ 721:         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+ 722:         $result = curl_exec($curl);
+ 723:         $result = json_decode($result, true);
+ 724:         if (is_array($result)) return ['status' => false, 'msg' => $result['errcode'] . '---' . $result['errmsg']];
+ 725:         return ['status' => true];
+ 726:     }
+ 727: }
+ 728: 
+ 729: if (!function_exists('image_to_base64')) {
+ 730:     /**
+ 731:      * 获取图片转为base64
+ 732:      * @param string $avatar
+ 733:      * @return bool|string
+ 734:      */
+ 735:     function image_to_base64($avatar = '', $timeout = 9)
+ 736:     {
+ 737:         checkSuffix($avatar);
+ 738:         try {
+ 739:             $url = parse_url($avatar);
+ 740:             if (is_file($file = public_path().$url['path'])) {
+ 741:                 return "data:image/jpeg;base64," . base64_encode(file_get_contents($file, 1));
+ 742:             }
+ 743:             $url = $url['host'];
+ 744:             $header = [
+ 745:                 'User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:45.0) Gecko/20100101 Firefox/45.0',
+ 746:                 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+ 747:                 'Accept-Encoding: gzip, deflate, br',
+ 748:                 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+ 749:                 'Host:' . $url
+ 750:             ];
+ 751:             $dir = pathinfo($url);
+ 752:             $host = $dir['dirname'];
+ 753:             $refer = $host . '/';
+ 754:             $curl = curl_init();
+ 755:             curl_setopt($curl, CURLOPT_REFERER, $refer);
+ 756:             curl_setopt($curl, CURLOPT_URL, $avatar);
+ 757:             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+ 758:             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+ 759:             curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
+ 760:             curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
+ 761:             curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+ 762:             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+ 763:             $data = curl_exec($curl);
+ 764:             $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+ 765:             curl_close($curl);
+ 766:             if ($code == 200) {
+ 767:                 return "data:image/jpeg;base64," . base64_encode($data);
+ 768:             } else {
+ 769:                 return false;
+ 770:             }
+ 771:         } catch (Exception $e) {
+ 772:             return false;
+ 773:         }
+ 774:     }
+ 775: }
+ 776: 
+ 777: 
+ 778: if (!function_exists('put_image')) {
+ 779:     /**
+ 780:      * 获取图片转为base64
+ 781:      * @param string $avatar
+ 782:      * @return bool|string
+ 783:      */
+ 784:     function put_image($url, $filename = '')
+ 785:     {
+ 786: 
+ 787:         if ($url == '') {
+ 788:             return false;
+ 789:         }
+ 790:         try {
+ 791:             if ($filename == '') {
+ 792: 
+ 793:                 $ext = pathinfo($url);
+ 794:                 if ($ext['extension'] != "jpg" && $ext['extension'] != "png" && $ext['extension'] != "jpeg") {
+ 795:                     return false;
+ 796:                 }
+ 797:                 $filename = time() . "." . $ext['extension'];
+ 798:             }
+ 799: 
+ 800:             //文件保存路径
+ 801:             ob_start();
+ 802:             readfile($url);
+ 803:             $img = ob_get_contents();
+ 804:             ob_end_clean();
+ 805:             $path = 'public/uploads/qrcode';
+ 806:             $fp2 = fopen($path . '/' . $filename, 'a');
+ 807:             fwrite($fp2, $img);
+ 808:             fclose($fp2);
+ 809:             return $path . '/' . $filename;
+ 810:         } catch (Exception $e) {
+ 811:             return false;
+ 812:         }
+ 813:     }
+ 814: }
+ 815: 
+ 816: if (!function_exists('path_to_url')) {
+ 817:     /**
+ 818:      * 路径转url路径
+ 819:      * @param $path
+ 820:      * @return string
+ 821:      */
+ 822:     function path_to_url($path)
+ 823:     {
+ 824:         return trim(str_replace(DIRECTORY_SEPARATOR, '/', $path), '.');
+ 825:     }
+ 826: }
+ 827: 
+ 828: if (!function_exists('tidy_url')) {
+ 829:     /**
+ 830:      * 路径转url路径
+ 831:      * @param $url
+ 832:      * @param int $http
+ 833:      * @param string $site
+ 834:      * @return string
+ 835:      */
+ 836:     function tidy_url($url, $http = null, $site = null)
+ 837:     {
+ 838:         if (!$site) {
+ 839:             $site = systemConfig('site_url');
+ 840:         }
+ 841:         $url = path_to_url($url);
+ 842:         if (strpos($url, 'http') === false)
+ 843:             $url = rtrim($site, '/') . '/' . ltrim($url, '/');
+ 844: 
+ 845:         if (is_null($http)) {
+ 846:             $http = (parse_url($site)['scheme'] ?? '') == 'https' ? 0 : 1;
+ 847:         }
+ 848:         $url = set_http_type($url, $http);
+ 849:         return $url;
+ 850:     }
+ 851: }
+ 852: 
+ 853: 
+ 854: if (!function_exists('curl_file_exist')) {
+ 855:     /**
+ 856:      * CURL 检测远程文件是否在
+ 857:      * @param $url
+ 858:      * @return bool
+ 859:      */
+ 860:     function curl_file_exist($url)
+ 861:     {
+ 862:         $ch = curl_init();
+ 863:         try {
+ 864:             curl_setopt($ch, CURLOPT_URL, $url);
+ 865:             curl_setopt($ch, CURLOPT_HEADER, 1);
+ 866:             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+ 867:             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+ 868:             $contents = curl_exec($ch);
+ 869:             if (preg_match("/404/", $contents)) return false;
+ 870:             if (preg_match("/403/", $contents)) return false;
+ 871:             return true;
+ 872:         } catch (Exception $e) {
+ 873:             return false;
+ 874:         }
+ 875:     }
+ 876: }
+ 877: 
+ 878: 
+ 879: if (!function_exists('set_http_type')) {
+ 880:     /**
+ 881:      * 修改 https 和 http
+ 882:      * @param string $url 域名
+ 883:      * @param int $type 0 返回https 1 返回 http
+ 884:      * @return string
+ 885:      */
+ 886:     function set_http_type($url, $type = 0)
+ 887:     {
+ 888:         $domainTop = substr($url, 0, 5);
+ 889:         if ($type) {
+ 890:             if ($domainTop == 'https') $url = 'http' . substr($url, 5, strlen($url));
+ 891:         } else {
+ 892:             if ($domainTop != 'https') $url = 'https:' . substr($url, 5, strlen($url));
+ 893:         }
+ 894:         return $url;
+ 895:     }
+ 896: }
+ 897: 
+ 898: if (!function_exists('setSharePoster')) {
+ 899:     /**
+ 900:      *  生成分享二维码图片
+ 901:      * @param array $config
+ 902:      * @param $path
+ 903:      * @return array|bool|string
+ 904:      * @throws Exception
+ 905:      */
+ 906:     function setSharePoster($config, $path)
+ 907:     {
+ 908:         $imageDefault = array(
+ 909:             'left' => 0,
+ 910:             'top' => 0,
+ 911:             'right' => 0,
+ 912:             'bottom' => 0,
+ 913:             'width' => 100,
+ 914:             'height' => 100,
+ 915:             'opacity' => 100
+ 916:         );
+ 917:         $textDefault = array(
+ 918:             'text' => '',
+ 919:             'left' => 0,
+ 920:             'top' => 0,
+ 921:             'fontSize' => 32,       //字号
+ 922:             'fontColor' => '255,255,255', //字体颜色
+ 923:             'angle' => 0,
+ 924:         );
+ 925:         $background = $config['background']; //海报最底层得背景
+ 926:         if (substr($background, 0, 1) === '/') {
+ 927:             $background = substr($background, 1);
+ 928:         }
+ 929:         $backgroundInfo = getimagesize($background);
+ 930:         $background = imagecreatefromstring(file_get_contents($background));
+ 931:         $backgroundWidth = $backgroundInfo[0];  //背景宽度
+ 932:         $backgroundHeight = $backgroundInfo[1];  //背景高度
+ 933:         $imageRes = imageCreatetruecolor($backgroundWidth, $backgroundHeight);
+ 934:         $color = imagecolorallocate($imageRes, 0, 0, 0);
+ 935:         imagefill($imageRes, 0, 0, $color);
+ 936:         imagecopyresampled($imageRes, $background, 0, 0, 0, 0, imagesx($background), imagesy($background), imagesx($background), imagesy($background));
+ 937:         if (!empty($config['image'])) {
+ 938:             foreach ($config['image'] as $key => $val) {
+ 939:                 $val = array_merge($imageDefault, $val);
+ 940:                 $info = getimagesize($val['url']);
+ 941:                 $function = 'imagecreatefrom' . image_type_to_extension($info[2], false);
+ 942:                 if ($val['stream']) {
+ 943:                     $info = getimagesizefromstring($val['url']);
+ 944:                     $function = 'imagecreatefromstring';
+ 945:                 }
+ 946:                 $res = $function($val['url']);
+ 947:                 $resWidth = $info[0];
+ 948:                 $resHeight = $info[1];
+ 949:                 $canvas = imagecreatetruecolor($val['width'], $val['height']);
+ 950:                 imagefill($canvas, 0, 0, $color);
+ 951:                 imagecopyresampled($canvas, $res, 0, 0, 0, 0, $val['width'], $val['height'], $resWidth, $resHeight);
+ 952:                 $val['left'] = $val['left'] < 0 ? $backgroundWidth - abs($val['left']) - $val['width'] : $val['left'];
+ 953:                 $val['top'] = $val['top'] < 0 ? $backgroundHeight - abs($val['top']) - $val['height'] : $val['top'];
+ 954:                 imagecopymerge($imageRes, $canvas, $val['left'], $val['top'], $val['right'], $val['bottom'], $val['width'], $val['height'], $val['opacity']); //左，上，右，下，宽度，高度，透明度
+ 955:             }
+ 956:         }
+ 957:         if (isset($config['text']) && !empty($config['text'])) {
+ 958:             foreach ($config['text'] as $key => $val) {
+ 959:                 $val = array_merge($textDefault, $val);
+ 960:                 list($R, $G, $B) = explode(',', $val['fontColor']);
+ 961:                 $fontColor = imagecolorallocate($imageRes, $R, $G, $B);
+ 962:                 $val['left'] = $val['left'] < 0 ? $backgroundWidth - abs($val['left']) : $val['left'];
+ 963:                 $val['top'] = $val['top'] < 0 ? $backgroundHeight - abs($val['top']) : $val['top'];
+ 964:                 imagettftext($imageRes, $val['fontSize'], $val['angle'], $val['left'], $val['top'], $fontColor, $val['fontPath'], $val['text']);
+ 965:             }
+ 966:         }
+ 967:         ob_start();
+ 968:         imagejpeg($imageRes);
+ 969:         imagedestroy($imageRes);
+ 970:         $res = ob_get_contents();
+ 971:         ob_end_clean();
+ 972:         $key = substr(md5(rand(0, 9999)), 0, 5) . date('YmdHis') . rand(0, 999999) . '.jpg';
+ 973:         $uploadType = (int)systemConfig('upload_type') ?: 1;
+ 974:         $upload = UploadService::create($uploadType);
+ 975:         $res = $upload->to($path)->validate()->stream($res, $key);
+ 976:         if ($res === false) {
+ 977:             return $upload->getError();
+ 978:         } else {
+ 979:             $info = $upload->getUploadInfo();
+ 980:             $info['image_type'] = $uploadType;
+ 981:             return $info;
+ 982:         }
+ 983:     }
+ 984: }
+ 985: 
+ 986: if (!function_exists('getTimes')) {
+ 987:     function getTimes()
+ 988:     {
+ 989:         $dates = [];
+ 990:         for ($i = 0; $i <= 24; $i++) {
+ 991:             for ($j = 0; $j < 60; $j++) {
+ 992:                 $dates[] = sprintf('%02.d', $i) . ':' . sprintf('%02.d', $j);
+ 993:             }
+ 994:         }
+ 995:         return $dates;
+ 996:     }
+ 997: }
+ 998: 
+ 999: if (!function_exists('monday')) {
+1000:     /**
+1001:      * 获取周一
+1002:      *
+1003:      * @param null $time
+1004:      * @return false|string
+1005:      * @author xaboy
+1006:      * @day 2020/6/22
+1007:      */
+1008:     function monday($time = null)
+1009:     {
+1010:         return date('Y-m-d', strtotime('Sunday -6 day', $time ?: time()));
+1011:     }
+1012: }
+1013: 
+1014: if (!function_exists('orderLock')) {
+1015:     /**
+1016:      * @param string $name
+1017:      * @return Lock
+1018:      * @author xaboy
+1019:      * @day 2020/8/25
+1020:      */
+1021:     function makeLock($name = 'default'): Lock
+1022:     {
+1023:         return $GLOBALS['_swoole_order_lock'][$name];
+1024:     }
+1025: }
+1026: 
+1027: if (!function_exists('get_code_version')) {
+1028:     /**
+1029:      * 获取系统类型
+1030:      * @return string
+1031:      */
+1032:     function get_code_version()
+1033:     {
+1034:         $default = '';
+1035:         try {
+1036:             $version = parse_ini_file(app()->getRootPath() . '.version');
+1037:             return $version['version'] ?? $default;
+1038:         } catch (Throwable $e) {
+1039:             return $default;
+1040:         }
+1041:     }
+1042: }
+1043: 
+1044: if (!function_exists('get_code_type')) {
+1045:     /**
+1046:      * 获取系统版类型
+1047:      * @param string $default
+1048:      * @return string
+1049:      */
+1050:     function get_code_type()
+1051:     {
+1052:         try {
+1053:             $version = parse_ini_file(app()->getRootPath() . '.version');
+1054:             return $version['version_type'] ?? '';
+1055:         } catch (Throwable $e) {
+1056:             return '';
+1057:         }
+1058:     }
+1059: }
+1060: 
+1061: if (!function_exists('get_crmeb_version_code')) {
+1062:     /**
+1063:      * 获取CRMEB系统版本号
+1064:      * @param string $default
+1065:      * @return string
+1066:      */
+1067:     function get_crmeb_version_code($default = '1.7.2')
+1068:     {
+1069:         try {
+1070:             $version = parse_ini_file(app()->getRootPath() . '.version');
+1071:             return $version['code'] ?? $default;
+1072:         } catch (Throwable $e) {
+1073:             return $default;
+1074:         }
+1075:     }
+1076: }
+1077: 
+1078: if (!function_exists('update_crmeb_compiled')) {
+1079:     /**
+1080:      * 获取CRMEB系统版本号
+1081:      * @param string $default
+1082:      * @return string
+1083:      */
+1084:     function update_crmeb_compiled($default = 'v1.0.0')
+1085:     {
+1086:         $compiled = [
+1087:             '7.1' => 'compiled71',
+1088:             '7.2' => 'compiled72',
+1089:             '7.3' => 'compiled73',
+1090:             '7.4' => 'compiled74',
+1091:         ];
+1092: 
+1093:         $phpv = @phpversion();
+1094:         $phpvs = substr($phpv, 0, 3);
+1095:         $key = $compiled[$phpvs] ?? '';
+1096:         if (!$key)
+1097:             return false;
+1098:         $root = app()->getRootPath();
+1099:         $compiledPath = $root . 'install/compiled';
+1100:         $file = $root . 'install/compiled/' . $key . '.zip';
+1101:         $toPath = $root . 'crmeb/basic';
+1102:         $toConfigPath = $root . 'config/crmeb.php';
+1103:         $demoImage = $root.'public/uploads'.'images.zip';
+1104:         try {
+1105:             if (is_file($file)) {
+1106:                 $zip = new ZipArchive();
+1107:                 if ($zip->open($file) === true) {
+1108:                     $zip->extractTo($compiledPath . '/');
+1109:                     $zip->close();
+1110:                 }
+1111:                 if (is_dir($compiledPath . '/basic')) {
+1112:                     if (is_dir($toPath) || mkdir($toPath, 0777) || is_dir($toPath)) {
+1113:                         foreach (glob($compiledPath . '/basic/*') as $item) {
+1114:                             @rename($item, $toPath . '/' . pathinfo($item, PATHINFO_BASENAME));
+1115:                         }
+1116:                     }
+1117:                     @rmdir($compiledPath . '/basic');
+1118:                 }
+1119:                 if (is_file($compiledPath . '/crmeb.php')) {
+1120:                     @rename($compiledPath . '/crmeb.php', $toConfigPath);
+1121:                 }
+1122:             }
+1123:         } catch (\Exception $exception) {
+1124:             return false;
+1125:         }
+1126:         try{
+1127:             if (is_file($demoImage)) {
+1128:                 $zip = new ZipArchive();
+1129:                 if ($zip->open($demoImage) === true) {
+1130:                     $zip->extractTo($compiledPath . '/');
+1131:                     $zip->close();
+1132:                 }
+1133:             }
+1134:         }catch (\Exception $exception) {
+1135: 
+1136:         }
+1137:         return true;
+1138:     }
+1139: }
+1140: if (!function_exists('attr_format')) {
+1141: 
+1142:     /**
+1143:      * 格式化属性
+1144:      * @param $arr
+1145:      * @return array
+1146:      */
+1147:     function attr_format($arr): array
+1148:     {
+1149:         $len = count($arr);
+1150:         $title = array_column($arr, 'value');
+1151:         $result = [];
+1152: 
+1153:         if ($len > 0) {
+1154:             if ($len > 1) {
+1155:                 $result = $arr[0]['detail'];
+1156:                 for ($i = 0; $i < $len - 1; $i++) {
+1157:                     $temp = $result;
+1158:                     $result = [];
+1159:                     foreach ($temp as $item) {
+1160:                         foreach ($arr[$i + 1]['detail'] as $datum) {
+1161:                             $result[] = trim($item) . ',' . trim($datum);
+1162:                         }
+1163:                     }
+1164:                 }
+1165:             } else {
+1166:                 foreach ($arr[0]['detail'] as $item) {
+1167:                     $result[] = trim($item);
+1168:                 }
+1169:             }
+1170:         }
+1171:         return [$result, $title];
+1172:     }
+1173: }
+1174: 
+1175: if (!function_exists('filter_emoji')) {
+1176:     //过滤掉emoji表情
+1177:     function filter_emoji($str)
+1178:     {
+1179:         $str = preg_replace_callback('/./u', function (array $match) {
+1180:             return strlen($match[0]) >= 4 ? '' : $match[0];
+1181:         }, $str);
+1182:         return $str;
+1183:     }
+1184: }
+1185: 
+1186: /*
+1187:  *  腾讯地图转换百度地图 GCJ02 转 BD09
+1188:  * 中国正常GCJ02坐标---->百度地图BD09坐标
+1189:  * 腾讯地图/高德地图用的也是GCJ02坐标
+1190:  * @param double $lat 纬度
+1191:  * @param double $lng 经度
+1192:  */
+1193: if (!function_exists('gcj02ToBd09')) {
+1194:     function gcj02ToBd09($lng, $lat)
+1195:     {
+1196:         $x_pi = 3.14159265358979324 * 3000.0 / 180.0;
+1197:         $x = $lng;
+1198:         $y = $lat;
+1199:         $z = sqrt($x * $x + $y * $y) - 0.00002 * sin($y * $x_pi);
+1200:         $theta = atan2($y, $x) - 0.000003 * cos($x * $x_pi);
+1201: 
+1202:         $lng = $z * cos($theta) + 0.0065;
+1203:         $lat = $z * sin($theta) + 0.006;
+1204:         return [$lng,$lat];
+1205:     }
+1206: }
+1207: 
+1208: if (!function_exists('lbs_address')) {
+1209:     function lbs_address($region, $address)
+1210:     {
+1211:         $locationOption = new \Joypack\Tencent\Map\Bundle\AddressOption(systemConfig('tx_map_key'));
+1212:         $locationOption->setAddress($address);
+1213:         $locationOption->setRegion($region);
+1214:         $location = new \Joypack\Tencent\Map\Bundle\Address($locationOption);
+1215:         $res = $location->request();
+1216:         if ($res->error) {
+1217:             throw new \think\exception\ValidateException($res->error);
+1218:         }
+1219:         if ($res->status) {
+1220:             throw new \think\exception\ValidateException($res->message);
+1221:         }
+1222:         if (!$res->result) {
+1223:             throw new \think\exception\ValidateException('获取失败');
+1224:         }
+1225:         return $res->result;
+1226:     }
+1227: }
+1228: 
+1229: 
+1230: if (!function_exists('aj_captcha_check_one')) {
+1231:     /**
+1232:      * 验证滑块1次验证
+1233:      * @param string $token
+1234:      * @param string $pointJson
+1235:      * @return bool
+1236:      */
+1237:     function aj_captcha_check_one(string $captchaType, string $token, string $pointJson)
+1238:     {
+1239:         aj_get_serevice($captchaType)->check($token, $pointJson);
+1240:         return true;
+1241:     }
+1242: }
+1243: 
+1244: if (!function_exists('aj_captcha_check_two')) {
+1245:     /**
+1246:      * 验证滑块2次验证
+1247:      * @param string $token
+1248:      * @param string $pointJson
+1249:      * @return bool
+1250:      */
+1251:     function aj_captcha_check_two(string $captchaType, string $captchaVerification )
+1252:     {
+1253:         aj_get_serevice($captchaType)->verificationByEncryptCode($captchaVerification);
+1254:         return true;
+1255:     }
+1256: }
+1257: 
+1258: 
+1259: if (!function_exists('aj_captcha_create')) {
+1260:     /**
+1261:      * 创建验证码
+1262:      * @return array
+1263:      */
+1264:     function aj_captcha_create(string $captchaType)
+1265:     {
+1266:         return aj_get_serevice($captchaType)->get();
+1267:     }
+1268: }
+1269: 
+1270: if (!function_exists('aj_get_serevice')) {
+1271: 
+1272:     function aj_get_serevice(string $captchaType)
+1273:     {
+1274:         $config = \think\facade\Config::get('ajcaptcha');
+1275:         switch ($captchaType) {
+1276:             case "clickWord":
+1277:                 $service = new \Fastknife\Service\ClickWordCaptchaService($config);
+1278: //                $service = new  \crmeb\services\BlockPuzzleCaptchaService($config);
+1279:                 break;
+1280:             case "blockPuzzle":
+1281:                 $service = new \Fastknife\Service\BlockPuzzleCaptchaService($config);
+1282:                 //$service = new  \crmeb\services\BlockPuzzleCaptchaService($config);
+1283:                 break;
+1284:             default:
+1285:                 throw new \think\exception\ValidateException('captchaType参数不正确：'.$captchaType);
+1286:         }
+1287:         return $service;
+1288:     }
+1289: }
+1290: 
+1291: if (!function_exists('checkSuffix')) {
+1292:     function checkSuffix($data)
+1293:     {
+1294:         $suffix = \think\facade\Config::get('upload.fileExt');
+1295:         if (is_array($data)){
+1296:             foreach ($data as $datum) {
+1297:                 if (strpos($datum,'phar://') !== false)
+1298:                     throw new \think\exception\ValidateException('操作失败');
+1299:                 $result = pathinfo($datum);
+1300:                 if (isset($result['extension']) && !in_array($result['extension'],$suffix)) {
+1301:                     throw new \think\exception\ValidateException('文件后缀不允许');
+1302:                 }
+1303:             }
+1304:         } else {
+1305:             if (strpos($data,'phar://') !== false )
+1306:                 throw new \think\exception\ValidateException('操作失败');
+1307:             $result = pathinfo($data);
+1308:             if (isset($result['extension']) && !in_array($result['extension'],$suffix)) {
+1309:                 throw new \think\exception\ValidateException('文件后缀不允许');
+1310:             }
+1311:         }
+1312:         return ;
+1313:     }
+1314: }
+1315: 
+1316: if (!function_exists('strUcwords')) {
+1317:     function strUcwords($str)
+1318:     {
+1319:         return str_replace(' ', '', ucwords(str_replace('_', ' ', $str)));
+1320:     }
+1321: }
+1322: 
+1323: 
+1324: if(!function_exists('getThumbWaterImage')){
+1325:     /**
+1326:      * 获取缩略图水印文件
+1327:      * @param string $filePath 文件路径
+1328:      * @param string $fileName 文件名称
+1329:      * @param string $type 大中小 ['big', 'mid', 'small'] / all
+1330:      * @param string $rename 重命名字段,也就是将获取的图片以新的字段名添加到列表
+1331:      * @return mixed
+1332:      */
+1333:     function getThumbWaterImage($list,array $fields = ['image'], string $type = 'all', $fileName = '', $rename = '')
+1334:     {
+1335:         $upload_type = systemConfig('upload_type') ?: 1;
+1336:         $image_thumb_status = systemConfig('image_thumb_status');
+1337:         if ($image_thumb_status) {
+1338:             $upload = UploadService::create($upload_type);
+1339:             $domain = app()->make(StorageRepository::class)->domains($upload_type);
+1340:             foreach ($list as &$item){
+1341:                 foreach ($fields as $field) {
+1342:                     $f = $rename ? $rename : $field ;
+1343:                     if(is_array($item[$field]) && !empty($item[$field])){
+1344:                         $imageList = $item[$field];
+1345:                         $item[$f] = [];
+1346:                         foreach ($imageList as $filePath){
+1347:                             $host = parse_url($filePath);
+1348:                             if (isset($host['scheme']) && in_array($host['scheme'].'://'.$host['host'], $domain) ) {
+1349:                                 $thumbResult = $upload->thumb($filePath,$fileName,$type);
+1350:                                 $item[$f][] = $thumbResult[$type] ?: $item[$field];
+1351:                             } else {
+1352:                                 $item[$f][] = $filePath;
+1353:                             }
+1354:                         }
+1355:                     }else{
+1356:                         $filePath = $item[$field];
+1357:                         $host = parse_url($filePath);
+1358:                         if (isset($host['scheme']) && in_array($host['scheme'].'://'.$host['host'], $domain)) {
+1359:                             $thumbResult = $upload->thumb($filePath, $fileName, $type);
+1360:                             $item[$f] = $thumbResult[$type] ?: $item[$field];
+1361:                         } else {
+1362:                             $item[$f] = $filePath;
+1363:                         }
+1364:                     }
+1365:                 }
+1366:             }
+1367:         }
+1368:         return $list;
+1369:     }
+1370: }
+1371: 
+1372: if(!function_exists('get_extension_info')){
+1373:     /**
+1374:      * @param $user 用户信息
+1375:      * @return array
+1376:      */
+1377:     function get_extension_info($user = null)
+1378:     {
+1379:         /**
+1380:          *  是否开启分销
+1381:          *  分销方式
+1382:          *  是否为分销员
+1383:          *  是否内购
+1384:          */
+1385:         $config = systemConfig(['extension_status','promoter_type','extension_self','extension_pop']);
+1386:         $extension_status = $config['extension_status'];
+1387:         $promoter_type = $config['promoter_type'];
+1388:         $isPromoter = 0;//是否分销员
+1389:         $isSelfBuy = 0;//是否内购
+1390:         $promoter_switch = 1;
+1391:         if ($extension_status && $user) {
+1392:             if ($user) {
+1393:                 $promoter_switch = $user['promoter_switch'] ?? 0;
+1394:             }
+1395:             if ($promoter_switch) {
+1396:                 $isPromoter = ($user['is_promoter'] ?? 0) ? 1 : 0;
+1397:                 //如果需要人人分销不设置为每个人都是 is_promoter = 1 ; 就开启这里
+1398:                 //if (!$isPromoter) {
+1399:                 //    $isPromoter = systemConfig('promoter_type') == 2  ? 1 : 0;
+1400:                 //}
+1401:                 $isSelfBuy = $isPromoter && systemConfig('extension_self') ? 1 : 0;//是否内购
+1402:             }
+1403:         }
+1404:         // 佣金显示弹框开关
+1405:         //0:全部可见
+1406:         //1:推广员可见
+1407:         //2:非推广员可见
+1408:         //3:关闭
+1409:         $extension_pop = 0;
+1410:         if ($extension_status) {
+1411:             $extension_pop = 1;
+1412:             switch ($config['extension_pop']) {
+1413:                 case 1:
+1414:                     $extension_pop = $isPromoter ? 1 : 0;
+1415:                     break;
+1416:                 case 2:
+1417:                     $extension_pop = $isPromoter ? 0 : 1;
+1418:                     break;
+1419:                 case 3:
+1420:                     $extension_pop = 0;
+1421:                     break;
+1422:             }
+1423:         }
+1424:         return compact('isPromoter','isSelfBuy','extension_status','promoter_type','extension_pop');
+1425:     }
+1426: }
+1427: 
+1428: if (!function_exists('filter_str')) {
+1429:     /**
+1430:      * 过滤字符串敏感字符
+1431:      * @param $str
+1432:      * @return array|mixed|string|string[]|null
+1433:      */
+1434:     function filter_str($str)
+1435:     {
+1436:         $rules = [
+1437:             '/\.\./', // 禁用包含 ../ 的参数
+1438:             '/\<\?/', // 禁止 php 脚本出现
+1439:             '/\bor\b.*=.*/i', // 匹配 'or 1=1'，防止 SQL 注入（注意边界词 \b 和不区分大小写 i 修饰符）
+1440:             '/(select[\s\S]*?)(from|limit)/i', // 防止 SQL 注入
+1441:             '/(union[\s\S]*?select)/i', // 防止 SQL 注入
+1442:             '/(having|updatexml|extractvalue)/i', // 防止 SQL 注入
+1443:             '/sleep\((\s*)(\d*)(\s*)\)/i', // 防止 SQL 盲注
+1444:             '/benchmark\((.*)\,(.*)\)/i', // 防止 SQL 盲注
+1445:             '/base64_decode\(/i', // 防止 SQL 变种注入
+1446:             '/(?:from\W+information_schema\W)/i', // 注意这里的 (?:...) 是不合法的，应该是 (?:...) 表示非捕获组，但通常我们不需要这个
+1447:             '/(?:current_|user|database|schema|connection_id)\s*\(/i', // 防止 SQL 注入（注意去掉了不必要的 (?:...)）
+1448:             '/(?:etc\/\W*passwd)/i', // 防止窥探 Linux 用户信息
+1449:             '/into(\s+)(?:dump|out)file\s*/i', // 禁用 MySQL 导出函数
+1450:             '/group\s+by.+\(/i', // 防止 SQL 注入
+1451:             '/(?:define|eval|file_get_contents|include|require|require_once|shell_exec|phpinfo|system|passthru|preg_\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog)\(/i', // 禁用 webshell 相关某些函数
+1452:             '/(gopher|doc|php|glob|file|phar|zlib|ftp|ldap|dict|ogg|data)\:\/\//i', // 防止一些协议攻击（注意协议后的三个斜杠）
+1453:             '/\$_(GET|POST|COOKIE|FILES|SESSION|ENV|GLOBALS|SERVER)\[/i', // 禁用一些内置变量，注意 PHP 变量名通常是大写的
+1454:             '/<(iframe|script|body|img|layer|div|meta|style|base|object|input)/i', // 防止 XSS 标签植入
+1455:             '/(onmouseover|onerror|onload|onclick)\=/i', // 防止 XSS 事件植入
+1456:             '/\|\|.*?(?:ls|pwd|whoami|ll|ifconfig|ipconfig|&&|chmod|cd|mkdir|rmdir|cp|mv)/i', // 防止执行 shell（注意去掉了不合适的 ifconfog）
+1457:             '/\sand\s+.*=.*/i' // 匹配 and 1=1
+1458:         ];
+1459:         if (filter_var($str, FILTER_VALIDATE_URL)) {
+1460:             $url = parse_url($str);
+1461:             if (!isset($url['scheme'])) return $str;
+1462:             $host = $url['scheme'] . '://' . $url['host'];
+1463:             $str = $host . preg_replace($rules, '', str_replace($host, '', $str));
+1464:         } else {
+1465:             $str = preg_replace($rules, '', $str);
+1466:         }
+1467:         return $str;
+1468:     }
+1469: }
+1470: if(!function_exists('generateTimeRanges')) {
+1471:     /**
+1472:      * 生成时间段数组
+1473:      *
+1474:      * @param string $startTime
+1475:      * @param string $endTime
+1476:      * @param integer $intervalMinutes
+1477:      * @return array
+1478:      */
+1479:     function generateTimeRanges(string $startTime, string $endTime, int $intervalMinutes = 10) : array
+1480:     {
+1481:         // 验证时间间隔
+1482:         if ($intervalMinutes < 10) {
+1483:             throw new \think\exception\ValidateException('时间间隔必须大于等于10分钟');
+1484:         }
+1485:         // 转换起止时间为时间戳
+1486:         $startTimestamp = strtotime($startTime);
+1487:         $endTimestamp = strtotime($endTime);
+1488:         if ($startTimestamp >= $endTimestamp) {
+1489:             throw new \think\exception\ValidateException('起始时间必须小于结束时间');
+1490:         }
+1491:         // 时间间隔转换为秒
+1492:         $intervalSeconds = $intervalMinutes * 60;
+1493:         // 初始化时间段数组,生成时间段
+1494:         $timeRanges = [];
+1495:         for ($current = $startTimestamp; $current < $endTimestamp; $current += $intervalSeconds) {
+1496:              // 下一个时间段的开始时间
+1497:             $next = $current + $intervalSeconds;
+1498:             // 处理最后一个时间段
+1499:             if ($next > $endTimestamp) {
+1500:                 $next = $endTimestamp;
+1501:             }
+1502:             // 添加时间段到数组中
+1503:             $timeRanges[] = [
+1504:                 'start' => date('H:i', $current),
+1505:                 'end' => date('H:i', $next)
+1506:             ];
+1507:         }
+1508:         return $timeRanges;
+1509:     }
+1510: }
+1511: 
+1512: if (!function_exists('growthRate')) {
+1513:     /**
+1514:      * 计算环比增长率
+1515:      * @param $current
+1516:      * @param $previous
+1517:      * @param $scale
+1518:      * @return string
+1519:      * @author Qinii
+1520:      */
+1521:     function growthRate($current, $previous, $scale = 2)
+1522:     {
+1523:         // 转为字符串，避免浮点数精度问题
+1524:         $current = (string)$current;
+1525:         $previous = (string)$previous;
+1526: 
+1527:         if (bccomp($previous, '0', $scale) === 0) {
+1528:             // 上期为0的情况处理
+1529:             return bccomp($current, '0', $scale) === 1 ? '100.00' : '0.00';
+1530:         }
+1531: 
+1532:         // 计算增长额
+1533:         $growth = bcsub($current, $previous, $scale + 2);
+1534: 
+1535:         // 计算增长率
+1536:         $rate = bcdiv($growth, $previous, $scale + 4);
+1537:         $percentage = bcmul($rate, '100', $scale);
+1538:         return $percentage;
+1539:     }
+1540: }
+1541: 
+1542: if (!function_exists('getStepLength')) {
+1543:     function getStepLength($date, $format = null)
+1544:     {
+1545:         // 设置默认格式
+1546:         if ($format === null) {
+1547:             $format = [
+1548:                 'week' => 'm-d',
+1549:                 'month' => 'm-d',
+1550:                 'year' => 'n',
+1551:                 'quarter' => 'n',
+1552:                 'lately7' => 'm-d',
+1553:                 'lately30' => 'm-d'
+1554:             ][$date] ?? 'm-d';
+1555:         }
+1556:         $customFormat = null;
+1557:         switch ($date) {
+1558:             // 本周每天日期
+1559:             case 'week':
+1560:                 $dates = [];
+1561:                 $start = strtotime('monday this week');
+1562:                 for ($i = 0; $i < 7; $i++) {
+1563:                     $timestamp = $start + ($i * 86400);
+1564:                     $dates[] = date($format, $timestamp);
+1565:                 }
+1566:                 break;
+1567: 
+1568:             // 本月每天日期
+1569:             case 'month':
+1570:                 $dates = [];
+1571:                 $days = date('t'); // 本月总天数
+1572:                 for ($day = 1; $day <= $days; $day++) {
+1573:                     $timestamp = strtotime(date('Y-m-') . sprintf('%02d', $day));
+1574:                     $dates[] = date(sprintf('%02d', $day), $timestamp);
+1575:                 }
+1576:                 break;
+1577: 
+1578:             // 本年每月份
+1579:             case 'year':
+1580:                 $dates = [];
+1581:                 $currentMonth = (int)date('m');
+1582:                 for ($month = 1; $month <= $currentMonth; $month++) {
+1583:                     $timestamp = strtotime(date('Y-') . sprintf('%02d', $month) . '-01');
+1584:                     $dates[] = date(sprintf('%02d', $month) , $timestamp);
+1585:                 }
+1586:                 break;
+1587: 
+1588:             // 本季度每月
+1589:             case 'quarter':
+1590:                 $dates = [];
+1591:                 $currentMonth = (int)date('m');
+1592:                 $quarter = ceil($currentMonth / 3);
+1593:                 $startMonth = ($quarter - 1) * 3 + 1;
+1594:                 $endMonth = min($startMonth + 2, $currentMonth);
+1595:                 for ($month = $startMonth; $month <= $endMonth; $month++) {
+1596:                     $timestamp = strtotime(date('Y-') . sprintf('%02d', $month) . '-01');
+1597:                     $dates[] = date($format, $timestamp);
+1598:                 }
+1599:                 break;
+1600: 
+1601:             // 最近7天每天日期
+1602:             case 'lately7':
+1603:                 $dates = [];
+1604:                 for ($i = 6; $i >= 0; $i--) {
+1605:                     $timestamp = strtotime("-$i days");
+1606:                     $dates[] = date($format, $timestamp);
+1607:                 }
+1608:                 break;
+1609: 
+1610:             // 最近30天每天日期
+1611:             case 'lately30':
+1612:                 $dates = [];
+1613:                 for ($i = 29; $i >= 0; $i--) {
+1614:                     $timestamp = strtotime("-$i days");
+1615:                     $dates[] = date($format, $timestamp);
+1616:                 }
+1617:                 break;
+1618: 
+1619:             default:
+1620:                 $dates = [];
+1621:                 $customDate  = explode('-', $date);
+1622:                 $customFormat = $format;
+1623:                 if (count($customDate) !== 2) {
+1624:                     // 默认返回最近7天
+1625:                     for ($i = 6; $i >= 0; $i--) {
+1626:                         $timestamp = strtotime("-$i days");
+1627:                         $dates[] = date($format, $timestamp);
+1628:                     }
+1629:                 } else {
+1630:                     // 自定义日期范围，例如：2023/12/01-2024-12-07,如果区间小于30天则按天返回;大于小于一年则按月返回;大于一年则按年返回
+1631:                     $startDate = strtotime($customDate[0]);
+1632:                     $endDate   = strtotime($customDate[1]);
+1633:                     $diffDays = abs(($endDate - $startDate) / 86400); // 计算天数差
+1634:                     if ($diffDays <= 30) {
+1635:                         // 按天返回
+1636:                         while ($startDate <= $endDate) {
+1637:                             $dates[] = date($format, $startDate);
+1638:                             $startDate += 86400; // 加一天的时间戳
+1639:                         }
+1640:                         $customFormat = '%m-%d';
+1641:                     } elseif (date('Y', $startDate) === date('Y', $endDate)) {
+1642:                         // 按月返回
+1643:                         for ($month = date('m', $startDate); $month <= date('m', $endDate); $month++) {
+1644:                             $timestamp = strtotime(date('Y-') . sprintf('%02d', $month) . '-01');
+1645:                             $dates[] = date(sprintf('%02d', $month) , $timestamp);
+1646:                         }
+1647:                         $customFormat = '%m';
+1648:                     } else {
+1649:                         // 按年返回
+1650:                         for ($year = date('Y', $startDate); $year <= date('Y', $endDate); $year++) {
+1651:                             $timestamp = strtotime($year . '-01-01');
+1652:                             $dates[] = date('Y', $timestamp);
+1653:                         }
+1654:                         $customFormat = '%Y';
+1655:                     }
+1656: 
+1657:                 }
+1658:                 break;
+1659:         }
+1660: 
+1661:         return [$dates, $customFormat];
+1662:     }
+1663: }
+1664: 
+1665: if (!function_exists('getWhereParams')) {
+1666: 
+1667:     /**
+1668:      * 安全获取 $where 参数（支持类型验证 + 默认值 + 零值有效）
+1669:      * @param array  $where   请求参数数组
+1670:      * @param string $key     键名
+1671:      * @param mixed  $default 默认值（默认 null）
+1672:      * @param string $type    验证类型：string|int|float|bool|array|numeric|json|in:1,2,3
+1673:      * @return mixed
+1674:      */
+1675:     function getWhereParams($where, $key, $default = '', $type = 'string')
+1676:     {
+1677:         if (!isset($where[$key])) {
+1678:             return $default;
+1679:         }
+1680:         $value = $where[$key];
+1681:         switch ($type) {
+1682:             case 'string':
+1683:                 return is_string($value) ? trim($value) : ($value === '' ? '' : $default);
+1684: 
+1685:             case 'int':
+1686:                 return filter_var($value, FILTER_VALIDATE_INT) !== false ? (int)$value : $default;
+1687: 
+1688:             case 'float':
+1689:                 return filter_var($value, FILTER_VALIDATE_FLOAT) !== false ? (float)$value : $default;
+1690: 
+1691:             case 'numeric':
+1692:                 return is_numeric($value) ? $value : $default;
+1693: 
+1694:             case 'bool':
+1695:                 return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? $default;
+1696: 
+1697:             case 'array':
+1698:                 return is_array($value) ? $value : (is_string($value) && $value !== '' ? explode(',', $value) : $default);
+1699: 
+1700:             case 'json':
+1701:                 if (is_string($value) && ($json = json_decode($value, true)) !== null) {
+1702:                     return $json;
+1703:                 }
+1704:                 return $default;
+1705: 
+1706:             default:
+1707:                 // 支持 in:1,2,3 格式
+1708:                 if (strpos($type, 'in:') === 0) {
+1709:                     $allow = explode(',', substr($type, 3));
+1710:                     $allow = array_map('trim', $allow);
+1711:                     return in_array($value, $allow, true) ? $value : $default;
+1712:                 }
+1713:                 return $value; // 默认返回原值
+1714:         }
+1715:     }
+1716: }
+</file>
+
+<file path="app/event.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: 
+ 12: // 事件定义文件
+ 13: return [
+ 14:     'bind' => [],
+ 15: 
+ 16:     'listen' => [
+ 17:         'AppInit' => [],
+ 18:         'HttpRun' => [],
+ 19:         'HttpEnd' => [],
+ 20:         'LogLevel' => [],
+ 21:         'LogWrite' => [],
+ 22:         'swoole.task' => [\crmeb\listens\SwooleTaskListen::class],
+ 23:         'swoole.init' => [
+ 24:             \crmeb\listens\InitSwooleLockListen::class,
+ 25:             \crmeb\listens\CreateTimerListen::class,
+ 26: //            \crmeb\listens\QueueListen::class,
+ 27:         ],
+ 28:         'swoole.workerStart' => [\app\webscoket\SwooleWorkerStart::class],
+ 29:         'swoole.workerExit' => [\crmeb\listens\SwooleWorkerExitListen::class],
+ 30:         'swoole.workerError' => [\crmeb\listens\SwooleWorkerExitListen::class],
+ 31:         'swoole.workerStop' => [\crmeb\listens\SwooleWorkerExitListen::class],
+ 32:         'create_timer' => env('INSTALLED', false) ? [
+ 33:             /**
+ 34:              * 这里存在的事件是有执行的，可根据需求适当关闭调整等；
+ 35:              * 如果这里不存在，但是代码逻辑中存在的定义事件，为：预留事件，就是没有实际的事件方法；是为了给需要二开，但是又不想修改源代码预留的；不用可以忽略。
+ 36:              */
+ 37: 
+ 38:             //自动分账
+ 39:              \crmeb\listens\AutoOrderProfitsharingListen::class,
+ 40:              \crmeb\listens\AutoOrderProfitsharingStatusListen::class,
+ 41:             //自动收货，用户未确认收货，超过15天未确认收货，自动确认收货
+ 42:              \crmeb\listens\AuthTakeOrderListen::class,
+ 43:             //取消订单，未支付的订单自动取消
+ 44:              \crmeb\listens\AutoCancelGroupOrderListen::class,
+ 45:             // 取消预售订单，自动取消
+ 46:              \crmeb\listens\AuthCancelPresellOrderListen::class,
+ 47:             // 自动解冻佣金
+ 48:              \crmeb\listens\AutoUnLockBrokerageListen::class,
+ 49:             // 自动发送短信提醒用户支付 10分钟未支付提醒
+ 50:              \crmeb\listens\AutoSendPayOrderSmsListen::class,
+ 51:             //自动同步短信状态
+ 52:              \crmeb\listens\SyncSmsResultCodeListen::class,
+ 53:             // 自动同步直播间状态，直播间同步监听，未开启可删除次行
+ 54:             // \crmeb\listens\SyncBroadcastStatusListen::class,
+ 55:             //商户长时间未处理退款订单，自动退款
+ 56:              \crmeb\listens\RefundOrderAgreeListen::class,
+ 57:             // 自动检测秒杀商品状态
+ 58:              \crmeb\listens\SeckillTImeCheckListen::class,
+ 59:             // 自动评价商品
+ 60:              \crmeb\listens\AutoOrderReplyListen::class,
+ 61:             // 预售商品状态检测
+ 62:              \crmeb\listens\ProductPresellStatusListen::class,
+ 63:             //检测拼团状态，团队是否成功和超时等
+ 64:              \crmeb\listens\ProductGroupStatusCheckListen::class,
+ 65:             //同步分销员状态
+ 66:              \crmeb\listens\SyncSpreadStatusListen::class,
+ 67:             // 保障服务使用数量统计
+ 68:              \crmeb\listens\GuaranteeCountListen::class,
+ 69:             // 自动解冻积分
+ 70:              \crmeb\listens\AutoUnLockIntegralListen::class,
+ 71:             // 自动清空积分
+ 72:              \crmeb\listens\AutoClearIntegralListen::class,
+ 73:             // 自动分账，商户入驻申请状态同步
+ 74:              \crmeb\listens\MerchantApplyMentsCheckListen::class,
+ 75:              //\crmeb\listens\MerchantApplyMentsRatekListen::class,
+ 76:             // 自动解冻商户金额
+ 77:              \crmeb\listens\AutoUnlockMerchantMoneyListen::class,
+ 78:             // 自动同步社区话题热度
+ 79:              \crmeb\listens\SumCountListen::class,
+ 80:             // 同步热卖排行商品
+ 81:              \crmeb\listens\SyncHotRankingListen::class,
+ 82:             // 检测活动状态（氛围图/活动边框/系统表单）
+ 83:              \crmeb\listens\AuthCancelActivityListen::class,
+ 84:             // 自动关闭用户到期付费会员
+ 85:              \crmeb\listens\CloseUserSvipListen::class,
+ 86:              // 自动发送付费会员优惠券
+ 87:              \crmeb\listens\SendSvipCouponListen::class,
+ 88:              // 自动同步商户保证金状态
+ 89:              \crmeb\listens\SyncMerchantMarginStatusListen::class,
+ 90:             // 检查队列状态
+ 91:              \crmeb\listens\SyncQueueStatusListen::class,
+ 92:             // 定时上下架监听
+ 93:              \crmeb\listens\AutoUpDownShelvesListen::class,
+ 94:              // 代客下单扫码枪支付订单结果查询
+ 95:              \crmeb\listens\pay\BarCodePayStatusListen::class,
+ 96:         ] : [],
+ 97:         // 支付相关回调 处理逻辑
+ 98:         'pay_success_user_recharge' => [\crmeb\listens\pay\UserRechargeSuccessListen::class],
+ 99:         'pay_success_user_order' => [\crmeb\listens\pay\UserOrderSuccessListen::class],
+100:         'pay_success_order' => [\crmeb\listens\pay\OrderPaySuccessListen::class],
+101:         'pay_success_presell' => [\crmeb\listens\pay\PresellPaySuccessListen::class],
+102:         'pay_success_meal' => [\crmeb\listens\pay\MealSuccessListen::class],
+103:         //数据大屏
+104:         'data.screen.send' =>[\crmeb\listens\DataScreenListen::class],
+105:         //操作日志
+106:         'create_operate_log' => [\crmeb\listens\CreateOperateLogListen::class],  // 操作日志事件
+107:         'mini_order_shipping' => [\crmeb\listens\MiniOrderShippingListen::class],  // 小程序发货管理事件
+108:         // 商家转帐到零钱状态处理事件
+109:         'company_extract_status' => [\crmeb\listens\CompanyExtractStatusListen::class]
+110:     ],
+111: 
+112:     'subscribe' => [],
+113: ];
+</file>
+
+<file path="app/ExceptionHandle.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace app;
+14: 
+15: use think\db\exception\DataNotFoundException;
+16: use think\db\exception\ModelNotFoundException;
+17: use think\db\exception\PDOException;
+18: use think\exception\ErrorException;
+19: use think\exception\Handle;
+20: use think\exception\HttpException;
+21: use think\exception\HttpResponseException;
+22: use think\exception\ValidateException;
+23: use think\Response;
+24: use Throwable;
+25: 
+26: /**
+27:  * 应用异常处理类
+28:  */
+29: class ExceptionHandle extends Handle
+30: {
+31:     /**
+32:      * 不需要记录信息（日志）的异常类列表
+33:      * @var array
+34:      */
+35:     protected $ignoreReport = [
+36:         HttpException::class,
+37:         HttpResponseException::class,
+38:         ModelNotFoundException::class,
+39:         DataNotFoundException::class,
+40:         ValidateException::class,
+41:     ];
+42: 
+43:     /**
+44:      * 记录异常信息（包括日志或者其它方式记录）
+45:      *
+46:      * @access public
+47:      * @param Throwable $exception
+48:      * @return void
+49:      */
+50:     public function report(Throwable $exception): void
+51:     {
+52:         // 使用内置的方式记录异常日志
+53:         parent::report($exception);
+54:     }
+55: 
+56:     /**
+57:      * Render an exception into an HTTP response.
+58:      *
+59:      * @access public
+60:      * @param \think\Request $request
+61:      * @param Throwable $e
+62:      * @return Response
+63:      */
+64:     public function render($request, Throwable $e): Response
+65:     {
+66:         // 添加自定义异常处理机制
+67:         $this->report($e);
+68:         // 其他错误交给系统处理
+69:         if ($e instanceof ValidateException)
+70:             return app('json')->fail($e->getMessage());
+71:         else if ($e instanceof DataNotFoundException)
+72:             return app('json')->fail(isDebug() ? $e->getMessage() : '数据不存在');
+73:         else if ($e instanceof ModelNotFoundException)
+74:             return app('json')->fail(isDebug() ? $e->getMessage() : '数据不存在');
+75:         else if ($e instanceof PDOException)
+76:             return app('json')->fail(isDebug() ? $e->getMessage() : '数据库操作失败', isDebug() ? $e->getData() : []);
+77:         else if ($e instanceof ErrorException)
+78:             return app('json')->fail(isDebug() ? $e->getMessage() : '系统错误', isDebug() ? $e->getData() : []);
+79:         else if ($e instanceof \PDOException)
+80:             return app('json')->fail(isDebug() ? $e->getMessage() : '数据库连接失败');
+81:         else if ($e instanceof \EasyWeChat\Core\Exceptions\HttpException)
+82:             return app('json')->fail($e->getMessage());
+83: 
+84:         return parent::render($request, $e);
+85:     }
+86: }
+</file>
+
+<file path="app/middleware.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // 全局中间件定义文件
+13: return [
+14:     // 全局请求缓存
+15:     // \think\middleware\CheckRequestCache::class,
+16:     // 多语言加载
+17:     // \think\middleware\LoadLangPack::class,
+18:     // Session初始化
+19:     // \think\middleware\SessionInit::class
+20: ];
+</file>
+
+<file path="app/provider.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: use app\ExceptionHandle;
+14: use app\Request;
+15: 
+16: // 容器Provider定义文件
+17: return [
+18:     'think\Request' => Request::class,
+19:     'think\exception\Handle' => ExceptionHandle::class,
+20:     'json' => \crmeb\services\ApiResponseService::class,
+21: ];
+</file>
+
+<file path="app/Request.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: 
+ 12: 
+ 13: namespace app;
+ 14: 
+ 15: use crmeb\traits\Macro;
+ 16: use think\File;
+ 17: use think\file\UploadedFile;
+ 18: 
+ 19: class Request extends \think\Request
+ 20: {
+ 21:     use Macro;
+ 22:     // 全局过滤：普通文本安全
+ 23:     // protected $filter = [
+ 24:     //     'trim',
+ 25:     //     'strip_tags',
+ 26:     //     'htmlspecialchars',
+ 27:     // ];
+ 28:     protected $cache = [];
+ 29:     protected $except = [
+ 30:         'content',
+ 31:         'sys_integral_rule',
+ 32:         'sys_intention_agree',
+ 33:         'sys_product_presell_agree',
+ 34:         'wechat_menus',
+ 35:         'sys_receipt_agree',
+ 36:         'sys_extension_agree',
+ 37:         'sys_merchant_type',
+ 38:         'sys_merchant_category',
+ 39:         'sys_brokerage',
+ 40:         'sys_user_agree',
+ 41:         'sys_userr_privacy',
+ 42:         'sys_member',
+ 43:         'sys_about_us',
+ 44:         'sys_certificate',
+ 45:         'the_cancellation_msg',
+ 46:         'the_cancellation_prompt',
+ 47:         'platform_rule',
+ 48:         'sys_coupon_agree',
+ 49:         'sys_svip',
+ 50:     ];
+ 51: 
+ 52:     public function __construct()
+ 53:     {
+ 54:         parent::__construct();
+ 55:         $this->filter[] = function ($val) {
+ 56:             return is_string($val) ? trim($val) : $val;
+ 57:         };
+ 58:     }
+ 59: 
+ 60:     public function ip(): string
+ 61:     {
+ 62:         return $this->header('remote-host') ?? parent::ip();
+ 63:     }
+ 64: 
+ 65:     public function isApp()
+ 66:     {
+ 67:         return $this->header('Form-type') === 'app';
+ 68:     }
+ 69: 
+ 70:     /**
+ 71:      * @param $db
+ 72:      * @param $key
+ 73:      * @return bool
+ 74:      * @author xaboy
+ 75:      * @day 2020/10/22
+ 76:      */
+ 77:     public function hasCache($db, $key)
+ 78:     {
+ 79:         return isset($this->cache[$db][$key]);
+ 80:     }
+ 81: 
+ 82:     /**
+ 83:      * @param $db
+ 84:      * @param $key
+ 85:      * @return array|mixed|string
+ 86:      * @author xaboy
+ 87:      * @day 2020/10/22
+ 88:      */
+ 89:     public function getCache($db, $key)
+ 90:     {
+ 91:         if (is_array($key)) {
+ 92:             $data = [];
+ 93:             foreach ($key as $v) {
+ 94:                 $data[$v] = $this->getCache($db, $v);
+ 95:             }
+ 96:             return $data;
+ 97:         }
+ 98:         return $this->cache[$db][$key] ?? '';
+ 99:     }
+100: 
+101:     /**
+102:      * @param $db
+103:      * @param $key
+104:      * @param null $value
+105:      * @author xaboy
+106:      * @day 2020/10/22
+107:      */
+108:     public function setCache($db, $key, $value = null)
+109:     {
+110:         if (!isset($this->cache[$db])) $this->cache[$db] = [];
+111:         if (is_array($key)) {
+112:             foreach ($key as $k => $v) {
+113:                 $this->setCache($db, $k, $v);
+114:             }
+115:             return;
+116:         }
+117:         $this->cache[$db][$key] = $value;
+118:     }
+119: 
+120:     public function clearCache()
+121:     {
+122:         $this->cache = [];
+123:     }
+124: 
+125:     public function params(array $names, $filter = '')
+126:     {
+127:         $data = [];
+128:         $flag = false;
+129:         if ($filter === true) {
+130:             $filter = '';
+131:             $flag = true;
+132:         }
+133:         foreach ($names as $name) {
+134:             if (!is_array($name))
+135:                 $data[$name] = $this->param($name, '', $filter);
+136:             else
+137:                 $data[$name[0]] = $this->param($name[0], $name[1], $filter);
+138:         }
+139:         if ($data) {
+140:             $data = $this->filterArrayValues($data);
+141:         }
+142:         return $flag ? array_values($data) : $data;
+143:     }
+144: 
+145:     /**
+146:      * 过滤接数组中的字符串
+147:      * @param $str
+148:      * @param bool $filter
+149:      * @return array|mixed|string|string[]
+150:      */
+151:     public function filterArrayValues($array)
+152:     {
+153:         $result = [];
+154:         foreach ($array as $key => $value) {
+155:             if (is_array($value)) {
+156:                 // 如果值是数组，递归调用 filterArrayValues
+157:                 $result[$key] = $this->filterArrayValues($value);
+158:             } else {
+159:                 if (in_array($key, $this->except) || is_int($value) || is_null($value)) {
+160:                     $result[$key] = $value;
+161:                 } else {
+162:                     // 如果值是字符串，过滤特殊字符
+163:                     $result[$key] = filter_str($value);
+164:                 }
+165:             }
+166:         }
+167:         return $result;
+168:     }
+169: 
+170:     public function merId()
+171:     {
+172:         return intval($this->hasMacro('merchantId') ? $this->merchantId() : 0);
+173:     }
+174: 
+175:     public function merAdminId()
+176:     {
+177:         return intval($this->hasMacro('adminId') ? $this->adminId() : 0);
+178:     }
+179: 
+180:     public function setOriginFile($name, $array)
+181:     {
+182:         $this->file[$name] = $array;
+183:     }
+184: 
+185:     public function getOriginFile($name)
+186:     {
+187:         return $this->file[$name] ?? null;
+188:     }
+189: 
+190: 
+191:     protected function dealUploadFile(array $files, string $name): array
+192:     {
+193:         $array = [];
+194:         foreach ($files as $key => $file) {
+195:             if (is_array($file['name'])) {
+196:                 $item = [];
+197:                 $keys = array_keys($file);
+198:                 $count = count($file['name']);
+199: 
+200:                 for ($i = 0; $i < $count; $i++) {
+201:                     if ($file['error'][$i] > 0) {
+202:                         if ($name == $key) {
+203:                             $this->throwUploadFileError($file['error'][$i]);
+204:                         } else {
+205:                             continue;
+206:                         }
+207:                     }
+208: 
+209:                     $temp['key'] = $key;
+210: 
+211:                     foreach ($keys as $_key) {
+212:                         $temp[$_key] = $file[$_key][$i];
+213: 
+214:                         $name = explode('.',$temp['name']);
+215:                         $num = count($name);
+216:                         $suffix = strtolower($name[$num - 1]);
+217:                         array_pop($name);
+218:                         $temp['name'] = implode('.',$name).'.'.$suffix;
+219:                     }
+220: 
+221:                     $item[] = new UploadedFile($temp['tmp_name'], $temp['name'], $temp['type'], $temp['error']);
+222:                 }
+223: 
+224:                 $array[$key] = $item;
+225:             } else {
+226:                 if ($file instanceof File) {
+227:                     $array[$key] = $file;
+228:                 } else {
+229:                     if ($file['error'] > 0) {
+230:                         if ($key == $name) {
+231:                             $this->throwUploadFileError($file['error']);
+232:                         } else {
+233:                             continue;
+234:                         }
+235:                     }
+236: 
+237:                     $name = explode('.',$file['name']);
+238:                     $num = count($name);
+239:                     $suffix = strtolower($name[$num - 1]);
+240:                     array_pop($name);
+241:                     $file['name'] = implode('.',$name).'.'.$suffix;
+242: 
+243:                     $array[$key] = new UploadedFile($file['tmp_name'], $file['name'], $file['type'], $file['error']);
+244:                 }
+245:             }
+246:         }
+247:         return $array;
+248:     }
+249: }
+</file>
+
+<file path="app/service.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: use app\AppService;
+14: 
+15: // 系统服务定义文件
+16: // 服务在完成全局初始化之后执行
+17: return [
+18:     AppService::class,
+19: ];
+</file>
+
+</files>

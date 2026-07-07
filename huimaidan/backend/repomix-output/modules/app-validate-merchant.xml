@@ -1,0 +1,2514 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: **/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+BroadcastGoodsValidate.php
+BroadcastRoomValidate.php
+CartValidate.php
+DeliveryConfigValidate.php
+DeliveryServiceValidate.php
+DeliveryStationValidate.php
+LabelRuleValidate.php
+MerchantApplymentsSubjectValidate.php
+MerchantApplymentsValidate.php
+MerchantFinancialAccountValidate.php
+MerchantTakeValidate.php
+MerchantUpdateValidate.php
+OpenAuthValidate.php
+OrderValidate.php
+ProductCdkeyValidate.php
+ServiceReplyValidate.php
+ShippingTemplateValidate.php
+StaffValidate.php
+StoreAttrTemplateValidate.php
+StoreCouponSendValidate.php
+StoreCouponValidate.php
+StoreDiscountsValidate.php
+StoreProductAdminValidate.php
+StoreProductAssistValidate.php
+StoreProductGroupValidate.php
+StoreProductPresellValidate.php
+StoreProductValidate.php
+StoreSeckillProductValidate.php
+StoreServiceValidate.php
+UserValidate.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="BroadcastGoodsValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class BroadcastGoodsValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'name|商品名称' => 'require|min:3|max:14',
+25:         'cover_img|商品图' => 'require',
+26:         'price|价格' => 'require|min:0.01',
+27:         'product_id|商品' => 'require|array|length:2',
+28:     ];
+29: 
+30:     public function isBatch()
+31:     {
+32:         $this->rule['product_id|商品'] = 'require|integer';
+33:         return $this;
+34:     }
+35: }
+</file>
+
+<file path="BroadcastRoomValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class BroadcastRoomValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'name|直播间名字' => 'require|min:3|max:17',
+25:         'cover_img|背景图' => 'require',
+26:         'share_img|分享图' => 'require',
+27:         'anchor_name|主播昵称' => 'require|min:4|max:15',
+28:         'anchor_wechat|主播微信号' => 'require',
+29:         'phone|联系电话' => 'require|mobile',
+30:         'start_time|直播时间' => 'require|array|length:2|checkTime',
+31:         'type|直播间类型' => 'require|in:0,1',
+32:         'screen_type|显示样式' => 'require|in:0,1',
+33:         'close_like|是否开启点赞' => 'require|in:0,1',
+34:         'close_goods|是否开启货架' => 'require|in:0,1',
+35:         'close_comment|是否开启评论' => 'require|in:0,1',
+36:         'replay_status|是否开启回放' => 'require|in:0,1',
+37:         'close_share|是否开启分享' => 'require|in:0,1',
+38:         'close_kf|是否开启客服' => 'require|in:0,1',
+39:     ];
+40: 
+41:     protected function checkTime($value)
+42:     {
+43:         $start = strtotime($value[0]);
+44:         $end = strtotime($value[1]);
+45:         if ($end < $start) return '请选择正确的直播时间';
+46:         if ($start < strtotime('+ 15 minutes')) return '开播时间必须大于当前时间15分钟';
+47:         if ($start >= strtotime('+ 6 month')) return '开播时间不能在6个月后';
+48:         if (($end - $start) < (60 * 30)) return '直播时间不得小于30分钟';
+49:         if (($end - $start) > (60 * 60 * 24)) return '直播时间不得超过24小时';
+50:         return true;
+51:     }
+52: }
+</file>
+
+<file path="CartValidate.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: namespace app\validate\merchant;
+12: 
+13: use think\Validate;
+14: 
+15: class CartValidate extends Validate
+16: {
+17:     protected $rule = [
+18:         'uid|用户id' => 'require|number',
+19:         'product_id|商品id' => 'require|number',
+20:         'cart_num|数量' => 'require|number|gt:0',
+21:         'product_attr_unique|规格编码' => 'max:32',
+22:         'cart_ids' => 'require|array',
+23:         'type|类型' => 'require|number|between:0,2',
+24:         'old_price|应付金额' => 'require|float|egt:0|elt:999999.99',
+25:         'new_price|一口价金额' => 'float|egt:0|elt:999999.99|requireIf:type,0',
+26:         'reduce_price|减价金额' => 'float|egt:0|elt:999999.99|requireIf:type,1|requireIf:change_fee_type,1',
+27:         'discount_rate|折扣率' => 'number|egt:0|elt:100|requireIf:type,2|requireIf:change_fee_type,2',
+28:         'change_fee_type|批量改价类型' => 'require|number|between:0,2',
+29:         'old_pay_price|应付金额' => 'require|float|egt:0|elt:999999.99',
+30:         'new_pay_price|一口价金额' => 'float|egt:0|elt:999999.99|requireIf:change_fee_type,0'
+31:     ];
+32: 
+33:     public $message = [
+34:         'discount_rate.number' => '折扣率必须是整数'
+35:     ];
+36: 
+37:     protected $scene = [
+38:         'create'  =>  ['uid', 'product_id', 'cart_num', 'product_attr_unique'],
+39:         'change' =>  ['uid', 'cart_num', 'product_attr_unique'],
+40:         'list' =>  ['uid'],
+41:         'updatePrice' =>  ['type', 'old_price', 'new_price', 'reduce_price', 'discount_rate'],
+42:         'batchUpdatePrice' => ['uid', 'change_fee_type', 'old_pay_price', 'new_pay_price', 'reduce_price', 'discount_rate', 'cart_ids']
+43:     ];
+44: 
+45:     public function createCheck(array $data): bool
+46:     {
+47:         if (!$this->scene('create')->check($data)) {
+48:             return false;
+49:         }
+50: 
+51:         if($data['uid'] == 0 && empty($data['tourist_unique_key'])) {
+52:             $this->error = '请传入游客唯一标识';
+53:             return false;
+54:         }
+55: 
+56:         return true;
+57:     }
+58: 
+59:     public function changeCheck(array $data): bool
+60:     {
+61:         if (!$this->scene('change')->check($data)) {
+62:             return false;
+63:         }
+64: 
+65:         return true;
+66:     }
+67: 
+68:     public function listCheck(array $data): bool
+69:     {
+70:         if (!$this->scene('list')->check($data)) {
+71:             return false;
+72:         }
+73: 
+74:         if($data['uid'] == 0 && empty($data['tourist_unique_key'])) {
+75:             $this->error = '请传入游客唯一标识';
+76:             return false;
+77:         }
+78: 
+79:         return true;
+80:     }
+81: 
+82:     public function updatePriceCheck(array $data): bool
+83:     {
+84:         if (!$this->scene('updatePrice')->check($data)) {
+85:             return false;
+86:         }
+87: 
+88:         return true;
+89:     }
+90: 
+91:     public function batchUpdatePriceCheck(array $data): bool
+92:     {
+93:         if (!$this->scene('batchUpdatePrice')->check($data)) {
+94:             return false;
+95:         }
+96: 
+97:         return true;
+98:     }
+99: }
+</file>
+
+<file path="DeliveryConfigValidate.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: namespace app\validate\merchant;
+ 12: 
+ 13: use think\Validate;
+ 14: 
+ 15: class DeliveryConfigValidate extends Validate
+ 16: {
+ 17:     protected $rule = [
+ 18:         'mer_delivery_type|配送方式' => 'require|array',
+ 19:         'mer_delivery_order_status|配送员抢单开关' => 'require|integer|in:0,1',
+ 20:         'dada_app_key|达达AppKey' => 'requireIn:mer_delivery_type,1',
+ 21:         'dada_app_sercret|达达AppSecret' => 'requireIn:mer_delivery_type,1',
+ 22:         'dada_source_id|达达商户ID' => 'requireIn:mer_delivery_type,1',
+ 23:         'uupt_appkey|UU跑腿AppKey' => 'requireIn:mer_delivery_type,2',
+ 24:         'uupt_app_id|UU跑腿AppId' => 'requireIn:mer_delivery_type,2',
+ 25:         'uupt_open_id|UU跑腿OpenId' => 'requireIn:mer_delivery_type,2',
+ 26:         'min_delivery_amount|起送价' => 'require|float|egt:0|elt:999999.99',
+ 27:         'base_shipping_fee|基础运费' => 'require|float|egt:0|elt:999999.99',
+ 28:         'free_shipping_amount|包邮金额' => 'require|float|egt:0|elt:999999.99',
+ 29:         'is_premium_stack_enabled|是否开启溢价叠加' => 'require|integer|in:0,1',
+ 30:         'distance_premium_config|距离溢价设置' => 'requireIf:is_premium_stack_enabled,1|array',
+ 31:         'distance_premium_config.level_first.lt_distance|第一级公里数' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 32:         'distance_premium_config.level_last.gt_distance|最后一级公里数' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 33:         'distance_premium_config.level_last.add_distance|最后一级公里数,增加公里数' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 34:         'distance_premium_config.level_last.add_amount|最后一级公里数,增加运费' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 35:         'weight_premium_config|重量溢价设置' => 'requireIf:is_premium_stack_enabled,1|array',
+ 36:         'weight_premium_config.level_first.lt_weight|第一级重量' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 37:         'weight_premium_config.level_last.gt_weight|最后一级重量' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 38:         'weight_premium_config.level_last.add_weight|最后一级重量,增加重量' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 39:         'weight_premium_config.level_last.add_amount|最后一级重量,增加运费' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 40:         'delivery_time_type|配送时间类型' => 'require|integer|in:1,2',
+ 41:         'selectable_days|用户端可选天数' => 'requireIf:delivery_time_type,1|integer|between:0,30',
+ 42:         'delivery_prompt|尽快送达文案' => 'requireIf:delivery_time_type,2',
+ 43:         'commission_rate|配送员提成' => 'require|float|between:0,100',
+ 44:         'start_distance|距离阶梯,开始距离' => 'require|float|gt:0|elt:999999.99',
+ 45:         'end_distance|距离阶梯,结束距离' => 'require|float|gt:0|elt:999999.99',
+ 46:         'add_distance|距离阶梯,增加距离' => 'require|float|gt:0|elt:999999.99',
+ 47:         'start_weight|重量阶梯,开始重量' => 'require|float|gt:0|elt:999999.99',
+ 48:         'end_weight|重量阶梯,结束重量' => 'require|float|gt:0|elt:999999.99',
+ 49:         'add_weight|重量阶梯,增加重量' => 'require|float|gt:0|elt:999999.99',
+ 50:         'add_amount|重量阶梯,增加运费' => 'require|float|gt:0|elt:999999.99',
+ 51:     ];
+ 52: 
+ 53:     protected $scene = [
+ 54:         'basic'  =>  [
+ 55:             'mer_delivery_type',
+ 56:             'mer_delivery_order_status',
+ 57:             'dada_app_key',
+ 58:             'dada_app_sercret',
+ 59:             'dada_source_id',
+ 60:             'uupt_appkey',
+ 61:             'uupt_app_id',
+ 62:             'uupt_open_id'
+ 63:         ],
+ 64:         'config' => [
+ 65:             'min_delivery_amount',
+ 66:             'base_shipping_fee',
+ 67:             'free_shipping_amount',
+ 68:             'is_premium_stack_enabled',
+ 69:             'distance_premium_config',
+ 70:             'distance_premium_config.level_first.lt_distance',
+ 71:             'distance_premium_config.level_last.gt_distance',
+ 72:             'distance_premium_config.level_last.add_distance',
+ 73:             'distance_premium_config.level_last.add_amount',
+ 74:             'weight_premium_config',
+ 75:             'weight_premium_config.level_first.lt_weight',
+ 76:             'weight_premium_config.level_last.gt_weight',
+ 77:             'weight_premium_config.level_last.add_weight',
+ 78:             'weight_premium_config.level_last.add_amount',
+ 79:             'delivery_time_type',
+ 80:             'selectable_days',
+ 81:             'delivery_prompt',
+ 82:             'commission_rate'
+ 83:         ],
+ 84:         'stair_distance' => [
+ 85:             'start_distance',
+ 86:             'end_distance',
+ 87:             'add_distance',
+ 88:             'add_amount'
+ 89:         ],
+ 90:         'stair_weight' => [
+ 91:             'start_weight',
+ 92:             'end_weight',
+ 93:             'add_weight',
+ 94:             'add_amount'
+ 95:         ]
+ 96:     ];
+ 97: 
+ 98:     /**
+ 99:      * 验证某个字段包含某个值的时候必须
+100:      *
+101:      * @param string $value 配送方式
+102:      * @param string $rule 验证规则
+103:      * @param array $data 验证数据
+104:      * @return void
+105:      */
+106:     protected function requireIn(string $value, string $rule, array $data = [])
+107:     {
+108:         $rule = explode(',', $rule);
+109:         if(in_array($rule[1], $data['mer_delivery_type']) && $value === '') {
+110:             return false;
+111:         }
+112: 
+113:         return true;
+114:     }
+115: 
+116:     public function update(array $basicSettings, array $deliveryParams)
+117:     {
+118:         if(empty($basicSettings['mer_delivery_type'])) {
+119:             $this->error = '配送方式不能为空';
+120:             return false;
+121:         }
+122: 
+123:         if(!$this->scene('basic')->check($basicSettings)) {
+124:             return false;
+125:         }
+126:         if(!$this->scene('config')->check($deliveryParams)) {
+127:             return false;
+128:         }
+129:         if($deliveryParams['is_premium_stack_enabled']) {
+130:             // 距离溢价设置验证
+131:             $kaishiDistance = $deliveryParams['distance_premium_config']['level_first']['lt_distance'];
+132:             if(!empty($deliveryParams['distance_premium_config']['level_stairs'])) {
+133:                 foreach ($deliveryParams['distance_premium_config']['level_stairs'] as $key => $item) {
+134:                     $num = $key + 1;
+135:                     if (!$this->scene('stair_distance')->check($item)) {
+136:                         return false;
+137:                     }
+138:                     if($item['start_distance'] >= $item['end_distance']) {
+139:                         $this->error = '第'.$num.'级阶梯公里数范围有误';
+140:                         return false;
+141:                     }
+142:                     if($key == 0 && $kaishiDistance > $item['start_distance']) {
+143:                         $this->error = '范围公里数，必须大于等于基础公里数';
+144:                         return false;
+145:                     }
+146:                     if($kaishiDistance > $item['start_distance']) {
+147:                         $this->error = '第'.$num.'级范围公里数必须大于等于第'.($num - 1).'级范围公里数';
+148:                         return false;
+149:                     }
+150:                     if($item['add_distance'] === '' || $item['add_distance'] <= 0) {
+151:                         $this->error = '第'.$num.'级范围公里数,增加公里数必须大于0';
+152:                         return false;
+153:                     }
+154:                     if($item['add_amount'] === '' || $item['add_amount'] <= 0) {
+155:                         $this->error = '第'.$num.'级范围公里数,增加运费必须大于0';
+156:                         return false;
+157:                     }
+158: 
+159:                     $kaishiDistance = $item['end_distance'];
+160:                 }
+161:             }
+162:             if($kaishiDistance > $deliveryParams['distance_premium_config']['level_last']['gt_distance']) {
+163:                 $this->error = '最后一级公里数,必须大于等于上一级公里数';
+164:                 return false;
+165:             }
+166:             // 重量溢价设置验证
+167:             $kaishiWeight = $deliveryParams['weight_premium_config']['level_first']['lt_weight'];
+168:             if(!empty($deliveryParams['weight_premium_config']['level_stairs'])) {
+169:                 foreach ($deliveryParams['weight_premium_config']['level_stairs'] as $key => $item) {
+170:                     $num = $key + 1;
+171:                     if (!$this->scene('stair_weight')->check($item)) {
+172:                         return false;
+173:                     }
+174:                     if($item['start_weight'] >= $item['end_weight']) {
+175:                         $this->error = '第'.$num.'级阶梯重量范围有误';
+176:                         return false;
+177:                     }
+178:                     if($key == 0 && $kaishiWeight > $item['start_weight']) {
+179:                         $this->error = '范围重量，必须大于等于基础重量';
+180:                         return false;
+181:                     }
+182:                     if($kaishiWeight > $item['start_weight']) {
+183:                         $this->error = '第'.$num.'级范围重量必须大于等于第'.($num - 1).'级范围重量';
+184:                         return false;
+185:                     }
+186:                     if($item['add_weight'] === '' || $item['add_weight'] <= 0) {
+187:                         $this->error = '第'.$num.'级范围重量,增加重量必须大于0';
+188:                         return false;
+189:                     }
+190:                     if($item['add_amount'] === '' || $item['add_amount'] <= 0) {
+191:                         $this->error = '第'.$num.'级范围重量,增加运费必须大于0';
+192:                         return false;
+193:                     }
+194: 
+195:                     $kaishiWeight = $item['end_weight'];
+196:                 }
+197:             }
+198:             if($kaishiWeight > $deliveryParams['weight_premium_config']['level_last']['gt_weight']) {
+199:                 $this->error = '最后一级重量,必须大于等于上一级重量';
+200:                 return false;
+201:             }
+202:         }
+203: 
+204:         return true;
+205:     }
+206: }
+</file>
+
+<file path="DeliveryServiceValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class DeliveryServiceValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'name|配送员名称' => 'require',
+25:         'phone|电话' => 'require|mobile',
+26:     ];
+27: }
+</file>
+
+<file path="DeliveryStationValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class DeliveryStationValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'switch_city|同城配送' => 'require|in:0,1',
+25:         'switch_take|到店自提' => 'require|in:0,1',
+26:         'station_name|提货点名称' => 'require',
+27:         'type' => 'require|integer|in:0,1,2',
+28:         'business|配送品类' => 'requireIf:type,1|requireIf:type,2|number',
+29:         'city_name|所属城市' => 'requireIf:type,1|requireIf:type,2',
+30:         'station_address|提货点地址' => 'require',
+31:         'lng|提货点经度' => 'require',
+32:         'lat|提货点纬度' => 'require',
+33:         'contact_name|联系人姓名' => 'require',
+34:         'card_number|身份证号码' => 'number|length:18',
+35:         'phone|联系人电话' => 'require|mobile',
+36:         'business_date|营业日期' => 'require|array|max:7',
+37:         'business_time_start|营业开始时间' => 'require|date|max:20',
+38:         'business_time_end|营业结束时间' => 'require|date|max:20',
+39:         'status|状态' => 'require|in:0,1',
+40:         'bind_type|门店关联方式' => 'require|in:0,1',
+41:         'origin_shop_id|关联门店ID' => 'requireIf:bind_type,1',
+42:         'range_type|配送范围类型' => 'require|integer|in:1,2,3',
+43:         'radius|服务半径' => 'requireIf:range_type,1|float',
+44:         'region|服务行政区' => 'requireIf:range_type,2|array',
+45:         'fence|电子围栏设置' => 'requireIf:range_type,3|array'
+46:     ];
+47: 
+48:     public function sceneDada()
+49:     {
+50:         return $this->append('username','mobile');
+51:     }
+52: 
+53:     public $message = [
+54:         'username.mobile' => '达达账号必须是手机号'
+55:     ];
+56: }
+</file>
+
+<file path="LabelRuleValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class LabelRuleValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'type|规则类型' => 'require|in:0,1',
+25:         'min|最小值' => 'require|float|>=:0',
+26:         'max|最大值' => 'require|float|>=:min',
+27:         'label_name|标签名' => 'require|length:2,10'
+28:     ];
+29: 
+30:     protected $message = [
+31:         'max.egt' => '最大值必须大于等于最小值',
+32:     ];
+33: }
+</file>
+
+<file path="MerchantApplymentsSubjectValidate.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\validate\merchant;
+ 15: 
+ 16: 
+ 17: use think\Validate;
+ 18: 
+ 19: class MerchantApplymentsSubjectValidate extends Validate
+ 20: {
+ 21:     protected $failException = true;
+ 22: 
+ 23:     protected $rule = [
+ 24:         'subject_info|主体资料' => 'require|Array|validateSubjectInfo',
+ 25:         'contact_info|超级管理员信息' => 'require|validateContactInfo',
+ 26:         'business_info|经营资料' => 'require|validateBusinessInfo',
+ 27:         'settlement_info|结算规则' => 'require|validateSettlementInfo',
+ 28:         'bank_account_info|结算银行账户' => 'require|validateBankAccountInfo'
+ 29:     ];
+ 30: 
+ 31:     protected  function validateContactInfo($item)
+ 32:     {
+ 33:         if (!$item['contact_type'] || !in_array($item['contact_type'],['LEGAL','SUPER'])) return $this->error('超级管理员类型');
+ 34:         if (!$item['contact_name']) return $this->error('超级管理员姓名');
+ 35:         if (!$item['contact_type'] == 'SUPER') {
+ 36:             if (!$item['contact_id_doc_type']) return $this->error('超级管理员证件类型');
+ 37:             if (!$item['contact_id_number']) return $this->error('超级管理员身份证件号码');
+ 38:             if (!$item['contact_id_doc_copy']) return $this->error('超级管理员证件正面照片');
+ 39:             if (!$item['contact_id_doc_copy_back']) return $this->error('超级管理员证件反面照片');
+ 40:             if (!$item['contact_period_begin']) return $this->error('超级管理员证件有效期开始时间');
+ 41:             if (!$item['contact_period_end']) return $this->error('超级管理员证件有效期结束时间');
+ 42:         }
+ 43:         if (!$item['mobile_phone']) return $this->error('超级管理员联系手机号码');
+ 44:         if (!$item['contact_email']) return $this->error('超级管理员联系邮箱');
+ 45:         return true;
+ 46:     }
+ 47: 
+ 48:     protected  function validateSubjectInfo($item)
+ 49:     {
+ 50:         if (in_array($item['subject_type'],['SUBJECT_TYPE_INDIVIDUAL','SUBJECT_TYPE_ENTERPRISE'])) {
+ 51:             if (empty($item['business_license_info']))return $this->error('营业执照信息');
+ 52:             if (!$item['business_license_info']['license_copy'])return $this->error('营业执照照片');
+ 53:             if (!$item['business_license_info']['license_number'])return $this->error('注册号/统一社会信用代码');
+ 54:             if (!$item['business_license_info']['merchant_name'])return $this->error('商户名称');
+ 55:             if (!$item['business_license_info']['legal_person'])return $this->error('个体户经营者/法定代表人姓名');
+ 56:         } else {
+ 57:             if (empty($item['certificate_info'])) return $this->error('组织机构代码信息');
+ 58:             if (!$item['certificate_info']['cert_copy']) return $this->error('登记证书照片');
+ 59:             if (!$item['certificate_info']['cert_type']) return $this->error('登记证书类型');
+ 60:             if (!$item['certificate_info']['cert_number']) return $this->error('证书号');
+ 61:             if (!$item['certificate_info']['merchant_name']) return $this->error('商户名称');
+ 62:             if (!$item['certificate_info']['company_address']) return $this->error('注册地址');
+ 63:             if (!$item['certificate_info']['legal_person']) return $this->error('法定代表人');
+ 64:             if (!$item['certificate_info']['period_begin']) return $this->error('有效期限开始日期');
+ 65:             if (!$item['certificate_info']['period_end']) return $this->error('有效期限结束日期');
+ 66:         }
+ 67: 
+ 68:         if ($item['finance_institution']) {
+ 69:             if (empty($item['finance_institution_info'])) return  $this->error('金融机构许可证信息');
+ 70:             if (!$item['finance_institution_info']['finance_type']) return $this->error('金融机构类型');
+ 71:             if (!$item['finance_institution_info']['finance_license_pics']) return $this->error('金融机构许可证图片');
+ 72:         }
+ 73:         if (empty($item['identity_info'])) return $this->error('经营者/法定代表人身份证件');
+ 74:         if ($item['identity_info']['id_holder_type'] == 'LEGAL'){
+ 75:             if (!$item['identity_info']['id_doc_type']) return $this->error('证件类型');
+ 76:             if (
+ 77:                 $item['subject_type'] == 'SUBJECT_TYPE_GOVERNMENT' &&
+ 78:                 $item['identity_info']['id_doc_type'] != 'IDENTIFICATION_TYPE_IDCARD'
+ 79:             ) return '政府机关仅支持中国大陆居民-身份证类型';
+ 80: 
+ 81:             //当证件持有人类型为经营者/法定代表人且证件类型为“身份证”时填写。
+ 82:             if ($item['identity_info']['id_doc_type'] == 'IDENTIFICATION_TYPE_IDCARD') {
+ 83:                 if (!$item['identity_info']['id_card_info']) return $this->error('身份证信息');
+ 84:                 if (!$item['identity_info']['id_card_info']['id_card_copy']) return $this->error('身份证人像面照片');
+ 85:                 if (!$item['identity_info']['id_card_info']['id_card_national']) return $this->error('身份证国徽面照片');
+ 86:                 if (!$item['identity_info']['id_card_info']['id_card_name']) return $this->error('身份证姓名');
+ 87:                 if (!$item['identity_info']['id_card_info']['id_card_number']) return $this->error('身份证号码');
+ 88:                 if (!$item['identity_info']['id_card_info']['card_period_begin']) return $this->error('身份证有效期开始时间');
+ 89:                 if (!$item['identity_info']['id_card_info']['card_period_end']) return $this->error('身份证有效期结束时间');
+ 90:             } else { //当证件持有人类型为经营者/法定代表人且证件类型不为“身份证”时填写。
+ 91:                 if (!$item['identity_info']['id_doc_info']) return $this->error('其他类型证件信息');
+ 92:                 if (!$item['identity_info']['id_doc_info']['id_doc_copy']) return $this->error('证件正面照片');
+ 93:                 if (!$item['identity_info']['id_doc_info']['id_doc_copy_back']) return $this->error('证件反面照片');
+ 94:                 if (!$item['identity_info']['id_doc_info']['id_doc_name']) return $this->error('证件姓名');
+ 95:                 if (!$item['identity_info']['id_doc_info']['id_doc_number']) return $this->error('证件号码');
+ 96:                 if (!$item['identity_info']['id_doc_info']['doc_period_begin']) return $this->error('证件有效期开始时间');
+ 97:                 if (!$item['identity_info']['id_doc_info']['doc_period_end']) return $this->error('证件有效期结束时间');
+ 98:             }
+ 99:         } else {
+100:             if (!$item['identity_info']['authorize_letter_copy']) return $this->error('法定代表人说明函');
+101:         }
+102:         return true;
+103:     }
+104: 
+105:     protected function validateBusinessInfo($item)
+106:     {
+107:         if (!$item['merchant_shortname']) return $this->error('商户简称');
+108:         if (!$item['service_phone']) return $this->error('客服电话');
+109:         if (!isset($item['sales_info'])) return $this->error('经营场景');
+110:         if (!$item['sales_info']['sales_scenes_type']) return $this->error('经营场景类型');
+111:         return true;
+112:     }
+113: 
+114: 
+115:     protected function   validateSettlementInfo($item)
+116:     {
+117:         if (!$item['settlement_id']) return $this->error('入驻结算规则ID');
+118:         if (!$item['qualification_type']) return $this->error('所属行业');
+119:         return true;
+120:     }
+121: 
+122:     protected function validateBankAccountInfo($item,$rule,$data)
+123:     {
+124:         if(!$item['bank_account_type']) return $this->error('银行账号类型');
+125:         if(!$item['account_name']) return $this->error('开户名称');
+126:         if(!$item['account_bank']) return $this->error('开户银行');
+127:         if(!$item['account_number']) return $this->error('银行账号');
+128:         return true;
+129:     }
+130: 
+131:     protected function error($msg)
+132:     {
+133:         return '请填写' . $msg;
+134:     }
+135: }
+</file>
+
+<file path="MerchantApplymentsValidate.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\validate\merchant;
+ 15: 
+ 16: 
+ 17: use think\Validate;
+ 18: 
+ 19: class MerchantApplymentsValidate extends Validate
+ 20: {
+ 21:     protected $failException = true;
+ 22: 
+ 23:     //2401：小微商户，指无营业执照的个人商家。
+ 24:     //2500：个人卖家，指无营业执照，已持续从事电子商务经营活动满6个月，且期间经营收入累计超过20万元的个人商家。（若选择该主体，请在“补充说明”填写相关描述）
+ 25:     //4：个体工商户，营业执照上的主体类型一般为个体户、个体工商户、个体经营。
+ 26:     //2：企业，营业执照上的主体类型一般为有限公司、有限责任公司。
+ 27:     //3：党政、机关及事业单位，包括国内各级、各类政府机构、事业单位等（如：公安、党 团、司法、交通、旅游、工商税务、市政、医疗、教育、学校等机构）。
+ 28:     //1708：其他组织，不属于企业、政府/事业单位的组织机构（如社会团体、民办非企业、基 金会），要求机构已办理组织机构代码证。
+ 29: 
+ 30:     protected $rule = [
+ 31:         'organization_type|主体类型' => 'require|in:2,3,4,2401,2500,1708',
+ 32:         'business_license_info|营业执照/登记证书信息' => 'checkBusinessInfo',
+ 33: //        'organization_cert_info|组织机构代码证信息' => 'checkOrganization',
+ 34:         'id_doc_type|证件类型' => 'require|in:1,2,3,4,5,6,7,8',
+ 35:         'id_card_info|经营者/法人身份证信息' => 'checkIdCardInfo',
+ 36:         'id_doc_info|经营者/法人身份证信息' => 'checkIdDocInfo',
+ 37: //        'need_account_info|是否填写结算银行账户' => 'require|in:true,false',  废弃字段
+ 38:         'account_info|结算银行账户'  => 'getAccountInfo',
+ 39:         'contact_info|超级管理员信息'  => 'getContactInfo',
+ 40:         'sales_scene_info|店铺信息'=>'checkSalesSceneInfo',
+ 41:         'merchant_shortname|商户简称' => 'require',
+ 42:         'business_addition_desc' => 'checkBusinessAdditionDesc',
+ 43:     ];
+ 44: 
+ 45:     /**
+ 46:      * 营业执照/登记证书信息
+ 47:      * @param $item
+ 48:      * @param $rule
+ 49:      * @param $data
+ 50:      * @return bool|string
+ 51:      * @author Qinii
+ 52:      * @day 6/22/21
+ 53:      */
+ 54:     protected function checkBusinessInfo($item,$rule,$data)
+ 55:     {
+ 56:         if(!in_array($data['organization_type'],['2401','2500'])){
+ 57:             if(empty($item)) return '营业执照/登记证书信息为空';
+ 58: 
+ 59:             if(!isset($item['business_license_copy']) || empty($item['business_license_copy'])) return '证件扫描件为空';
+ 60:             if(!isset($item['business_license_number']) || empty($item['business_license_number'])) return '证件注册号为空';
+ 61:             if(!isset($item['merchant_name']) || empty($item['merchant_name'])) return '商户名称为空';
+ 62:             if(!isset($item['legal_person']) || empty($item['legal_person'])) return '经营者/法定代表人姓名为空';
+ 63: 
+ 64:             if(isset($item['business_time'])) {
+ 65:                 $statr = $item['business_time'][0];
+ 66:                 $end = $item['business_time'][1];
+ 67:                 if ($end !== '长期') {
+ 68:                     $statr = strtotime($statr);
+ 69:                     $end = strtotime($end);
+ 70:                     $t = $end - $statr;
+ 71:                     if (($t / (3600 * 24)) <= 60) return '营业执照/登记证书有效期必须大于60天，即结束时间距当前时间需超过60天';
+ 72:                 }
+ 73:             }
+ 74: 
+ 75:         }
+ 76:        return true;
+ 77:     }
+ 78: 
+ 79:     /**
+ 80:      * 组织机构代码证信息
+ 81:      * @param $item
+ 82:      * @param $rule
+ 83:      * @param $data
+ 84:      * @return bool|string
+ 85:      * @author Qinii
+ 86:      * @day 6/22/21
+ 87:      */
+ 88:     protected function checkOrganization($item,$rule,$data)
+ 89:     {
+ 90:         $len = strlen($data['business_license_info']['business_license_number']);
+ 91:         if(!in_array($data['organization_type'],['4','2401','2500']) && $len === 18){
+ 92:             if(empty($item)) return '组织机构代码证信息为空';
+ 93: 
+ 94:             if(!isset($item['organization_copy']) || empty($item['organization_copy'])) return '组织机构代码证照片为空';
+ 95:             if(!isset($item['organization_number']) || empty($item['organization_number'])) return '组织机构代码为空';
+ 96:             if(!isset($item['organization_time']) || empty($item['organization_time'])) return '组织机构代码有效期限为空';
+ 97: 
+ 98: //            list($statr,$end) = explode(',',$item['organization_time']);
+ 99: 
+100:             $statr = $item['organization_time'][0];
+101:             $end = $item['organization_time'][1];
+102: 
+103:             if($end !== '长期') {
+104:                 $statr = strtotime($statr);
+105:                 $end = strtotime($end);
+106:                 $t = $end - $statr;
+107:                 if(($t/(3600 * 24)) <= 60) return '组织机构代码证有效期必须大于60天，即结束时间距当前时间需超过60天';
+108:             }
+109:         }
+110:         return true;
+111:     }
+112: 
+113:     /**
+114:      * 经营者/法人身份证信息/身份证
+115:      * @param $item
+116:      * @param $rule
+117:      * @param $data
+118:      * @return bool|string
+119:      * @author Qinii
+120:      * @day 6/22/21
+121:      */
+122:     protected function checkIdCardInfo($item,$rule,$data)
+123:     {
+124:         if($data['id_doc_type'] == 1){
+125:             if(empty($item)) return '经营者/法人身份证信息为空';
+126: 
+127:             if(!isset($item['id_card_copy']) || empty($item['id_card_copy'])) return '身份证人像面照片为空';
+128:             if(!isset($item['id_card_national']) || empty($item['id_card_national'])) return '身份证国徽面照片为空';
+129:             if(!isset($item['id_card_name']) || empty($item['id_card_name'])) return '身份证姓名为空';
+130:             if(!isset($item['id_card_number']) || empty($item['id_card_number'])) return '身份证号码为空';
+131:             if(!isset($item['id_card_valid_time_begin']) || empty($item['id_card_valid_time_begin'])) return '经营者/法人身份证信息身份证开始时间为空';
+132:             if(!isset($item['id_card_valid_time']) || empty($item['id_card_valid_time'])) return '经营者/法人身份证信息身份证有效期限为空';
+133: 
+134:             if($item['id_card_valid_time'] !== '长期') {
+135:                 $statr = time();
+136:                 $end = strtotime($item['id_card_valid_time']);
+137:                 $t = $end - $statr;
+138:                 if(($t/(3600 * 24)) <= 60) return '经营者/法人身份证信息证件结束日期必须大于60天，即结束时间距当前时间需超过60天';
+139:                 if(strtotime($item['id_card_valid_time_begin']) >= strtotime($item['id_card_valid_time'])) return '经营者/法人身份证信息证件结束日期必须大于证件开始时间';
+140:             }
+141:             if($data['organization_type']  === 2){
+142:                 if(!isset($item['id_card_address']) || empty($item['id_card_address'])) return '经营者/法人身份证信息身份证居住地址为空';
+143:             }
+144:         };
+145:         return true;
+146:     }
+147: 
+148:     /**
+149:      * 经营者/法人身份证信息/通行证
+150:      * @param $item
+151:      * @param $rule
+152:      * @param $data
+153:      * @return bool|string
+154:      * @author Qinii
+155:      * @day 6/22/21
+156:      */
+157:     protected function checkIdDocInfo($item,$rule,$data)
+158:     {
+159:         if(in_array($data['organization_type'],['2401','2500']) && !empty($item)) return '小微/个人卖家可选证件类型：身份证';
+160: 
+161:         if($data['id_doc_type'] !== 1){
+162:             if(empty($item)) return '经营者/法人身份证信息为空';
+163: 
+164:             if(!isset($item['id_doc_name']) || empty($item['id_doc_name'])) return '证件姓名为空';
+165:             if(!isset($item['id_doc_number']) || empty($item['id_doc_number'])) return '证件号码为空';
+166:             if(!isset($item['id_doc_copy']) || empty($item['id_doc_copy'])) return '经营者/法人其他类型证件信息证件正面照片为空';
+167:             if($data['id_doc_type'] !== 2)   //护照不需要传反面
+168:             {
+169:                 if(!isset($item['id_doc_copy_back']) || empty($item['id_doc_copy_back'])) return '经营者/法人其他类型证件信息证件反面照片为空';
+170:             }
+171:             if(!isset($item['doc_period_begin']) || empty($item['doc_period_begin'])) return '经营者/法人其他类型证件信息证件有效期开始时间为空';
+172:             if(!isset($item['doc_period_end']) || empty($item['doc_period_end'])) return '经营者/法人其他类型证件信息证件结束日期为空';
+173: 
+174:             if($item['doc_period_end'] !== '长期') {
+175:                 $statr = time();
+176:                 $end = strtotime($item['doc_period_end']);
+177:                 $t = $end - $statr;
+178:                 if(($t/(3600 * 24)) <= 60) return '经营者/法人其他类型证件信息证件结束日期必须大于60天，即结束时间距当前时间需超过60天';
+179:                 if(strtotime($item['doc_period_begin']) >= strtotime($item['doc_period_end'])) return '经营者/法人其他类型证件信息证件结束日期必须大于证件开始时间';
+180:                 if($data['organization_type']  === 2){
+181:                     if(!isset($item['id_doc_address']) || empty($item['id_doc_address'])) return '经营者/法人其他类型证件信息证件居住地址为空';
+182:                 }
+183:             }
+184:         }
+185: 
+186:         return true;
+187:     }
+188: 
+189:     /**
+190:      * 结算银行账户
+191:      * @param $item
+192:      * @param $rule
+193:      * @param $data
+194:      * @return bool|string
+195:      * @author Qinii
+196:      * @day 6/22/21
+197:      */
+198:     protected function getAccountInfo($item,$rule,$data)
+199:     {
+200: //        if($data['need_account_info']){
+201: 
+202:             if(empty($item)) return '结算银行账户信息为空';
+203: 
+204:             if(!isset($item['bank_account_type']) || empty($item['bank_account_type'])) return '账户类型为空';
+205:             if(!isset($item['account_bank']) || empty($item['account_bank'])) return '开户银行为空';
+206:             if(!isset($item['account_name']) || empty($item['account_name'])) return '开户名称为空';
+207:             if(!isset($item['bank_address_code']) || empty($item['bank_address_code'])) return '开户银行省市编码为空';
+208:             if(!isset($item['account_number']) || empty($item['account_number'])) return '银行帐号为空';
+209: 
+210: //        }
+211: 
+212:         return true;
+213:     }
+214: 
+215:     /**
+216:      * 超级管理员信息
+217:      * @param $item
+218:      * @param $rule
+219:      * @param $data
+220:      * @return bool|string
+221:      * @author Qinii
+222:      * @day 6/22/21
+223:      */
+224:     protected function getContactInfo($item,$rule,$data)
+225:     {
+226: 
+227:         if(empty($item)) return '超级管理员信息信息为空';
+228: 
+229:         if(!isset($item['contact_type']) || empty($item['contact_type'])) return '超级管理员类型为空';
+230:         if(!isset($item['contact_name']) || empty($item['contact_name'])) return '超级管理员姓名为空';
+231:         if(!isset($item['contact_id_card_number']) || empty($item['contact_id_card_number'])) return '超级管理员身份证件号码为空';
+232:         if(!isset($item['mobile_phone']) || empty($item['mobile_phone'])) return '超级管理员手机为空';
+233: 
+234:         if(!in_array($data['organization_type'],['2401','2500'])){
+235:             if(!isset($item['contact_email']) || empty($item['contact_email'])) return '邮箱为空';
+236:         }
+237: 
+238:         if($item['contact_type'] === 66)  //当超级管理员类型为66（经办人时）
+239:         {
+240:             if(!isset($item['contact_id_doc_type']) || empty($item['contact_id_doc_type']) || !in_array($item['contact_id_doc_type'],[1,2,3,4,5,6,7,8])) return '超级管理员证件类型为空或不合法';
+241:             if(!isset($item['contact_id_doc_copy']) || empty($item['contact_id_doc_copy'])) return '超级管理员信息证件正面照片为空';
+242:             if($item['contact_id_doc_type'] !== 2)   //护照不需要传反面
+243:             {
+244:                 if(!isset($item['contact_id_doc_copy_back']) || empty($item['contact_id_doc_copy_back'])) return '超级管理员信息证件反面照片为空';
+245:             }
+246:             if(!isset($item['contact_id_doc_period_begin']) || empty($item['contact_id_doc_period_begin'])) return '超级管理员信息证件有效期开始时间为空';
+247:             if(!isset($item['contact_id_doc_period_end']) || empty($item['contact_id_doc_period_end'])) return '超级管理员信息证件结束日期为空';
+248: 
+249:             if($item['contact_id_doc_period_end'] !== '长期') {
+250:                 $statr = time();
+251:                 $end = strtotime($item['contact_id_doc_period_end']);
+252:                 $t = $end - $statr;
+253:                 if(($t/(3600 * 24)) <= 60) return '超级管理员信息证件结束日期必须大于60天，即结束时间距当前时间需超过60天';
+254:                 if(strtotime($item['contact_id_doc_period_begin']) >= strtotime($item['contact_id_doc_period_end'])) return '超级管理员信息证件结束日期必须大于证件开始时间';
+255:             }
+256:             if(!isset($item['business_authorization_letter']) || empty($item['business_authorization_letter'])) return '超级管理员信息业务办理授权函为空';
+257:         }
+258: 
+259:         return true;
+260:     }
+261: 
+262:     /**
+263:      * 店铺信息
+264:      * @param $item
+265:      * @param $rule
+266:      * @param $data
+267:      * @return bool|string
+268:      * @author Qinii
+269:      * @day 6/22/21
+270:      */
+271:     protected function checkSalesSceneInfo($item,$rule,$data)
+272:     {
+273:         if(empty($item)) return '店铺信息为空';
+274: 
+275:         if(!isset($item['store_name']) || empty($item['store_name'])) return '店铺名称为空';
+276: 
+277:         if(!isset($item['store_url']) && !isset($item['store_url'])) return '店铺链接和店铺二维码二选一';
+278: 
+279:         return true;
+280:     }
+281: 
+282:     /**
+283:      * 补充说明s
+284:      * @param $item
+285:      * @param $rule
+286:      * @param $data
+287:      * @return bool|string
+288:      * @author Qinii
+289:      * @day 6/24/21
+290:      */
+291:     protected function checkBusinessAdditionDesc($item,$rule,$data)
+292:     {
+293:         if($data['organization_type'] == 2500 && empty($item)) return '若主体为“个人卖家”:补充说明不能为空';
+294:         return true;
+295:     }
+296: 
+297: }
+</file>
+
+<file path="MerchantFinancialAccountValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class MerchantFinancialAccountValidate extends Validate
+20: {
+21:     protected $failException = true;
+22:     /*
+23:     {
+24:         "financial_type":2,
+25:         "name":"王二小",
+26:         "idcard":"",
+27:         "wechat":"1",
+28:         "wechat_code":"456461516"
+29:     }
+30:     {
+31:         "financial_type":3,
+32:         "name":"王二小",
+33:         "idcard":"",
+34:         "alipay":"1",
+35:         "alipay_code":"456461516"
+36:     }
+37:     */
+38:     protected $rule = [
+39:         'financial_type|转账类型' => 'require|in:1,2,3',
+40:         'name|姓名' => 'require',
+41:         'bank|开户银行' => 'requireIf:financial_type,1',
+42:         'bank_code|银行卡号' => 'requireIf:financial_type,1',
+43:         //'idcard|身份证号' => 'requireIf:financial_type,2,3|idCard',
+44:         'wechat|微信号' => 'requireIf:financial_type,2',
+45:         'wechat_code|微信收款二维码' => 'requireIf:financial_type,2',
+46:         'alipay|支付宝账号' => 'requireIf:financial_type,3',
+47:         'alipay_code|收款二维码' => 'requireIf:financial_type,3',
+48:     ];
+49: }
+</file>
+
+<file path="MerchantTakeValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class MerchantTakeValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'name|名称' => 'require|max:100',
+25:         'phone|手机号' => 'require|max:13',
+26:         'address|地址' => 'require|max:100',
+27:         'long|经度' => 'require|float|max:20',
+28:         'lat|纬度' => 'require|float|max:20',
+29:         'business_date|营业日期' => 'require|array|max:7',
+30:         'business_time_start|营业开始时间' => 'require|date|max:20',
+31:         'business_time_end|营业结束时间' => 'require|date|max:20',
+32:         'type|提货方式' => 'require|array|max:2',
+33:         'status|状态' => 'require|in:0,1'
+34:     ];
+35: 
+36:     protected $scene = [
+37:         'add'  =>  ['name', 'phone', 'address', 'long', 'lat', 'business_date', 'business_time_start', 'business_time_end', 'type', 'status'],
+38:         'edit'  =>  ['name', 'phone', 'address', 'long', 'lat', 'business_date', 'business_time_start', 'business_time_end', 'type', 'status'],
+39:         'status'  =>  ['status']
+40:     ];
+41: 
+42:     public function add(array $data)
+43:     {
+44:         if (!$this->scene('add')->check($data)) {
+45:             return false;
+46:         }
+47: 
+48:         return true;
+49:     }
+50: 
+51:     public function edit(array $data)
+52:     {
+53:         if (!$this->scene('edit')->check($data)) {
+54:             return false;
+55:         }
+56: 
+57:         return true;
+58:     }
+59: 
+60:     public function status(array $data)
+61:     {
+62:         if (!$this->scene('status')->check($data)) {
+63:             return false;
+64:         }
+65: 
+66:         return true;
+67:     }
+68: }
+</file>
+
+<file path="MerchantUpdateValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class MerchantUpdateValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'mer_info|店铺简介' => 'require|max:200',
+25:         'mer_avatar|店铺头像' => 'require|max:128',
+26:         'mer_banner|店铺banner' => 'require|max:128',
+27:         'mini_banner|店铺街banner' => 'max:128',
+28:         'mer_keyword|店铺关键字' => 'max:128',
+29:         'mer_address|店铺地址' => 'require|max:128',
+30:         'long|店铺经度' => 'max:24',
+31:         'lat|店铺纬度' => 'max:24',
+32:         'services_type|联系客服方式' => 'require|in:0,1',
+33:     ];
+34: 
+35:     protected function isPhone($val)
+36:     {
+37:         $res = preg_match('/^((\+86|\+86\-)|(86|86\-)|(0086|0086\-))?1\d{10}$|^(0\d{2,3}\-)?([2-9]\d{6,7})+(\-\d{1,6})?$/', $val);
+38:         if ($res) return true;
+39:         return '服务电话格式有误';
+40:     }
+41: }
+</file>
+
+<file path="OpenAuthValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class OpenAuthValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'title|标题' => 'require',
+25:         'auth|权限' => 'require|checkAuth',
+26:     ];
+27: 
+28:     public function checkAuth()
+29:     {
+30:         return true;
+31:     }
+32: 
+33:     public  function sceneEdit()
+34:     {
+35:         return $this->only(['title','auth']);
+36:     }
+37: 
+38: }
+</file>
+
+<file path="OrderValidate.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: namespace app\validate\merchant;
+ 12: 
+ 13: use think\Validate;
+ 14: use app\common\repositories\store\order\MerchantOrderCreateRepository;
+ 15: 
+ 16: class OrderValidate extends Validate
+ 17: {
+ 18:     protected $rule = [
+ 19:         'id|订单id' => 'require|number',
+ 20:         'uid|用户id' => 'require|number',
+ 21:         'cart_ids|购物车ids' => 'require|array',
+ 22:         'address_id|地址id' => 'number',
+ 23:         'delivery_way|配送方式' => 'require|number|in:0,1,4',
+ 24:         'use_coupon|使用优惠券' => 'array',
+ 25:         'is_free_shipping|是否免运费' => 'require|number',
+ 26:         'use_integral|使用积分' => 'require|number',
+ 27:         'tourist_unique_key' | '游客唯一标识' => 'require',
+ 28:         'key' => 'require',
+ 29:         'mark' => 'max:255',
+ 30:         'pay_type|支付方式' => 'require',
+ 31:         'old_pay_price|支付价格' => 'require|float|egt:0|elt:999999.99',
+ 32:         'phone|手机号' => 'mobile|requireIf:pay_type,balance', // 余额支付时必须
+ 33:         'sms_code|验证码' => 'length:4|number|requireIf:pay_type,balance', // 余额支付时必须
+ 34:         'auth_code|条码号' => 'requireIf:pay_type,weixinBarCode|requireIf:pay_type,alipayBarCode', // 条码支付时必须
+ 35:         'part_start|预约开始时段' => 'require',
+ 36:         'part_end|预约结束时段' => 'require',
+ 37:         'order_type|服务方式' =>'require|number',
+ 38:         'real_name|预约人姓名' =>'require',
+ 39:         'user_phone|预约人手机号' =>'require|mobile',
+ 40:         'user_address|预约人地址' =>'requireIf:order_type,0',
+ 41:         'order_extend|表单信息' =>'array',
+ 42:         'reservation_date|预约日期' =>'require|dateFormat:Y-m-d',
+ 43:     ];
+ 44: 
+ 45:     protected $message = [
+ 46:         'uid.require' => '用户id不能为空',
+ 47:         'uid.number' => '用户id格式错误',
+ 48:         'cart_ids.require' => '购物车ids不能为空',
+ 49:         'cart_ids.array' => '购物车ids格式错误',
+ 50:         'address_id.require' => '地址id不能为空',
+ 51:         'address_id.number' => '地址id格式错误',
+ 52:         'delivery_way.require' => '配送方式不能为空',
+ 53:         'delivery_way.number' => '配送方式格式错误',
+ 54:         'use_coupon.require' => '使用优惠券不能为空',
+ 55:         'use_coupon.array' => '使用优惠券格式错误',
+ 56:         'is_free_shipping.require' => '是否免运费不能为空',
+ 57:         'is_free_shipping.number' => '是否免运费格式错误',
+ 58:         'use_integral.require' => '使用积分不能为空',
+ 59:         'use_integral.number' => '使用积分格式错误',
+ 60:         'key.require' => '订单操作超时,请刷新页面'
+ 61:     ];
+ 62: 
+ 63:     protected $scene = [
+ 64:         'orderCheck'  =>  ['uid', 'cart_ids', 'address_id', 'delivery_way', 'use_coupon', 'is_free_shipping', 'use_integral'],
+ 65:         'config' => ['uid'],
+ 66:         'orderCreate' => [
+ 67:             'uid',
+ 68:             'cart_ids',
+ 69:             'address_id',
+ 70:             'delivery_way',
+ 71:             'use_coupon',
+ 72:             'key',
+ 73:             'pay_type',
+ 74:             'mark',
+ 75:             'old_pay_price'
+ 76:         ],
+ 77:         'orderPay' => ['id', 'uid', 'pay_type', 'phone', 'sms_code', 'auth_code'],
+ 78:         'payStatus' => ['id', 'uid', 'pay_type'],
+ 79:         'reschedule' => ['order_type', 'real_name', 'user_phone', 'user_address', 'order_extend','reservation_date','part_start', 'part_end'],
+ 80:         'reservation_time' => ['reservation_date', 'part_start', 'part_end']
+ 81:     ];
+ 82: 
+ 83:     public function sceneCheck(array $data): bool
+ 84:     {
+ 85:         if (!$this->scene('orderCheck')->check($data)) {
+ 86:             return false;
+ 87:         }
+ 88: 
+ 89:         if ($data['uid'] != 0 && !empty($data['tourist_unique_key'])) {
+ 90:             $this->error = '用户id和游客唯一标识不能同时存在';
+ 91:             return false;
+ 92:         }
+ 93: 
+ 94:         if ($data['uid'] == 0 && empty($data['tourist_unique_key'])) {
+ 95:             $this->error = '游客唯一标识不能为空';
+ 96:             return false;
+ 97:         }
+ 98: 
+ 99:         return true;
+100:     }
+101: 
+102:     public function sceneCreate(array $data, $merchant): bool
+103:     {
+104:         if (!$this->scene('orderCreate')->check($data)) {
+105:             return false;
+106:         }
+107:         if ($data['uid'] != 0 && !empty($data['tourist_unique_key'])) {
+108:             $this->error = '用户id和游客唯一标识不能同时存在';
+109:             return false;
+110:         }
+111:         if ($data['uid'] == 0 && empty($data['tourist_unique_key'])) {
+112:             $this->error = '游客唯一标识不能为空';
+113:             return false;
+114:         }
+115:         if ($data['delivery_way'] == 0 && empty($data['address_id'])) {
+116:             $this->error = '地址id不能为空';
+117:             return false;
+118:         }
+119:         if ($data['pay_type'] == 'offline') {
+120:             if (!systemConfig('offline_switch')) {
+121:                 $this->error = '未开启线下支付功能';
+122:                 return false;
+123:             }
+124:             if (!(($merchant['offline_switch']) ?? '')) {
+125:                 $this->error = '该店铺未开启线下支付';
+126:                 return false;
+127:             }
+128:         }
+129: 
+130:         return true;
+131:     }
+132: 
+133:     public function scenePayConfig(array $data): bool
+134:     {
+135:         if (!$this->scene('config')->check($data)) {
+136:             return false;
+137:         }
+138: 
+139:         return true;
+140:     }
+141: 
+142:     public function scenePay(array $data, $groupOrder): bool
+143:     {
+144:         if (!$this->scene('orderPay')->check($data)) {
+145:             return false;
+146:         }
+147:         if (!in_array($data['pay_type'], MerchantOrderCreateRepository::PAY_TYPE)) {
+148:             $this->error = '请选择正确的支付方式';
+149:             return false;
+150:         }
+151:         if (!$groupOrder) {
+152:             $this->error = '订单不存在或已支付';
+153:             return false;
+154:         }
+155:         if ($data['pay_type'] == 'offline') {
+156:             if (count($groupOrder['orderList']) > 1) {
+157:                 $this->error = '线下支付仅支持同店铺商品';
+158:                 return false;
+159:             }
+160:             if (!systemConfig('offline_switch')) {
+161:                 $this->error = '未开启线下支付功能';
+162:                 return false;
+163:             }
+164:             if (!(($groupOrder['orderList'][0]->merchant['offline_switch']) ?? '')) {
+165:                 $this->error = '该店铺未开启线下支付';
+166:                 return false;
+167:             }
+168:         }
+169:         if ($data['pay_type'] == 'balance' && $data['uid'] == 0) {
+170:             $this->error = '游客不能使用余额支付，请检查支付方式';
+171:             return false;
+172:         }
+173: 
+174:         return true;
+175:     }
+176: 
+177:     public function sceneStatus(array $data): bool
+178:     {
+179:         if (!$this->scene('payStatus')->check($data)) {
+180:             return false;
+181:         }
+182:         return true;
+183:     }
+184: 
+185:     public function sceneReservationReschedule(array $data): bool
+186:     {
+187:         if (!$this->scene('reschedule')->check($data)) {
+188:             return false;
+189:         }
+190:         return true;
+191:     }
+192: 
+193:     public function sceneOnlyReservationTime(array $data): bool
+194:     {
+195:         if (!$this->scene('reservation_time')->check($data)) {
+196:             return false;
+197:         }
+198:         return true;
+199:     }
+200: }
+</file>
+
+<file path="ProductCdkeyValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use app\common\repositories\store\product\ProductCdkeyRepository;
+18: use think\Validate;
+19: 
+20: class ProductCdkeyValidate extends Validate
+21: {
+22:     protected $failException = true;
+23: 
+24:     protected $rule = [
+25:         'csList|卡密信息' => 'require|array|isUnique'
+26:     ];
+27: 
+28:     public function isUnique($value,$rule,$data)
+29:     {
+30:         foreach ($value as $datum) {
+31:             if (!$datum) return '卡密信息不能为空';
+32:         }
+33:         $keys = array_column($value,'key');
+34:         if (count($keys) != count(array_unique($keys))) return '卡密信息不能重复';
+35:         $has = app()->make(ProductCdkeyRepository::class)->checkKey($data['library_id'],$keys);
+36:         if ($has) return '卡密[ '.$has['key'].' ]已存在';
+37:         return true;
+38:     }
+39: 
+40: }
+</file>
+
+<file path="ServiceReplyValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: /**
+20:  * Class WechatReplyValidate
+21:  * @package app\validate\admin
+22:  * @author xaboy
+23:  * @day 2020-04-27
+24:  */
+25: class ServiceReplyValidate extends Validate
+26: {
+27:     /**
+28:      * @var bool
+29:      */
+30:     protected $failException = true;
+31: 
+32:     /**
+33:      * @var array
+34:      */
+35:     protected $rule = [
+36:         'type|类型' => 'require|in:1,2',
+37:         'keyword|关键字' => 'require|max:32',
+38:         'content|回复内容' => 'require',
+39:         'status|开启状态' => 'require|in:0,1'
+40:     ];
+41: 
+42: }
+</file>
+
+<file path="ShippingTemplateValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: use think\Validate;
+17: 
+18: class ShippingTemplateValidate extends Validate
+19: {
+20:     protected $failException = true;
+21: 
+22:     protected $rule = [
+23:         'name|名称' => 'require|max:32',
+24:         'type|计费方式' => 'require|in:0,1,2',
+25:         'appoint|指定包邮状态' => 'require|in:0,1',
+26:         'region|配送区域信息' => 'Array|require|min:1|region',
+27:         'undelivery|区域不配送状态' => 'require|in:0,1,2',
+28:         'free|包邮信息' => 'requireIf:appoint,1|Array|free',
+29:         'undelives|不配送区域信息'=>'requireIf:undelivery,1|Array|undelive',
+30:     ];
+31: 
+32:     protected function region($value,$rule,$data)
+33:     {
+34:         foreach ($value as $k => $v){
+35:             if ($k != 0 && empty($v['city_id']))
+36:                 return '配送城市信息不能为空';
+37:             if (!is_numeric($v['first']) || $v['first'] < 0)
+38:                 return '首件条件不能小0';
+39:             if (!is_numeric($v['first_price']) || $v['first_price'] < 0)
+40:                 return '首件金额不能小于0';
+41:             if (!is_numeric($v['continue']) || ($v['continue'] < 0))
+42:                 return '续件必须为不小于零的整数';
+43:             if (!is_numeric($v['continue_price']) || $v['continue_price'] < 0 )
+44:                 return '追加金额为不小于零的数';
+45:         }
+46:         return true;
+47:     }
+48:     protected function free($value,$rule,$data)
+49:     {
+50:         if(!$data['appoint']) return true;
+51:         foreach ($value as $v){
+52:             if (empty($v['city_id']))
+53:                 return '包邮城市信息不能为空';
+54:             if (!is_numeric($v['number']) || $v['number'] < 0)
+55:                 return '包邮条件为不小于零的整数';
+56:             if (!is_numeric($v['price']) ||$v['price'] < 0)
+57:                 return '包邮金额必须为不小于零的数字';
+58:         }
+59:         return true;
+60:     }
+61: 
+62:     protected function undelive($value,$rule,$data)
+63:     {
+64:         if($data['undelivery'] == 1){
+65:             if (empty($value['city_id']))
+66:                 return '不配送城市信息不能为空';
+67:         }
+68:         return true;
+69:     }
+70: }
+</file>
+
+<file path="StaffValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class StaffValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'uid|关联用户' => 'require|array',
+25:         'uid.id|关联用户' => 'require|integer',
+26:         'name|员工姓名' => 'require|max:12',
+27:         'phone|联系电话' => 'require|mobile',
+28:         'photo|证件照' => 'max:250',
+29:         'status|状态' => 'require|in:0,1',
+30:         'sort|排序' => 'require|integer',
+31:     ];
+32: 
+33:     protected $message = [
+34:         'uid.require' => '请选择一个用户绑定为员工',
+35:         'uid.id.require' => '用户ID不能为空'
+36:     ];
+37: 
+38:     public function update()
+39:     {
+40:         return $this;
+41:     }
+42: }
+</file>
+
+<file path="StoreAttrTemplateValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class StoreAttrTemplateValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'template_name|模板名称' => 'require|max:32',
+25:         'template_value|规则' => 'require|array|min:1'
+26:     ];
+27: }
+</file>
+
+<file path="StoreCouponSendValidate.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace app\validate\merchant;
+14: 
+15: 
+16: use think\Validate;
+17: 
+18: class StoreCouponSendValidate extends Validate
+19: {
+20:     protected $failException = true;
+21: 
+22:     protected $rule = [
+23:         'coupon_id|优惠券' => 'require|integer',
+24:         'mark|用户类型' => 'array',
+25:         'is_all|用户类型' => 'require|in:0,1',
+26:         'search|用户类型' => 'require|array',
+27:         'uid|用户' => 'array'
+28:     ];
+29: }
+</file>
+
+<file path="StoreCouponValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class StoreCouponValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'title|优惠券名称' => 'require|max:32',
+25:         'coupon_price|优惠券面值' => 'require|float|>:0',
+26:         'use_min_price|最低消费金额' => 'require|float',
+27:         'coupon_type|有效期类型' => 'require|in:0,1',
+28:         'coupon_time|有效期限' => 'requireIf:coupon_type,0|integer|>:0',
+29:         'use_start_time|有效期限' => 'requireIf:coupon_type,1|array|>:2',
+30:         //'sort|排序' => 'require|integer',
+31:         'status|状态' => 'require|in:0,1',
+32:         'type|优惠券类型' => 'require|in:0,1,10,11,12',
+33:         'product_id|商品' => 'requireIf:type,1|array|>:0',
+34:         'send_type|类型' => 'require|in:0,1,2,3,4,5,6',
+35:         'full_reduction|满赠金额' => 'requireIf:send_type,1|float|>=:0',
+36:         'is_limited|是否限量' => 'require|in:0,1',
+37:         'is_timeout|是否限时' => 'require|in:0,1',
+38:         'range_date|领取时间' => 'requireIf:is_timeout,1|array|length:2',
+39:         'total_count|发布数量' => 'requireIf:is_limited,1|integer|>:0',
+40:     ];
+41: 
+42:     //protected function dime($value)
+43:     //{
+44:     //    if (!bcadd($value, 0, 1) == $value)
+45:     //        return '优惠券面值最多1位小数';
+46:     //    return true;
+47:     //}
+48: 
+49: }
+</file>
+
+<file path="StoreDiscountsValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\validate\merchant;
+14: 
+15: use think\Exception;
+16: use think\File;
+17: use think\Validate;
+18: 
+19: class StoreDiscountsValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         //"image|套餐图片" => 'require|max:128',
+25:         "title|套餐标题" => 'require|max:128',
+26:         "type|套餐类型" => 'require|in:0,1',
+27:         "is_limit|是否限够" => 'require',
+28:         "limit_num|限购数量" => 'require|max:4',
+29:         "is_time|是否限时" => "in:0,1",
+30:         "sort|排序" => "require",
+31:         "free_shipping|是否包邮" => "require",
+32:         'status|发货方式' => 'require',
+33:         'products|发货方式' => 'require',
+34:     ];
+35: }
+</file>
+
+<file path="StoreProductAdminValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\validate\merchant;
+14: 
+15: use think\Validate;
+16: 
+17: class StoreProductAdminValidate extends Validate
+18: {
+19:     protected $failException = true;
+20: 
+21:     protected $rule = [
+22:         "is_hot|是否热卖" => "in:0,1",
+23:         "is_benefit|是否促销" => "in:0,1",
+24:         "is_best|是否精品" => "in:0,1",
+25:         "is_new|是否新品" => "in:0,1",
+26:         'rank|排序' => 'require|min:1',
+27:         'star|评分'=>'require|in:0,1,2,3,4,5'
+28:     ];
+29: }
+</file>
+
+<file path="StoreProductAssistValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\validate\merchant;
+14: 
+15: use think\Validate;
+16: 
+17: class StoreProductAssistValidate extends Validate
+18: {
+19:     protected $failException = true;
+20: 
+21:     protected $rule = [
+22:         "image|主图" => 'require|max:128',
+23:         "slider_image|轮播图" => 'require',
+24:         "store_name|商品名称" => 'require|max:128',
+25:         "product_id|原商品ID" => 'require',
+26:         "start_time|开始时间" => 'require|checkTime',
+27:         "end_time|结束时间" => "require",
+28:         "assist_user_count|单人助力次数" => "require",
+29:         "assist_count|需助力总人数" => "require",
+30:         "attrValue|商品属性" => "require|Array"
+31:     ];
+32: 
+33:     public function isUpdate()
+34:     {
+35:         $this->rule['start_time|开始时间'] = 'require';
+36:         return $this;
+37:     }
+38: 
+39:     protected function checkTime($value,$rule,$data)
+40:     {
+41:         $start_time = strtotime($data['start_time']);
+42:         $end_time = strtotime($data['end_time']);
+43:         if($start_time > $end_time) return '活动开始时间必须小于结束时间';
+44:         if($start_time < time()) return '活动开始时间必须大于当前时间';
+45:         return true;
+46:     }
+47: }
+</file>
+
+<file path="StoreProductGroupValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\validate\merchant;
+14: 
+15: use think\Validate;
+16: 
+17: class StoreProductGroupValidate extends Validate
+18: {
+19:     protected $failException = true;
+20: 
+21:     protected $rule = [
+22:         "image|主图" => 'require|max:128',
+23:         "slider_image|轮播图" => 'require',
+24:         "store_name|商品名称" => 'require|max:128',
+25:         "product_id|原商品ID" => 'require',
+26:         "start_time|开始时间" => 'require',
+27:         "end_time|结束时间" => "require",
+28:         "buying_count_num|开团总人数" => "require|>=:buying_num",
+29:         "attrValue|商品属性" => "require|Array|checkAttrValue",
+30:         "time|开团时长" => "require"
+31:     ];
+32: 
+33:     protected function checkAttrValue($value,$rule,$data)
+34:     {
+35:         foreach ($value as $v){
+36:             if($v['stock'] > $v['old_stock']){
+37:                 return '限量不可大于库存';
+38:             }
+39:         }
+40:         return true;
+41:     }
+42: }
+</file>
+
+<file path="StoreProductPresellValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\validate\merchant;
+14: 
+15: use think\Validate;
+16: 
+17: class StoreProductPresellValidate extends Validate
+18: {
+19:     protected $failException = true;
+20: 
+21:     protected $rule = [
+22:         "image|主图" => 'require|max:128',
+23:         "slider_image|轮播图" => 'require',
+24:         "store_name|商品名称" => 'require|max:128',
+25:         "product_id|原商品ID" => 'require',
+26:         "start_time|开始时间" => 'require|checkTime',
+27:         "end_time|结束时间" => "require",
+28:         "presell_type|预售类型" => "require",
+29:         "final_start_time|尾款支付开始时间" => "requireIf:presell_type,2",
+30:         "final_end_time|尾款支付结束时间" => "requireIf:presell_type,2",
+31:         "delivery_type|发货类型" => "require",
+32:         "delivery_day|发货等待天数" => "require",
+33:         "attrValue|商品属性" => "require|Array"
+34:     ];
+35: 
+36:     protected function checkTime($value,$rule,$data)
+37:     {
+38:         $start_time = strtotime($data['start_time']);
+39:         $end_time = strtotime($data['end_time']);
+40:         if($start_time > $end_time) return '活动开始时间必须小于结束时间';
+41:         if($start_time < time()) return '活动开始时间必须大于当前时间';
+42:         if($data['presell_type'] == 2){
+43:             $final_start_time = strtotime($data['final_start_time']);
+44:             $final_end_time = strtotime($data['final_end_time']);
+45:             if($end_time > $final_start_time) return '尾款支付开始时间必须大于定金结束时间';
+46:             if($final_end_time < $final_start_time) return '尾款支付开始时间必须小于结束时间';
+47:         }
+48:         return true;
+49:     }
+50: }
+</file>
+
+<file path="StoreProductValidate.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace app\validate\merchant;
+ 14: 
+ 15: use think\Exception;
+ 16: use think\File;
+ 17: use think\Validate;
+ 18: use app\common\repositories\store\product\NewProductRepository;
+ 19: 
+ 20: class StoreProductValidate extends Validate
+ 21: {
+ 22:     protected $failException = true;
+ 23: 
+ 24:     protected $rule = [
+ 25:         "image|主图" => 'require|max:128',
+ 26:         "store_name|商品名称" => 'require|max:128',
+ 27:         "cate_id|平台分类" => 'require',
+ 28:         "mer_cate_id|商户分类" => 'array',
+ 29:         "unit_name|单位名称" => 'max:4',
+ 30:         "spec_type" => "in:0,1",
+ 31:         "is_show|是否上架" => "require|in:0,1,2",
+ 32:         "auto_on_time|定时上架时间" => "requireIf:is_show,2|date",
+ 33:         "auto_off_time|定时下架时间" => "date",
+ 34:         "extension_type|分销类型" => "in:0,1",
+ 35:         'type|商品类型' => 'require|in:0,1,2,3,4',
+ 36:         'delivery_way|发货方式' => 'requireIf:type,0|requireIf:type,1|requireIf:type,2|requireIf:type,3',
+ 37:         'once_min_count|最小限购' => 'min:0',
+ 38:         'pay_limit|是否限购' => 'require|in:0,1,2|payLimit',
+ 39:         'reservation_time_type|预约时段划分' => 'requireIf:type,4|in:1,2|integer',
+ 40:         'reservation_start_time|预约开始时段' =>'requireIf:reservation_time_type,1|date',
+ 41:         'reservation_end_time|预约结束时间' =>'requireIf:reservation_time_type,1|date',
+ 42:         'reservation_time_interval|时间跨度' =>'requireIf:reservation_time_type,1|integer|egt:10|elt:1440',
+ 43:         'time_period|时段信息' =>'requireIf:type,4|array|validateTimePeriods',
+ 44:         'reservation_type|服务模式' =>'requireIf:type,4|in:1,2,3|integer',
+ 45:         'sale_time_type|可售日期类型' =>'requireIf:type,4|in:1,2|integer',
+ 46:         'sale_time_start_day|可售日期自定义开始时间' =>'requireIf:sale_time_type,2|date',
+ 47:         'sale_time_end_day|可售日期自定义结束时间' =>'requireIf:sale_time_type,2|date',
+ 48:         'sale_time_week|可售日期星期数据' =>'requireIf:sale_time_type,2|array',
+ 49:         'show_reservation_days|预约展示天数' =>'requireIf:type,4|integer|egt:1|elt:999999',
+ 50:         'show_num_type|是否显示剩余可约数量' =>'requireIf:type,4|in:0,1',
+ 51:         'is_advance|是否提前预约' =>'requireIf:type,4|in:0,1',
+ 52:         'advance_time|提前预约时间' =>'requireIf:is_advance,1|integer|egt:0|elt:999999',
+ 53:         'is_cancel_reservation|是否可取消预约' =>'requireIf:type,4|in:0,1',
+ 54:         'cancel_reservation_time|取消预约时间' =>'requireIf:is_cancel_reservation,1|integer|egt:0|elt:999999',
+ 55:         "attr|商品规格" => "requireIf:spec_type,1|Array|checkUnique|checkValueLength",
+ 56:         "attrValue|商品属性" => "require|array|productAttrValue",
+ 57:         'keyword|商品关键词' => 'max:128',
+ 58:     ];
+ 59: 
+ 60:     protected $scene = [
+ 61:         'add' => ['image','auto_on_time','auto_off_time','store_name','cate_id','mer_cate_id','unit_name','spec_type','is_show','extension_type','attr','attrValue','type','delivery_way','once_min_count','pay_limit','keyword'],
+ 62:         'reservation' => [
+ 63:             'reservation_time_type',
+ 64:             'reservation_start_time',
+ 65:             'reservation_end_time',
+ 66:             'reservation_time_interval',
+ 67:             'time_period',
+ 68:             'reservation_type',
+ 69:             'sale_time_type',
+ 70:             'sale_time_start_day',
+ 71:             'sale_time_end_day',
+ 72:             'sale_time_week',
+ 73:             'show_reservation_days',
+ 74:             'show_num_type',
+ 75:             'is_advance',
+ 76:             'advance_time',
+ 77:             'is_cancel_reservation',
+ 78:             'cancel_reservation_time'
+ 79:         ]
+ 80:     ];
+ 81: 
+ 82:     protected function checkValueLength($array) {
+ 83:         $maxLength = 30;
+ 84:         foreach ($array as $item) {
+ 85:             if (isset($item['value']) && (mb_strlen($item['value']) > $maxLength)) {
+ 86:                 return '规格长度不能超过30个字符'; // 发现超过 20 的值，返回 false
+ 87:             }
+ 88:             if (isset($item['detail']) && is_array($item['detail'])) {
+ 89:                 foreach ($item['detail'] as $detailItem) {
+ 90:                     if (isset($detailItem['value']) && mb_strlen($detailItem['value']) > $maxLength) {
+ 91:                         return '规格值长度不能超过30个字符';
+ 92:                     }
+ 93:                 }
+ 94:             }
+ 95:         }
+ 96:         return true; // 所有值都符合长度限制
+ 97:     }
+ 98: 
+ 99:     protected function payLimit($value,$rule,$data)
+100:     {
+101:         if ($value && ($data['once_max_count'] < $data['once_min_count']))
+102:            return '限购数量不能小于最少购买件数';
+103:         return true;
+104:     }
+105: 
+106:     protected function productAttrValue($value,$rule,$data)
+107:     {
+108:         $arr = [];
+109:         try{
+110:             foreach ($value as $v){
+111:                 $sku = '';
+112:                 if(isset($v['detail']) && is_array($v['detail'])){
+113:                     sort($v['detail'],SORT_STRING);
+114:                     $sku = implode(',',$v['detail']);
+115:                     if(in_array($sku,$arr)) return '商品SKU重复';
+116:                     $arr[] = $sku;
+117:                 }
+118:                 if(isset($data['extension_type']) && $data['extension_type'] && systemConfig('extension_status')){
+119:                     if(!isset($v['extension_one']) || !isset($v['extension_two'])) return '佣金金额必须填写';
+120:                     if(($v['extension_one'] < 0) || ($v['extension_two'] < 0))
+121:                         return '佣金金额不可存在负数';
+122:                     if($v['price'] < bcadd($v['extension_one'],$v['extension_two'],2))
+123:                         return '自定义佣金总金额不能大于商品售价';
+124:                 }
+125:                 if ($data['product_type'] == 20 && !$v['ot_price']) {
+126:                     return '积分商品兑换积分必须大于0';
+127:                 }
+128:                 if($data['type'] == NewProductRepository::DEFINE_TYPE_RESERVATION) {
+129:                     if(!isset($v['reservation'])) {
+130:                         return '预约商品规格错误';
+131:                     }
+132:                     foreach ($v['reservation'] as $item) {
+133:                         if(!isset($item['start_time'])
+134:                             || !isset($item['end_time'])
+135:                             || !isset($item['stock'])
+136:                         ) {
+137:                             return '预约商品规格错误';
+138:                         }
+139: 
+140:                         if($item['stock'] < 0) {
+141:                             return '预约库存不可小于0';
+142:                         }
+143:                     }
+144:                 }
+145:             }
+146:         } catch (\Exception $exception) {
+147:             return '商品属性格式错误';
+148:         }
+149:         return true;
+150:     }
+151: 
+152:     protected function checkUnique($value,$rule,$data)
+153:     {
+154:         if($data['type'] == NewProductRepository::DEFINE_TYPE_RESERVATION && count($value) > 1) {
+155:             return '预约商品规格最多只能添加一个';
+156:         }
+157: 
+158:         $arr = [];
+159:         foreach ($value as $item){
+160:             if(in_array($item['value'],$arr))return '规格重复';
+161:             $arr[] = $item['value'];
+162:             if ($data['product_type'] == 20) {
+163:                 $count = array_unique($item['detail']);
+164:             } else {
+165:                 $count = array_unique(array_column($item['detail'],'value'));
+166:             }
+167:             if (count($item['detail']) != count($count))
+168:                 return '属性重复';
+169:         }
+170:         return true;
+171:     }
+172: 
+173:     public function sceneCreate(array $data)
+174:     {
+175:         if (!$this->scene('add')->check($data)) {
+176:             return false;
+177:         }
+178:         if (!$data['spec_type'] && count($data['attrValue']) > 1) {
+179:             $this->error = '单规格商品属性错误';
+180:             return false;
+181:         }
+182: 
+183:         if($data['type'] == NewProductRepository::DEFINE_TYPE_RESERVATION) {
+184:             if(!$this->scene('reservation')->check($data)) {
+185:                 return false;
+186:             }
+187:         }
+188: 
+189:         return true;
+190:     }
+191: 
+192:     public function sceneUpdate(array $data)
+193:     {
+194:         if (!$this->scene('add')->check($data)) {
+195:             return false;
+196:         }
+197:         if (!$data['spec_type'] && count($data['attrValue']) > 1) {
+198:             $this->error = '单规格商品属性错误';
+199:             return false;
+200:         }
+201: 
+202:         if($data['type'] == NewProductRepository::DEFINE_TYPE_RESERVATION) {
+203:             if(!$this->scene('reservation')->check($data)) {
+204:                 return false;
+205:             }
+206:         }
+207: 
+208:         return true;
+209:     }
+210: 
+211:     public function sceneBatchProductStock(array $data)
+212:     {
+213:         if(!isset($data['stockValue'])) {
+214:             $this->error = '预约商品规格错误';
+215:             return false;
+216:         }
+217:         foreach ($data['stockValue'] as $item) {
+218:             if(!isset($item['value_id'])) {
+219:                 $this->error = '预约商品规格传参错误';
+220:                 return false;
+221:             }
+222:             foreach ($item['reservation'] as $reservation) {
+223:                 if(!isset($reservation['stock']) || !isset($reservation['attr_reservation_id'])) {
+224:                     $this->error = '预约商品规格错误';
+225:                     return false;
+226:                 }
+227: 
+228:                 if($reservation['stock'] < 0) {
+229:                     $this->error = '预约库存不可小于0';
+230:                     return false;
+231:                 }
+232: 
+233:             }
+234:         }
+235: 
+236:         return true;
+237:     }
+238: 
+239:     protected function validateTimePeriods($periods)
+240:     {
+241:         if (!is_array($periods) || empty($periods)) {
+242:             return '时段不能为空';
+243:         }
+244: 
+245:         $uniquePeriods = [];
+246:         $lastEndTime = null;
+247:         foreach ($periods as $period) {
+248:             if (!isset($period['start']) || !isset($period['end']) || !isset($period['is_show'])) {
+249:                 return '时段传参错误';
+250:             }
+251: 
+252:             $startTime = strtotime($period['start']);
+253:             $endTime = strtotime($period['end']);
+254:             if (!$startTime || !$endTime) {
+255:                 return '时间格式错误';
+256:             }
+257:             if ($startTime >= $endTime) {
+258:                 return '时段结束时间必须大于开始时间';
+259:             }
+260:             // 检查时间段是否递增且无交集
+261:             if ($lastEndTime !== null && $startTime < $lastEndTime) {
+262:                 return '时段必须递增且无交集';
+263:             }
+264: 
+265:             $lastEndTime = $endTime;
+266:             // 检查重复时段
+267:             $timeKey = $period['start'] . '-' . $period['end'];
+268:             if (in_array($timeKey, $uniquePeriods)) {
+269:                 return '存在重复时段';
+270:             }
+271:             $uniquePeriods[] = $timeKey;
+272:         }
+273: 
+274:         return true;
+275:     }
+276: }
+</file>
+
+<file path="StoreSeckillProductValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\validate\merchant;
+14: 
+15: use think\File;
+16: use think\Validate;
+17: 
+18: class StoreSeckillProductValidate extends Validate
+19: {
+20:     protected $failException = true;
+21: 
+22:     protected $rule = [
+23:         "image|主图" => 'require|max:128',
+24:         "slider_image|轮播图" => 'require',
+25:         "store_name|商品名称" => 'require|max:128',
+26:         "brand_id|品牌ID" => 'require',
+27:         "cate_id|平台分类" => 'require',
+28:         "mer_cate_id|商户分类" => 'array',
+29:         "unit_name|单位名" => 'require|max:4',
+30:         "spec_type" => "in:0,1",
+31:         "is_show|是否上架" => "in:0,1",
+32:         "start_day|开始日期" => "require",
+33:         "end_day|结束日期" => "require",
+34:         "start_time|开始时间" => "require",
+35:         "end_time|结束时间" => "require",
+36:         "old_product_id|原商品ID" => 'require',
+37:         "once_pay_count|单场限购" => 'require',
+38:         "all_pay_count|限购总数" => 'require',
+39:         "attr|商品规格" => "requireIf:spec_type,1|Array|checkUnique",
+40:         "attrValue|商品属性" => "Array|productAttrValue"
+41:     ];
+42: 
+43:     protected function productAttrValue($value,$rule,$data)
+44:     {
+45:         $arr = [];
+46:         foreach ($value as $v){
+47:             if ($v['stock'] > $v['old_stock']) return '限量不能大于库存';
+48:             $sku = '';
+49:             if(isset($v['detail']) && is_array($v['detail'])){
+50:                 sort($v['detail'],SORT_STRING);
+51:                 $sku = implode(',',$v['detail']);
+52:             }
+53:             if($v['stock'] < 1) return '限量不能小于1';
+54:             if(in_array($sku,$arr)) return '商品SKU重复';
+55:             $arr[] = $sku;
+56:         }
+57:         return true;
+58:     }
+59: 
+60:     public function checkUnique($value)
+61:     {
+62:         $arr = [];
+63:        foreach ($value as $item){
+64:            if(in_array($item['value'],$arr)) return '规格重复';
+65:            $arr[] = $item['value'];
+66:            if (count($item['detail']) != count(array_unique($item['detail']))) return '属性重复';
+67:        }
+68:        return true;
+69:     }
+70: }
+</file>
+
+<file path="StoreServiceValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class StoreServiceValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'uid|客服' => 'require|array',
+25:         'uid.id|客服' => 'require|integer',
+26:         'nickname|客服名称' => 'require|max:12',
+27:         'avatar|客服头像' => 'max:250',
+28:         'account|客服账号' => 'require|min:5|max:16',
+29:         'pwd|客服密码' => 'require|min:6|max:16',
+30:         'confirm_pwd|确认密码' => 'require|min:6|max:16',
+31:         'is_open|状态' => 'require|in:0,1',
+32:         'status|状态' => 'require|in:0,1',
+33:         'is_verify|核销状态' => 'require|in:0,1',
+34:         'is_goods|商品管理状态' => 'require|in:0,1',
+35:         'notify|订单通知状态' => 'require|in:0,1',
+36:         'sort|排序' => 'require|integer',
+37:         'customer|展示统计管理状态' => 'require|in:0,1',
+38:     ];
+39: 
+40:     protected $message = [
+41:         'account.min' => '客服账号长度不能小于5个字符',
+42:         'uid.require' => '请选择一个用户绑定为客服',
+43:         'uid.id.require' => '用户ID不能为空'
+44:     ];
+45: 
+46:     public function update()
+47:     {
+48:         $this->rule['pwd|客服密码'] = 'min:6|max:16';
+49:         $this->rule['confirm_pwd|确认密码'] = 'min:6|max:16';
+50:         return $this;
+51:     }
+52: }
+</file>
+
+<file path="UserValidate.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: namespace app\validate\merchant;
+ 12: 
+ 13: use think\Validate;
+ 14: use app\common\repositories\store\CityAreaRepository;
+ 15: 
+ 16: class UserValidate extends Validate
+ 17: {
+ 18:     protected $rule = [
+ 19:         'phone|手机号' => 'require|mobile',
+ 20:         'nickname|用户昵称' => 'require|max:16',
+ 21:         'uid|用户id' => 'require',
+ 22:         'real_name|姓名' => 'require|max:32',
+ 23:         'province|省' => 'require',
+ 24:         'province_id|省id' => 'require|number',
+ 25:         'city|市' => 'require',
+ 26:         'city_id|市id' => 'require|number',
+ 27:         'district|区' => 'require',
+ 28:         'district_id|区id' => 'require|number',
+ 29:         'street|街道' => 'require',
+ 30:         'street_id|街道id' => 'require|number',
+ 31:         'detail|详细地址' => 'require|max:256',
+ 32:         'cart_ids|购物车ids' => 'array',
+ 33:     ];
+ 34: 
+ 35:     protected $message = [
+ 36:         'phone.require' => '手机号不能为空',
+ 37:         'phone.mobile' => '手机号格式错误',
+ 38:         'nickname.require' => '用户昵称不能为空',
+ 39:         'nickname.max' => '用户昵称长度不能超过16个字符',
+ 40:         'uid.require' => '用户id不能为空',
+ 41:         'real_name.require' => '姓名不能为空',
+ 42:         'province.require' => '省不能为空',
+ 43:         'province_id.require' => '省id不能为空',
+ 44:         'city.require' => '市不能为空',
+ 45:         'city_id.require' => '市id不能为空',
+ 46:         'district.require' => '区不能为空',
+ 47:         'district_id.require' => '区id不能为空',
+ 48:         'street.require' => '街道不能为空',
+ 49:         'street_id.require' => '街道id不能为空',
+ 50:         'detail.require' => '详细地址不能为空',
+ 51:     ];
+ 52: 
+ 53:     protected $scene = [
+ 54:         'user'  =>  ['phone'],
+ 55:         'userAddress'  =>  ['uid', 'real_name', 'phone', 'province', 'province_id', 'city', 'city_id', 'district', 'district_id', 'street', 'street_id', 'detail'],
+ 56:         'coupon'  =>  ['uid', 'cart_ids'],
+ 57:     ];
+ 58:     /**
+ 59:      * 验证商户注册信息是否合法
+ 60:      *
+ 61:      * @param array $data
+ 62:      * @return boolean
+ 63:      */
+ 64:     public function userCreateCheck(array $data): bool
+ 65:     {
+ 66:         if (!$this->scene('user')->check($data)) {
+ 67:             return false;
+ 68:         }
+ 69: 
+ 70:         return true;
+ 71:     }
+ 72:     /**
+ 73:      * 验证用户地址信息是否合法
+ 74:      *
+ 75:      * @param array $data
+ 76:      * @return boolean
+ 77:      */
+ 78:     public function userAddressCreateCheck(array $data): bool
+ 79:     {
+ 80:         if (!$this->scene('userAddress')->check($data)) {
+ 81:             return false;
+ 82:         }
+ 83: 
+ 84:         if($data['uid'] == 0 && empty($data['tourist_unique_key'])) {
+ 85:             $this->error = '请传入游客唯一标识';
+ 86:             return false;
+ 87:         }
+ 88:         // 验证最后行政区是否存在
+ 89:         $make = app()->make(CityAreaRepository::class);
+ 90:         if (!$make->existsWhere(['id' => $data['street_id'], 'snum' => 0])) {
+ 91:             $this->error = '请选择正确的所在地区';
+ 92:             return false;
+ 93:         }
+ 94: 
+ 95:         return true;
+ 96:     }
+ 97:     public function couponCheck(array $data): bool
+ 98:     {
+ 99:         if (!$this->scene('coupon')->check($data)) {
+100:             return false;
+101:         }
+102: 
+103:         return true;
+104:     }
+105: }
+</file>
+
+</files>

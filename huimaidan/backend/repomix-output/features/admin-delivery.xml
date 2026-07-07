@@ -1,0 +1,4296 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: app/controller/admin/delivery/**/*.php, route/admin/delivery.php, app/common/repositories/delivery/**/*.php, app/common/dao/delivery/**/*.php, app/common/model/delivery/**/*.php, app/validate/admin/*Delivery*.php, crmeb/services/delivery/**/*.php, app/validate/admin/Delivery*.php, app/validate/merchant/Delivery*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/common/dao/delivery/DeliveryConfigDao.php
+app/common/dao/delivery/DeliveryOrderDao.php
+app/common/dao/delivery/DeliveryServiceDao.php
+app/common/dao/delivery/DeliveryStationDao.php
+app/common/model/delivery/DeliveryConfig.php
+app/common/model/delivery/DeliveryOrder.php
+app/common/model/delivery/DeliveryService.php
+app/common/model/delivery/DeliveryStation.php
+app/common/repositories/delivery/DeliveryConfigRepository.php
+app/common/repositories/delivery/DeliveryOrderRepository.php
+app/common/repositories/delivery/DeliveryServiceRepository.php
+app/common/repositories/delivery/DeliveryStationRepository.php
+app/common/repositories/delivery/DeliveryTrait.php
+app/controller/admin/delivery/DeliveryOrder.php
+app/controller/admin/delivery/DeliveryStation.php
+app/validate/merchant/DeliveryConfigValidate.php
+app/validate/merchant/DeliveryServiceValidate.php
+app/validate/merchant/DeliveryStationValidate.php
+crmeb/services/delivery/Delivery.php
+crmeb/services/delivery/storage/Dada.php
+crmeb/services/delivery/storage/Uupt.php
+route/admin/delivery.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/common/dao/delivery/DeliveryConfigDao.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: namespace app\common\dao\delivery;
+12: 
+13: use app\common\dao\BaseDao;
+14: use think\exception\ValidateException;
+15: use app\common\model\delivery\DeliveryConfig;
+16: 
+17: class DeliveryConfigDao extends BaseDao
+18: {
+19: 
+20:     protected function getModel(): string
+21:     {
+22:         return DeliveryConfig::class;
+23:     }
+24: 
+25:     public function getDeliveryConfig(int $merId)
+26:     {
+27:         return $this->getModel()::getModel()->with(['merchant'])->where('mer_id', $merId)->find() ?: [];
+28:     }
+29: 
+30:     public function saveConfig(int $id, array $params)
+31:     {
+32:         if($id) {
+33:             $info = $this->get($id);
+34:             if (!$info) {
+35:                 throw new ValidateException('配送设置记录不存在!');
+36:             }
+37: 
+38:             return $this->update($id, $params);
+39:         }
+40: 
+41:         return $this->create($params);
+42:     }
+43: }
+</file>
+
+<file path="app/common/dao/delivery/DeliveryOrderDao.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: namespace app\common\dao\delivery;
+12: 
+13: use app\common\dao\BaseDao;
+14: use app\common\model\delivery\DeliveryOrder;
+15: use app\common\model\store\order\StoreOrder;
+16: 
+17: class DeliveryOrderDao extends BaseDao
+18: {
+19: 
+20:     protected function getModel(): string
+21:     {
+22:         return DeliveryOrder::class;
+23:     }
+24: 
+25:     public function search(array $where)
+26:     {
+27:         return DeliveryOrder::getDB()
+28:             ->when(isset($where['service_ids']) && $where['service_ids'] !== '', function ($query) use ($where) {
+29:                 $query->whereIn('service_id', $where['service_ids']);
+30:             })->when(isset($where['mer_ids']) && $where['mer_ids'] !== '', function ($query) use ($where) {
+31:                 $query->whereIn('mer_id', $where['mer_ids']);
+32:             })->when(isset($where['status']) && $where['status'] !== '', function ($query) use ($where) {
+33:                 $query->where('status', $where['status']);
+34:             })->when(isset($where['station_id']) && $where['station_id'] !== '', function ($query) use ($where) {
+35:                 $query->where('station_id', $where['station_id']);
+36:             })->when(isset($where['order_sn']) && $where['order_sn'] !== '', function ($query) use ($where) {
+37:                 $orderId = StoreOrder::getDB()->where('order_sn', $where['order_sn'])->value('order_id');
+38:                 $query->where('order_id', $orderId);
+39:             })->when(isset($where['keyword']) && $where['keyword'] !== '', function ($query) use ($where) {
+40:                 $query->where('order_sn', $where['keyword']);
+41:             })->when(isset($where['date']) && $where['date'] !== '', function ($query) use ($where) {
+42:                 $date = explode('-', $where['date']);
+43:                 $startTime = date('Y-m-d', strtotime($date[0])) . ' 00:00:00';
+44:                 $endTime = date('Y-m-d', strtotime($date[1])) . ' 23:59:59';
+45: 
+46:                 $query->whereTime('create_time', 'between', [$startTime, $endTime]);
+47:             });
+48:     }
+49: }
+</file>
+
+<file path="app/common/dao/delivery/DeliveryServiceDao.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: namespace app\common\dao\delivery;
+12: 
+13: use app\common\dao\BaseDao;
+14: use app\common\model\delivery\DeliveryService;
+15: 
+16: class DeliveryServiceDao extends BaseDao
+17: {
+18: 
+19:     protected function getModel(): string
+20:     {
+21:         return DeliveryService::class;
+22:     }
+23: 
+24:     public function search(array $where)
+25:     {
+26:         return DeliveryService::getDB()->field('ds.*,u.nickname')->alias('ds')
+27:             ->join('user u','u.uid = ds.uid','left')
+28:             ->when(isset($where['status']) && $where['status'] !== '', function ($query) use ($where) {
+29:                 $query->where('ds.status', $where['status']);
+30:             })->when(isset($where['name']) && $where['name'] !== '', function ($query) use ($where) {
+31:                 $query->whereLike('ds.name', "%{$where['name']}%");
+32:             })->when(isset($where['mer_id']) && $where['mer_id'] !== '', function ($query) use ($where) {
+33:                 $query->where('ds.mer_id', $where['mer_id']);
+34:             })->when(isset($where['uid']) && $where['uid'] !== '', function ($query) use ($where) {
+35:                 $query->where('ds.uid', $where['uid']);
+36:             })->when(isset($where['phone']) && $where['phone'] !== '', function ($query) use ($where) {
+37:                 $query->whereLike('ds.phone', "%{$where['phone']}%");
+38:             })->when(isset($where['service_id']) && $where['service_id'] !== '', function ($query) use ($where) {
+39:                 $query->where('ds.service_id', $where['service_id']);
+40:             })->when(isset($where['nickname']) && $where['nickname'] !== '', function ($query) use ($where) {
+41:                 $query->whereLike('u.nickname', "%{$where['nickname']}%");
+42:             })->when(isset($where['keyword']) && $where['keyword'] !== '', function ($query) use ($where) {
+43:                 $query->whereLike('ds.service_id|ds.name|ds.phone', "%{$where['keyword']}%");
+44:             });
+45:     }
+46: 
+47:     public function statisticsSearch(array $where)
+48:     {
+49:         return DeliveryService::getDB()->field('ds.*,u.nickname, count(do.delivery_order_id) as orderCount, sum(do.service_fee) AS serviceFee, sum(if(do.status = 2, 1, if(do.status = 3, 1, 0))) as pendingNum')->alias('ds')
+50:             ->join('user u','u.uid = ds.uid','left')
+51:             ->join('delivery_order do' ,'do.service_id = ds.service_id','left')
+52:             ->when(isset($where['status']) && $where['status'] !== '', function ($query) use ($where) {
+53:                 $query->where('ds.status', $where['status']);
+54:             })->when(isset($where['name']) && $where['name'] !== '', function ($query) use ($where) {
+55:                 $query->whereLike('ds.name', "%{$where['name']}%");
+56:             })->when(isset($where['mer_id']) && $where['mer_id'] !== '', function ($query) use ($where) {
+57:                 $query->where('ds.mer_id', $where['mer_id']);
+58:             })->when(isset($where['uid']) && $where['uid'] !== '', function ($query) use ($where) {
+59:                 $query->where('ds.uid', $where['uid']);
+60:             })->when(isset($where['phone']) && $where['phone'] !== '', function ($query) use ($where) {
+61:                 $query->whereLike('ds.phone', "%{$where['phone']}%");
+62:             })->when(isset($where['service_id']) && $where['service_id'] !== '', function ($query) use ($where) {
+63:                 $query->where('ds.service_id', $where['service_id']);
+64:             })->when(isset($where['nickname']) && $where['nickname'] !== '', function ($query) use ($where) {
+65:                 $query->whereLike('u.nickname', "%{$where['nickname']}%");
+66:             })->when(isset($where['keyword']) && $where['keyword'] !== '', function ($query) use ($where) {
+67:                 $query->whereLike('ds.service_id|ds.name|ds.phone', "%{$where['keyword']}%");
+68:             })->when(isset($where['delivery_date']) && !empty($where['delivery_date']), function ($query) use ($where) {
+69:                 $query->whereBetween('do.create_time', $where['delivery_date']);
+70:             })
+71:             ->where('do.status', '<>', -1)
+72:             ->group('ds.service_id');
+73: 
+74:     }
+75: }
+</file>
+
+<file path="app/common/dao/delivery/DeliveryStationDao.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: namespace app\common\dao\delivery;
+12: 
+13: use app\common\dao\BaseDao;
+14: use app\common\model\delivery\DeliveryStation;
+15: 
+16: class DeliveryStationDao extends BaseDao
+17: {
+18:     const SWITCH_TYPE = [
+19:         1 => 'switch_city', // 同城配送
+20:         2 => 'switch_take', // 到店自提
+21:     ];
+22: 
+23:     protected function getModel(): string
+24:     {
+25:         return DeliveryStation::class;
+26:     }
+27: 
+28:     public function search($where)
+29:     {
+30:         $query = ($this->getModel()::getDB());
+31: 
+32:         $query->when(isset($where['mer_id']) && $where['mer_id'] !== '', function ($query) use ($where) {
+33:             $query->where('mer_id', $where['mer_id']);
+34:         })->when(isset($where['switch_city']) && !empty($where['switch_city']), function ($query) use ($where) {
+35:             $query->where('switch_city', $where['switch_city']);
+36:         })->when(isset($where['switch_take']) && !empty($where['switch_take']), function ($query) use ($where) {
+37:             $query->where('switch_take', $where['switch_take']);
+38:         })->when(isset($where['station_name']) && $where['station_name'] !== '', function ($query) use ($where) {
+39:             $query->where('station_name', 'like', '%' . $where['station_name'] . '%');
+40:         })->when(isset($where['contact_name']) && $where['contact_name'] !== '', function ($query) use ($where) {
+41:             $query->where('contact_name', 'like', '%' . $where['contact_name'] . '%');
+42:         })->when(isset($where['phone']) && $where['phone'] !== '', function ($query) use ($where) {
+43:             $query->where('phone', $where['phone']);
+44:         })->when(isset($where['station_address']) && $where['station_address'] !== '', function ($query) use ($where) {
+45:             $query->where('station_address', 'like', '%' . $where['station_address'] . '%');
+46:         })->when(isset($where['status']) && $where['status'] !== '', function ($query) use ($where) {
+47:             $query->where('status', $where['status']);
+48:         })->when(isset($where['swtich_type']) && $where['swtich_type'] !== '', function ($query) use ($where) {
+49:             $query->where(self::SWITCH_TYPE[$where['swtich_type']], 1);
+50:         })->when(isset($where['type']) && $where['type'] !== '', function ($query) use ($where) {
+51:             $query->where('type', $where['type']);
+52:         })->when(isset($where['mer_delivery_type']) && $where['mer_delivery_type'] !== '', function ($query) use ($where) {
+53:             $query->whereIn('type', $where['mer_delivery_type']);
+54:         })->when(isset($where['name_and_address_search']) && $where['name_and_address_search'] !== '', function ($query) use ($where) {
+55:             $query->where(function ($query) use ($where) {
+56:                 $query->where('station_name', 'like', '%' . $where['name_and_address_search'] . '%')
+57:                     ->whereOr('station_address', 'like', '%' . $where['name_and_address_search'] . '%');
+58:             });
+59:         });
+60: 
+61:         return $query;
+62:     }
+63: }
+</file>
+
+<file path="app/common/model/delivery/DeliveryConfig.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\model\delivery;
+15: 
+16: use app\common\model\BaseModel;
+17: use app\common\model\system\merchant\Merchant;
+18: use app\common\repositories\store\CityAreaRepository;
+19: 
+20: class DeliveryConfig extends BaseModel
+21: {
+22:     protected $updateTime = 'update_time';
+23: 
+24:     public static function tablePk(): string
+25:     {
+26:         return 'delivery_config_id';
+27:     }
+28: 
+29:     public static function tableName(): string
+30:     {
+31:         return 'delivery_config';
+32:     }
+33: 
+34:     public function merchant()
+35:     {
+36:         return $this->hasOne(Merchant::class, 'mer_id','mer_id');
+37:     }
+38: 
+39:     public function getDistancePremiumConfigAttr($value)
+40:     {
+41:         return json_decode($value, true);
+42:     }
+43: 
+44:     public function getWeightPremiumConfigAttr($value)
+45:     {
+46:         return json_decode($value, true);
+47:     }
+48: }
+</file>
+
+<file path="app/common/model/delivery/DeliveryOrder.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\common\model\delivery;
+ 15: 
+ 16: use app\common\model\BaseModel;
+ 17: use app\common\model\store\order\StoreOrder;
+ 18: use app\common\model\store\order\StoreOrderStatus;
+ 19: use app\common\model\system\merchant\Merchant;
+ 20: use crmeb\services\DeliverySevices;
+ 21: 
+ 22: class DeliveryOrder extends BaseModel
+ 23: {
+ 24: 
+ 25:     public static function tablePk(): string
+ 26:     {
+ 27:         return 'delivery_order_id';
+ 28:     }
+ 29: 
+ 30:     public static function tableName(): string
+ 31:     {
+ 32:         return 'delivery_order';
+ 33:     }
+ 34: 
+ 35:     public function getReceiverPhoneAttr($value)
+ 36:     {
+ 37:         if (env('SHOW_PHONE',false) && app('request')->hasMacro('adminInfo') && $value && is_numeric($value)){
+ 38:             if (app('request')->userType() !== 2 || app('request')->adminInfo()['level'] != 0) {
+ 39:                 return substr_replace($value, '****', 3, 4);
+ 40:             }
+ 41:         }
+ 42:         return $value;
+ 43:     }
+ 44: 
+ 45:     public function merchant()
+ 46:     {
+ 47:         return $this->hasOne(Merchant::class, 'mer_id','mer_id');
+ 48:     }
+ 49: 
+ 50:     public function station()
+ 51:     {
+ 52:         return $this->hasOne(DeliveryStation::class, 'station_id','station_id');
+ 53:     }
+ 54: 
+ 55:     public function storeOrder()
+ 56:     {
+ 57:         return $this->hasOne(StoreOrder::class, 'order_id','order_id')->order('create_time DESC, order_id DESC');
+ 58:     }
+ 59: 
+ 60:     public function deliveryService()
+ 61:     {
+ 62:         return $this->hasOne(DeliveryService::class, 'service_id','service_id');
+ 63:     }
+ 64: 
+ 65:     public function storeOrderStatus()
+ 66:     {
+ 67:         return $this->hasMany(StoreOrderStatus::class, 'order_id','order_id')->order('change_time DESC');
+ 68:     }
+ 69: 
+ 70:     public function getDistanceAttr($value, $data)
+ 71:     {
+ 72:         if($data['station_type'] == 0) {
+ 73:             return $this->storeOrder['merchant_take_info'][$data['mer_id']]['distance'];
+ 74:         }
+ 75: 
+ 76:         if ($value >= 1000) {
+ 77:             return round(($value / 1000),2) . ' km';
+ 78:         } else {
+ 79:             return $value . 'm';
+ 80:         }
+ 81:     }
+ 82: 
+ 83:     public function searchStatusAttr($query,$value)
+ 84:     {
+ 85:         $query->where('status',$value);
+ 86:     }
+ 87: 
+ 88:     public function searchKeywordAttr($query,$value)
+ 89:     {
+ 90:         $query->whereLike('order_sn|from_address',"%{$value}%");
+ 91:     }
+ 92: 
+ 93:     public function searchMerIdAttr($query,$value)
+ 94:     {
+ 95:         $query->where('mer_id',$value);
+ 96:     }
+ 97: 
+ 98:     public function searchStationIdAttr($query,$value)
+ 99:     {
+100:         $query->where('station_id',$value);
+101:     }
+102: 
+103:     public function searchStationTypeAttr($query,$value)
+104:     {
+105:         $query->where('station_type',$value);
+106:     }
+107: 
+108:     public function searchOrderIdAttr($query,$value)
+109:     {
+110:         $query->where('order_id',$value);
+111:     }
+112:     public function searchSnAttr($query,$value)
+113:     {
+114:         $query->where('order_sn',$value);
+115:     }
+116:     public function searchDateAttr($query,$value)
+117:     {
+118:         getModelTime($query, $value);
+119:     }
+120:     public function searchOrderSnAttr($query,$value)
+121:     {
+122:         $ids = StoreOrder::whereLike('order_sn',"%{$value}%")->column('order_id');
+123:         $query->whereIn('order_id', $ids);
+124:     }
+125: }
+</file>
+
+<file path="app/common/model/delivery/DeliveryService.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\model\delivery;
+15: 
+16: use app\common\model\BaseModel;
+17: use app\common\model\user\User;
+18: use app\common\model\system\merchant\Merchant;
+19: use crmeb\services\DeliverySevices;
+20: 
+21: class DeliveryService extends BaseModel
+22: {
+23: 
+24:     public static function tablePk(): string
+25:     {
+26:         return 'service_id';
+27:     }
+28: 
+29:     public static function tableName(): string
+30:     {
+31:         return 'delivery_service';
+32:     }
+33: 
+34:     public function user()
+35:     {
+36:         return $this->hasOne(User::class,'uid','uid');
+37:     }
+38: 
+39:     public function deliveryOrder()
+40:     {
+41:         return $this->hasMany(DeliveryOrder::class,'service_id','service_id')
+42:             ->field('delivery_order_id,station_id,order_id,order_sn as delivrey_order_sn,status,service_id,service_fee,fee,create_time')
+43:             ->with([
+44:                 'station' => function ($query) {
+45:                     $query->field('station_id,station_name');
+46:                 },
+47:                 'storeOrder' => function ($query) {
+48:                     $query->field('order_id,order_sn,pay_price')->with(['orderProduct']);
+49:                 }
+50:             ])
+51:             ->where('status', '<>', -1)->group('order_id')->order('create_time DESC, order_id DESC');
+52:     }
+53: 
+54:     public function searchStatusAttr($query,$value)
+55:     {
+56:         $query->where('status',$value);
+57:     }
+58: 
+59:     public function searchMerIdAttr($query,$value)
+60:     {
+61:         $query->where('mer_id',$value);
+62:     }
+63: 
+64:     public function searchServiceIdAttr($query,$value)
+65:     {
+66:         $query->where('service_id',$value);
+67:     }
+68: 
+69:     public function searchIsDelAttr($query,$value)
+70:     {
+71:         $query->where('is_del',$value);
+72:     }
+73: 
+74:     public function searchTypeAttr($query,$value)
+75:     {
+76:         $query->where('type',$value);
+77:     }
+78: 
+79:     public function searchDateAttr($query,$value)
+80:     {
+81:         getModelTime($query, $value, 'create_time');
+82:     }
+83: }
+</file>
+
+<file path="app/common/model/delivery/DeliveryStation.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\common\model\delivery;
+ 15: 
+ 16: use app\common\model\BaseModel;
+ 17: use app\common\model\system\merchant\Merchant;
+ 18: use crmeb\services\DeliverySevices;
+ 19: 
+ 20: class DeliveryStation extends BaseModel
+ 21: {
+ 22: 
+ 23:     public static function tablePk(): string
+ 24:     {
+ 25:         return 'station_id';
+ 26:     }
+ 27: 
+ 28:     public static function tableName(): string
+ 29:     {
+ 30:         return 'delivery_station';
+ 31:     }
+ 32: 
+ 33:     public function getBusinessAttr($value, $data)
+ 34:     {
+ 35:         if($data['type'] !== 0) {
+ 36:             $res = DeliverySevices::create($data['type'], $data['mer_id'])->getBusiness();
+ 37:             foreach ($res as $v) {
+ 38:                 if ($value == $v['key']) {
+ 39:                     return $v;
+ 40:                 }
+ 41:             }
+ 42:         }
+ 43:         return $value;
+ 44:     }
+ 45: 
+ 46:     public function merchant()
+ 47:     {
+ 48:         return $this->hasOne(Merchant::class, 'mer_id','mer_id');
+ 49:     }
+ 50: 
+ 51:     public function getBusinessDateAttr($value)
+ 52:     {
+ 53:         return json_decode($value, true);
+ 54:     }
+ 55: 
+ 56:     public function searchStationNameAttr($query,$value)
+ 57:     {
+ 58:         $query->whereLike('station_name',"%{$value}%");
+ 59:     }
+ 60: 
+ 61:     public function searchKeywordAttr($query,$value)
+ 62:     {
+ 63:         $query->whereLike('station_name|contact_name|phone',"%{$value}%");
+ 64:     }
+ 65: 
+ 66:     public function searchStatusAttr($query,$value)
+ 67:     {
+ 68:         $query->where('status',$value);
+ 69:     }
+ 70: 
+ 71:     public function searchMerIdAttr($query,$value)
+ 72:     {
+ 73:         $query->where('mer_id',$value);
+ 74:     }
+ 75: 
+ 76:     public function searchStationIdAttr($query,$value)
+ 77:     {
+ 78:         $query->where('station_id',$value);
+ 79:     }
+ 80: 
+ 81:     public function searchIsDelAttr($query,$value)
+ 82:     {
+ 83:         $query->where('is_del',$value);
+ 84:     }
+ 85: 
+ 86:     public function searchTypeAttr($query,$value)
+ 87:     {
+ 88:         $query->where('type',$value);
+ 89:     }
+ 90:     public function searchDateAttr($query,$value)
+ 91:     {
+ 92:         getModelTime($query, $value, 'create_time');
+ 93:     }
+ 94: 
+ 95:     public function getRegionAttr($value)
+ 96:     {
+ 97:         return json_decode($value, true);
+ 98:     }
+ 99: 
+100:     public function getFenceAttr($value)
+101:     {
+102:         return json_decode($value, true);
+103:     }
+104: }
+</file>
+
+<file path="app/common/repositories/delivery/DeliveryConfigRepository.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: namespace app\common\repositories\delivery;
+12: 
+13: use think\facade\Db;
+14: use app\common\repositories\BaseRepository;
+15: use app\common\dao\delivery\DeliveryConfigDao;
+16: use app\common\repositories\system\config\ConfigValueRepository;
+17: 
+18: class DeliveryConfigRepository extends BaseRepository
+19: {
+20:     use DeliveryTrait;
+21: 
+22:     public function __construct(DeliveryConfigDao $dao)
+23:     {
+24:         $this->dao = $dao;
+25:     }
+26: 
+27:     protected function getDao()
+28:     {
+29:         return $this->dao;
+30:     }
+31: 
+32:     public function update(int $id, int $merId, array $basicSettingsParams, array $deliveryParams)
+33:     {
+34:         // 基本信息保存
+35:         $configValueRepository = app()->make(ConfigValueRepository::class);
+36:         $configValueRepository->setFormData($basicSettingsParams, $merId);
+37:         // 配送信息
+38:         $deliveryParams['mer_id'] = $merId;
+39:         $deliveryParams['status'] = 1;
+40:         $deliveryParams['distance_premium_config'] = json_encode($deliveryParams['distance_premium_config']);
+41:         $deliveryParams['weight_premium_config'] = json_encode($deliveryParams['weight_premium_config']);
+42: 
+43: 
+44:         return Db::transaction(function () use ($id, $merId, $deliveryParams, $basicSettingsParams) {
+45:             $this->getDao()->saveConfig($id, $deliveryParams);
+46: 
+47:             $mer_delivery_type = $basicSettingsParams['mer_delivery_type'];
+48:             app()->make(DeliveryStationRepository::class)->search([
+49:                 'mer_id' => $merId,
+50:                 'status' => 1
+51:             ])->whereNotIn('type', $mer_delivery_type)->update(['status'=> 0]);
+52:             app()->make(DeliveryStationRepository::class)->search([
+53:                 'mer_id' => $merId,
+54:                 'status' => 0
+55:             ])->whereIn('type', $mer_delivery_type)->update(['status' => 1]);
+56:         });
+57: 
+58:         return $this->getDao()->saveConfig($id, $deliveryParams);
+59:     }
+60: 
+61:     public function deliverySettings(int $merId, array $keys = [])
+62:     {
+63:         if (empty($keys)) {
+64:             $keys = [
+65:                 'mer_delivery_type',
+66:                 'mer_delivery_order_status'
+67:             ];
+68:         }
+69:         // 基本信息
+70:         $basicSettings = merchantConfig($merId, $keys);
+71:         // 配送信息
+72:         $deliverySettings = $this->dao->getDeliveryConfig($merId);
+73: 
+74:         return compact('basicSettings', 'deliverySettings');
+75:     }
+76:     /**
+77:      * 配送费用计算
+78:      *
+79:      * @param integer $takeId
+80:      * @param float $totalWeight
+81:      * @param array $deliverySettings
+82:      * @param array|string $address
+83:      * @return float
+84:      */
+85:     public function deliveryFee(int $takeId, float $totalWeight, array $deliverySettings, $address): float
+86:     {
+87:         // 是否开启溢价叠加,未开启溢价按基础运费计算
+88:         $fee = $deliverySettings['base_shipping_fee'];
+89:         if ($deliverySettings['is_premium_stack_enabled']) {
+90:             $distanceStackFee = $this->distanceStackFee($takeId, $deliverySettings['mer_id'], $deliverySettings['distance_premium_config'], $address);
+91:             $weightStackFee = $this->weightStackFee($totalWeight, $deliverySettings['weight_premium_config']);
+92:             $stackFee = bcadd($distanceStackFee, $weightStackFee);
+93:             $fee = bcadd($fee, $stackFee);
+94:         }
+95: 
+96:         return $fee;
+97:     }
+98: }
+</file>
+
+<file path="app/common/repositories/delivery/DeliveryOrderRepository.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: namespace app\common\repositories\delivery;
+ 12: 
+ 13: use app\common\dao\delivery\DeliveryOrderDao;
+ 14: use app\common\model\delivery\DeliveryStation;
+ 15: use app\common\model\store\order\StoreOrder;
+ 16: use app\common\repositories\BaseRepository;
+ 17: use app\common\repositories\store\order\StoreOrderRepository;
+ 18: use app\common\repositories\store\order\StoreOrderStatusRepository;
+ 19: use app\common\repositories\system\merchant\MerchantRepository;
+ 20: use app\common\repositories\system\serve\ServeOrderRepository;
+ 21: use app\common\repositories\user\UserRepository;
+ 22: use crmeb\services\DeliverySevices;
+ 23: use FormBuilder\Factory\Elm;
+ 24: use think\exception\ValidateException;
+ 25: use think\facade\Db;
+ 26: use think\facade\Log;
+ 27: use think\facade\Route;
+ 28: 
+ 29: /**
+ 30:  * 同城配送订单
+ 31:  */
+ 32: class DeliveryOrderRepository extends BaseRepository
+ 33: {
+ 34: 
+ 35:     protected $statusData = [
+ 36:         2 => '待取货',
+ 37:         3 => '配送中',
+ 38:         4 => '已完成',
+ 39:         -1 => '已取消',
+ 40:         9 => '物品返回中',
+ 41:         10 => '物品返回完成',
+ 42:         100 => '骑士到店',
+ 43:     ];
+ 44: 
+ 45:     protected $message = [
+ 46:         2 => StoreOrderStatusRepository::ORDER_DELIVERY_CITY_WAITING,
+ 47:         3 => StoreOrderStatusRepository::ORDER_DELIVERY_CITY_ING,
+ 48:         4 => StoreOrderStatusRepository::ORDER_DELIVERY_CITY_OVER,
+ 49:         -1 => StoreOrderStatusRepository::ORDER_DELIVERY_CITY_CANCEL,
+ 50:         9 => StoreOrderStatusRepository::ORDER_DELIVERY_CITY_REFUNDING,
+ 51:         10 => StoreOrderStatusRepository::ORDER_DELIVERY_CITY_REFUND,
+ 52:         100 => StoreOrderStatusRepository::ORDER_DELIVERY_CITY_ARRIVE,
+ 53:     ];
+ 54: 
+ 55:     public function __construct(DeliveryOrderDao $dao)
+ 56:     {
+ 57:         $this->dao = $dao;
+ 58:     }
+ 59: 
+ 60:     /**
+ 61:      *  商户的同城配送订单列表
+ 62:      * @param array $where
+ 63:      * @param int $page
+ 64:      * @param int $limit
+ 65:      * @return array
+ 66:      * @author Qinii
+ 67:      */
+ 68:     public function merList(array $where, int $page, int $limit)
+ 69:     {
+ 70:         $query = $this->dao->search($where)->with(
+ 71:             [
+ 72:                 'station',
+ 73:                 'storeOrder' => function ($query) {
+ 74:                     $query->with(['take' => function ($query) {
+ 75:                         $query->field('station_name,station_id');
+ 76:                     }]);
+ 77:                 }
+ 78:             ])->order('create_time DESC');
+ 79:         $count = $query->count();
+ 80:         $list = $query->page($page, $limit)->select();
+ 81: 
+ 82:         return compact('count', 'list');
+ 83:     }
+ 84: 
+ 85:     /**
+ 86:      * 平台同城配送订单列表
+ 87:      * @param array $where
+ 88:      * @param int $page
+ 89:      * @param int $limit
+ 90:      * @return array
+ 91:      * @author Qinii
+ 92:      */
+ 93:     public function sysList(array $where, int $page, int $limit)
+ 94:     {
+ 95:         $query = $this->dao->getSearch($where)->with([
+ 96:             'merchant' => function ($query) {
+ 97:                 $query->field('mer_id,mer_name');
+ 98:             },
+ 99:             'station',
+100:             'storeOrder' => function ($query) {
+101:                 $query->field('order_id,order_sn');
+102:             },
+103:         ])->order('create_time DESC');
+104:         $count = $query->count();
+105:         $list = $query->page($page, $limit)->select();
+106: 
+107:         return compact('count', 'list');
+108:     }
+109: 
+110:     /**
+111:      * 需要配置的订单详情
+112:      * @param int $id
+113:      * @param int|null $merId
+114:      * @return \app\common\model\BaseModel|array|mixed|\think\Model
+115:      * @throws \think\db\exception\DataNotFoundException
+116:      * @throws \think\db\exception\DbException
+117:      * @throws \think\db\exception\ModelNotFoundException
+118:      * @author wuhaotian
+119:      * @email 442384644@qq.com
+120:      * @date 2024/7/5
+121:      */
+122:     public function detail(int $id, ?int $merId)
+123:     {
+124:         $where[$this->dao->getPk()] = $id;
+125:         if ($merId) $where['mer_id'] = $merId;
+126:         $res = $this->dao->getSearch($where)->with([
+127:             'merchant' => function ($query) {
+128:                 $query->field('mer_id,mer_name');
+129:             },
+130:             'station',
+131:         ])->find();
+132:          // 先检查结果是否存在
+133:         if (!$res) throw new ValidateException('订单不存在');
+134: 
+135:          // 然后再处理订单详情
+136:         try {
+137:             $order = DeliverySevices::create($res['station_type'])->getOrderDetail($res);
+138:             $res['data'] = [
+139:                 'order_code' => $order['order_code'],
+140:                 'to_address' => $order['to_address'],
+141:                 'from_address' => $order['from_address'],
+142:                 'state' => $order['state'],
+143:                 'note' => $order['note'],
+144:                 'order_price' => $order['order_price'],
+145:                 'distance' => round(($order['distance'] / 1000), 2) . ' km',
+146:             ];
+147:         } catch (\Exception $e) {
+148:             // 记录异常并返回友好提示
+149:             Log::error('获取配送订单详情失败：' . $e->getMessage());
+150:             throw new ValidateException('获取订单详情失败，请稍后再试');
+151:         }
+152:         return $res;
+153:     }
+154: 
+155:     /**
+156:      * 取消配送订单
+157:      * @param $id
+158:      * @return \FormBuilder\Form
+159:      * @author Qinii
+160:      */
+161:     public function cancelForm($id, $merId)
+162:     {
+163:         $formData = $this->dao->get($id);
+164:         if (!$formData) throw new ValidateException('订单不存在');
+165:         if ($formData['status'] == -1) throw new ValidateException('订单已取消，无法操作');
+166: 
+167:         $form = Elm::createForm(Route::buildUrl('merchantStoreDeliveryOrderCancel', ['id' => $id])->build());
+168:         $rule = [];
+169:         if ($formData['station_type'] == DeliverySevices::DELIVERY_TYPE_DADA) {
+170:             $options = DeliverySevices::create(DeliverySevices::DELIVERY_TYPE_DADA, $merId)->reasons();
+171:             $rule[] = Elm::select('reason', '取消原因：')->placeholder('请选择取消原因')->options($options);
+172:             $rule[] = Elm::text('cancel_reason', '其他原因说明：')->placeholder('请输入其它原因说明');
+173:         }
+174:         if (in_array($formData['station_type'], [DeliverySevices::DELIVERY_TYPE_UU, 0])) {
+175:             $rule[] = Elm::input('reason', '取消原因：')->placeholder('请输入取消原因')->required('请输入取消原因');
+176:         }
+177:         $form->setRule($rule);
+178:         return $form->setTitle('取消同城配送订单', $formData);
+179:     }
+180: 
+181:     /**
+182:      *  取消表单
+183:      * @param $id
+184:      * @param $merId
+185:      * @param $reason
+186:      * @return mixed
+187:      * @author Qinii
+188:      */
+189:     public function cancel($id, $merId, $reason)
+190:     {
+191:         $order = $this->dao->getWhere([$this->dao->getPk() => $id, 'mer_id' => $merId]);
+192:         if (!$order) throw new ValidateException('配送订单不存在');
+193:         if ($order['status'] == -1) throw new ValidateException('请勿重复操作');
+194:         // if ($order['status'] == 4) throw new ValidateException('该订单已完成，无法取消');
+195:         $data = [
+196:             'origin_id' => $order['order_sn'],
+197:             'order_code' => $order['order_code'],
+198:             'reason' => is_array($reason) ? $reason['reason'] : $reason,
+199:         ];
+200:         return Db::transaction(function () use ($order, $data, $merId) {
+201:             if($order['station_type']) {
+202:                 if ($order['station_type'] == DeliverySevices::DELIVERY_TYPE_DADA) {
+203:                     $options = DeliverySevices::create(DeliverySevices::DELIVERY_TYPE_DADA, $merId)->reasons();
+204:                     $data['reason'] = $options[9]['value'];
+205:                     $data['cancel_reason'] = $options[9]['label'];
+206:                 }
+207:                 DeliverySevices::create($order['station_type'], $merId)->cancelOrder($data);
+208:             }else{
+209:                 $order->status = -1;
+210:                 $order->reason = $data['reason'];
+211:                 $order->save();
+212:             }
+213:             // 订单取消后操作
+214:             $this->cancelAfter($order);
+215:             //订单记录
+216:             $statusRepository = app()->make(StoreOrderStatusRepository::class);
+217:             $orderStatus = [
+218:                 'order_id' => $order->order_id,
+219:                 'order_sn' => $order->order_sn,
+220:                 'type' => $statusRepository::TYPE_ORDER,
+221:                 'change_message' => '同城配送订单已取消',
+222:                 'change_type' => $statusRepository::ORDER_DELIVERY_CITY_CANCEL,
+223:             ];
+224:             $statusRepository->createAdminLog($orderStatus);
+225:         });
+226:     }
+227: 
+228:     /**
+229:      * 订单取消后操作
+230:      * @param $deliveryOrder
+231:      * @param $deductFee
+232:      * @param $mark
+233:      * @return void
+234:      * @author Qinii
+235:      */
+236:     public function cancelAfter($deliveryOrder)
+237:     {
+238:         //修改配送订单
+239:         // $deliveryOrder->status = -1;
+240:         // $deliveryOrder->reason = $mark;
+241:         // $deliveryOrder->deduct_fee = $deductFee;
+242:         // $deliveryOrder->save();
+243: 
+244:         //修改商城订单
+245:         $res = app()->make(StoreOrderRepository::class)->get($deliveryOrder['order_id']);
+246:         if($res->status == 1) {
+247:             $res->status = 0;
+248:             if ($deliveryOrder['station_type']) {
+249:                 $merchantTakeInfo = $res['merchant_take_info'];
+250:                 $merchantTakeInfo[$res['mer_id']]['sync_status'] = -1;
+251:                 $merchantTakeInfo[$res['mer_id']]['sync_desc'] = '后台手动取消';
+252:                 $res['merchant_take_info'] = json_encode($merchantTakeInfo);
+253:             }
+254:             $res->save();
+255:         }
+256: 
+257:         //修改商户
+258:         // $merchant = app()->make(MerchantRepository::class)->get($deliveryOrder['mer_id']);
+259:         // $balance = bcadd(bcsub($deliveryOrder['fee'], $deductFee, 2), $merchant->delivery_balance, 2);
+260:         // $merchant->delivery_balance = $balance;
+261:         // $merchant->save();
+262:     }
+263: 
+264: 
+265:     /**
+266:      *  同城配送订单信息回调
+267:      * @param $data
+268:      * @author Qinii
+269:      * @day 2/17/22
+270:      */
+271:     public function notify($data)
+272:     {
+273:         //达达
+274:         /**
+275:          * 订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10, 骑士到店=100,创建达达运单失败=1000 可参考文末的状态说明）
+276:          */
+277:         Log::info('同城回调参数：' . var_export(['=======', $data, '======='], 1));
+278:         if (isset($data['data'])) {
+279:             $data = json_decode($data['data'], 1);
+280:         }
+281:         if(isset($data['biz'])) {
+282:             $data = json_decode($data['biz'], 1);
+283:         }
+284: 
+285:         $reason = '';
+286:         $deductFee = 0;
+287:         $delivery = [];
+288:         if (isset($data['order_status'])) {
+289:             $order_sn = $data['order_id'];
+290:             if ($data['order_status'] == 1) {
+291:                 $orderData = $this->dao->getSearch(['sn' => $data['order_id']])->find();
+292:                 if (!$orderData['finish_code']) {
+293:                     $orderData->finish_code = $data['finish_code'];
+294:                     $orderData->save();
+295:                 }
+296:                 return;
+297:             } else if (in_array($data['order_status'], [2, 3, 4, 5, 9, 10, 100])) {
+298:                 $status = $data['order_status'];
+299:                 if ($data['order_status'] == 5) {
+300:                     $msg = [
+301:                         '取消：',
+302:                         '达达配送员取消：',
+303:                         '商家主动取消：',
+304:                         '系统或客服取消：',
+305:                     ];
+306:                     //1:达达配送员取消；2:商家主动取消；3:系统或客服取消；0:默认值
+307:                     $status = -1;
+308:                     $reason = $msg[$data['cancel_from']] . $data['cancel_reason'];
+309:                 }
+310:                 $deductFee = $data['deductFee'] ?? 0;
+311:                 if (isset($data['dm_name']) && $data['dm_name']) {
+312:                     $delivery = [
+313:                         'delivery_name' => $data['dm_name'],
+314:                         'delivery_id' => $data['dm_mobile'],
+315:                     ];
+316:                 }
+317: 
+318:             }
+319:         } else if (isset($data['state'])) {  //uu
+320:             $deliveryOrder = $this->dao->getWhere(['order_code' => $data['orderCode']]);
+321:             $order_sn = $deliveryOrder['order_sn'];
+322:             //当前状态 1下单成功 2跑男取消（订单状态回退到1） 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消 -2客服取消（订单状态-1） -3超时无人接单取消（订单状态-1）
+323:             switch ($data['state']) {
+324:                 case 2:
+325:                     $deliveryOrder->status = 0;
+326:                     $deliveryOrder->reason = '跑男取消';
+327:                     $deliveryOrder->save();
+328: 
+329:                     break;
+330:                 case 3:
+331:                     $status = 2;
+332:                     break;
+333:                 case 4:
+334:                     $status = 100;
+335:                     break;
+336:                 case 5:
+337:                     $status = 3;
+338:                     break;
+339:                 case 6:
+340:                     $status = 3;
+341:                     break;
+342:                 case 10:
+343:                     $status = 4;
+344:                     break;
+345:                 case -1:
+346:                     $status = -1;
+347:                     $reason = '商家主动取消';
+348:                     break;
+349:                 case -2:
+350:                     $status = -1;
+351:                     $reason = '客服取消';
+352:                     break;
+353:                 case -3:
+354:                     $status = -1;
+355:                     $reason = '超时无人接单取消';
+356:                     break;
+357:                 default:
+358:                     break;
+359:             }
+360:             if (isset($data['driverName']) && $data['driverName']) {
+361:                 $delivery = [
+362:                     'delivery_name' => $data['driverName'],
+363:                     'delivery_id' => $data['driverMobile'],
+364:                 ];
+365:             }
+366:         }
+367: 
+368:         if (isset($order_sn) && isset($status)) {
+369:             $res = $this->dao->getWhere(['order_sn' => $order_sn]);
+370:             if ($res) {
+371:                 $this->notifyAfter($status, $reason, $res, $delivery, $deductFee);
+372:             } else {
+373:                 Log::info('同城配送回调，未查询到订单：' . $order_sn);
+374:             }
+375:         }
+376:     }
+377: 
+378:     /**
+379:      * 同城配送回调
+380:      * @param $status
+381:      * @param $reason
+382:      * @param $res
+383:      * @param $data
+384:      * @param $deductFee
+385:      * @throws \think\db\exception\DataNotFoundException
+386:      * @throws \think\db\exception\DbException
+387:      * @throws \think\db\exception\ModelNotFoundException
+388:      * @author wuhaotian
+389:      * @email 442384644@qq.com
+390:      * @date 2024/7/5
+391:      */
+392:     public function notifyAfter($status, $reason, $res, $data, $deductFee)
+393:     {
+394:         if (!isset($this->statusData[$status])) return;
+395: 
+396:         $make = app()->make(StoreOrderRepository::class);
+397:         $orderData = $make->get($res['order_id']);
+398: 
+399:         return Db::transaction(function () use ($res, $data, $status, $reason, $deductFee, $orderData, $make) {
+400:             $res->status = $status;
+401:             $res->reason = $reason;
+402:             $res->deduct_fee = $deductFee;
+403:             $res->save();
+404:             //订单记录
+405:             $statusRepository = app()->make(StoreOrderStatusRepository::class);
+406:             $message = '订单同城配送【' . $this->statusData[$status] . '】';
+407:             $orderStatus = [
+408:                 'order_id' => $orderData['order_id'],
+409:                 'order_sn' => $orderData['order_sn'],
+410:                 'type' => $statusRepository::TYPE_ORDER,
+411:                 'change_message' => $message,
+412:                 'change_type' => $this->message[$status],
+413:             ];
+414:             $statusRepository->createSysLog($orderStatus);
+415:             if ($status == 2 && !empty($data))
+416:                 $make->update($res['order_id'], $data);
+417:             if ($status == 4) {
+418:                 $order = $make->get($res['order_id']);
+419:                 $user = app()->make(UserRepository::class)->get($order['uid']);
+420:                 $make->update($res['order_id'], ['status' => 2]);
+421:                 $make->takeAfter($order, $user);
+422:             }
+423:             // if ($status == -1) {
+424:             //     $this->cancelAfter($res, $deductFee, $reason);
+425:             // }
+426:         });
+427:     }
+428: 
+429:     /**
+430:      * 创建配送订单
+431:      * @param $id
+432:      * @param $merId
+433:      * @param $data
+434:      * @param $order
+435:      * @return bool
+436:      * @author wuhaotian
+437:      * @email 442384644@qq.com
+438:      * @date 2024/7/5
+439:      */
+440:     public function create($id, $merId, $data, $order)
+441:     {
+442:         $type = $order->take->type;
+443:         $where = ['station_id' => $order['merchant_take_id'], 'mer_id' => $merId, 'status' => 1, 'type' => $type];
+444:         $station = app()->make(DeliveryStationRepository::class)->getWhere($where);
+445: 
+446:         if (!$station) {
+447:             Log::info('同城配送创建订单，门店信息不存在');
+448:             return false;
+449:         }
+450:         if (!$station['city_name']) {
+451:             Log::info('同城配送创建订单，门店缺少所在城市，请重新编辑门店信息');
+452:             return false;
+453:         }
+454:         //地址转经纬度
+455:         $addres = lbs_address([], $order['user_address']);
+456:         $location = $addres['location'];
+457:         // UU坐标转换为百度坐标
+458:         if ($type == DeliverySevices::DELIVERY_TYPE_UU) {
+459:             [$station['lng'], $station['lat']] = gcj02ToBd09($station['lng'], $station['lat']);
+460:             [$location['lng'], $location['lat']] = gcj02ToBd09($addres['location']['lng'], $addres['location']['lat']);
+461:         }
+462: 
+463:         try {
+464:             $service = DeliverySevices::create($type, $merId);
+465:             $orderSn = $this->getOrderSn();
+466:             $callbackUrl = rtrim(systemConfig('site_url'), '/') . '/api/notice/callback';
+467:             $weight = array_sum(array_column(array_column(array_column($data, 'cart_info'), 'productAttr'), 'weight'));
+468: 
+469:             $priceParams = $this->getPriceParams($station, $order, $location, $type, $merId);
+470:             $priceParams['cargo_weight'] = max((int)$weight, 1);
+471:             $priceParams['shop_no'] = $station['origin_shop_id'];
+472:             $priceParams['origin_id'] = $orderSn;
+473:             $priceParams['callback_url'] = $callbackUrl;
+474:             $priceParams['receiver_lat'] = $addres['location']['lat'];
+475:             $priceParams['receiver_lng'] = $addres['location']['lng'];
+476:             //计算价格
+477:             $priceData = $service->getOrderPrice($priceParams);
+478:             if ($type == DeliverySevices::DELIVERY_TYPE_UU) {
+479:                 $priceData['shop_no'] = $station['origin_shop_id'];
+480:                 $priceData['receiver'] = $order['real_name'];
+481:                 $priceData['receiver_phone'] = $order['user_phone'];
+482:                 $priceData['note'] = $order['mark'];
+483:                 $priceData['callback_url'] = $callbackUrl;
+484:                 $priceData['push_type'] = "OPEN_ORDER"; // 测试订单:TEST_ORDER 开放订单:OPEN_ORDER
+485:                 $priceData['special_type'] = 'NOT_NEED_WARM'; // NEED_WARM
+486:             }
+487:             //发布订单
+488:             $res = $service->addOrder($priceData);
+489: 
+490:             $ret = [
+491:                 'station_id' => $order['merchant_take_id'],
+492:                 'order_sn' => $orderSn,
+493:                 'city_code' => $station['city_name'],
+494:                 'receiver_phone' => $order['user_phone'],
+495:                 'user_name' => $order['real_name'],
+496:                 'from_address' => $station['station_address'],
+497:                 'to_address' => $order['user_address'],
+498:                 'order_code' => $type == 2 ? $res['orderCode'] : $priceData['deliveryNo'],
+499:                 'order_id' => $id,
+500:                 'mer_id' => $merId,
+501:                 'status' => $res['status'] ?? 0,
+502:                 'station_type' => $type,
+503:                 'to_lat' => $addres['location']['lat'],
+504:                 'to_lng' => $addres['location']['lng'],
+505:                 'from_lat' => $station['lat'],
+506:                 'from_lng' => $station['lng'],
+507:                 'distance' => $priceData['distance'],
+508:                 'fee' => $type == 2 ? bcdiv($priceData['needPayMoney'], 100, 2) : $priceData['fee'],
+509:                 'mark' => $order['mark'],
+510:                 'uid' => $order['uid'],
+511:                 'reason' => ''
+512:             ];
+513:             //入库操作
+514:             $this->dao->create($ret);
+515: 
+516:             return true;
+517:         } catch (\Exception $e) {
+518:             $merchantTakeInfo = $order['merchant_take_info'] ?? [];
+519:             $merchantTakeInfo[$merId]['sync_status'] = -1;
+520:             $merchantTakeInfo[$merId]['sync_desc'] = $e->getMessage();
+521: 
+522:             $order['merchant_take_info'] = json_encode($merchantTakeInfo);
+523:             $order->save();
+524: 
+525:             return false;
+526:         }
+527:     }
+528: 
+529:     /**
+530:      * 获取订单价格参数
+531:      * @param DeliveryStation $deliveryStation
+532:      * @param StoreOrder $order
+533:      * @param array $addres
+534:      * @param int $type
+535:      * @return array
+536:      * @author wuhaotian
+537:      * @email 442384644@qq.com
+538:      * @date 2024/7/5
+539:      */
+540:     public function getPriceParams(DeliveryStation $deliveryStation, StoreOrder $order, array $addres, int $type, $merId)
+541:     {
+542:         $data = [];
+543:         $type = (int)$type;
+544:         switch ($type) {
+545:             case 1:
+546:                 $city = DeliverySevices::create(DeliverySevices::DELIVERY_TYPE_DADA, $merId)->getCity([]);
+547:                 $res = [];
+548:                 foreach ($city as $item) {
+549:                     $res[$item['label']] = $item['key'];
+550:                 }
+551:                 $data = [
+552:                     'city_code' => $res[$deliveryStation['city_name']],
+553:                     'cargo_price' => $order['pay_price'],
+554:                     'is_prepay' => 0,
+555:                     'receiver_name' => $order['real_name'],
+556:                     'receiver_address' => $order['user_address'],
+557:                     'cargo_weight' => 0,
+558:                     'receiver_phone' => $order['user_phone'],
+559:                     'is_finish_code_needed' => 1,
+560:                 ];
+561:                 break;
+562:             case 2:
+563:                 $data = [
+564:                     'from_address' => $deliveryStation['station_address'],
+565:                     'to_address' => $order['user_address'],
+566:                     'city_name' => $deliveryStation['city_name'],
+567:                     'goods_type' => $deliveryStation['business']['label'],
+568:                     'send_type' => '0',
+569:                     'to_lat' => $addres['lat'],
+570:                     'to_lng' => $addres['lng'],
+571:                     'from_lat' => $deliveryStation['lat'],
+572:                     'from_lng' => $deliveryStation['lng'],
+573:                 ];
+574:                 break;
+575:         }
+576:         return $data;
+577:     }
+578: 
+579:     public function getTitle()
+580:     {
+581:         $query = app()->make(MerchantRepository::class)->getSearch(['is_del' => 0]);
+582:         $merchant = $query->count();
+583:         $price = app()->make(ServeOrderRepository::class)
+584:             ->getSearch(['type' => 10, 'status' => 1])->sum('pay_price');
+585:         $balance = $query->sum('delivery_balance');
+586:         return [
+587:             [
+588:                 'className' => 'el-icon-s-order',
+589:                 'count' => $merchant,
+590:                 'field' => '个',
+591:                 'name' => '商户数'
+592:             ],
+593:             [
+594:                 'className' => 'el-icon-s-order',
+595:                 'count' => $price,
+596:                 'field' => '元',
+597:                 'name' => '商户充值总金额'
+598:             ],
+599:             [
+600:                 'className' => 'el-icon-s-order',
+601:                 'count' => $balance,
+602:                 'field' => '元',
+603:                 'name' => '商户当前余额'
+604:             ],
+605:         ];
+606:     }
+607: 
+608:     /**
+609:      * 销毁订单。
+610:      * 本函数用于根据给定的订单ID和商家ID删除订单。首先，它会验证订单是否存在，如果不存在，则抛出一个异常；
+611:      * 如果存在，则执行删除操作。
+612:      *
+613:      * @param int $id 订单ID。这是主键，用于唯一标识一个订单。
+614:      * @param int $merId 商家ID。用于确定订单所属的商家。
+615:      * @return bool 返回删除操作的结果。如果删除成功，返回true；否则，返回false。
+616:      * @throws ValidateException 如果订单不存在，则抛出此异常。
+617:      */
+618:     public function destory($id, $merId)
+619:     {
+620:         // 根据订单ID和商家ID构建查询条件
+621:         $where = [
+622:             $this->dao->getPk() => $id, // 使用主键作为查询条件之一
+623:             'mer_id' => $merId, // 商家ID作为查询条件之一
+624:         ];
+625: 
+626:         // 根据查询条件查找订单
+627:         $res = $this->dao->getSearch($where)->find();
+628: 
+629:         // 如果查询结果为空，即订单不存在，则抛出异常
+630:         if (!$res) throw new ValidateException('订单不存在');
+631: 
+632:         // 删除订单，并返回删除结果
+633:         return $this->dao->delete($id);
+634:     }
+635: 
+636:     /**
+637:      * 生成订单编号
+638:      *
+639:      * 本函数用于生成唯一的订单编号。编号由时间戳和随机数组成，确保了编号的唯一性和可追踪性。
+640:      * 时间戳部分精确到毫秒，增加了编号的唯一性，随机数部分进一步确保了即使在毫秒级别内有多个订单生成，也能得到不同的编号。
+641:      *
+642:      * @return string 返回生成的订单编号
+643:      */
+644:     public function getOrderSn()
+645:     {
+646:         // 获取当前时间的微秒和秒部分
+647:         list($msec, $sec) = explode(' ', microtime());
+648: 
+649:         // 将微秒和秒转换为毫秒，并格式化为整数，用于订单编号的时间戳部分
+650:         $msectime = number_format((floatval($msec) + floatval($sec)) * 1000, 0, '', '');
+651: 
+652:         // 生成订单编号：前缀 + 毫秒时间戳 + 随机数
+653:         // 使用'dc'作为前缀，表示订单编号的来源或类型
+654:         // 随机数生成范围确保大于毫秒时间戳转换的整数，避免重复，并且预设了一个最小值98369，以保持编号的一定长度和特征
+655:         $orderId = 'dc' . $msectime . random_int(10000, max(intval($msec * 10000) + 10000, 98369));
+656: 
+657:         return $orderId;
+658:     }
+659: 
+660: 
+661:     /**
+662:      * 根据订单ID和用户ID查询订单信息
+663:      *
+664:      * 本函数用于通过给定的订单ID和用户ID，从数据库中检索相应的订单信息。
+665:      * 如果找不到匹配的订单，将抛出一个验证异常，指出订单不存在。
+666:      * 这是对前端接口的封装，确保了只有合法的订单才能被查询和访问。
+667:      *
+668:      * @param int $id 订单ID
+669:      * @param int $uid 用户ID
+670:      * @return array 查询到的订单信息
+671:      * @throws ValidateException 如果订单不存在则抛出异常
+672:      */
+673:     public function show(int $id, int $uid)
+674:     {
+675:         // 构建查询条件
+676:         $where['order_id'] = $id;
+677:         $where['uid'] = $uid;
+678: 
+679:         // 执行查询，同时加载订单状态和订单详情
+680:         $res = $this->dao->getSearch($where)->with(['storeOrderStatus', 'storeOrder'])->find();
+681: 
+682:         // 如果查询结果为空，则抛出异常提示订单不存在
+683:         if (!$res) throw new ValidateException('订单不存在');
+684: 
+685:         // 返回查询结果
+686:         return $res;
+687:     }
+688: 
+689:     const ENABLE_ASSIGNED = [
+690:         'RECEIVE' => 0, // 领取
+691:         'DISPATCH' => 1, // 指派
+692:     ];
+693:     const DELIVERY_TYPE = [
+694:         0 => '商家配送',
+695:         1 => '达达配送',
+696:         2 => 'UU配送',
+697:     ];
+698:     /**
+699:      * 配送员领取
+700:      *
+701:      * @param int $merId
+702:      * @param int $orderId
+703:      * @param int $serviceId
+704:      * @return void
+705:      */
+706:     public function selfReceive(int $merId, int $orderId, int $serviceId)
+707:     {
+708:         if(!merchantConfig($merId, 'mer_delivery_order_status')) {
+709:             throw new ValidateException('商家未开启配送员抢单，无法接单');
+710:         }
+711: 
+712:         // 检查订单是否存在
+713:         $order = $this->orderInfo($orderId, $merId, 0);
+714:         $params['service_id'] = $serviceId;
+715:         return $this->dispatch($order, $merId, $params, self::ENABLE_ASSIGNED['RECEIVE']);
+716:     }
+717:     /**
+718:      * 商家指派/管理端指派
+719:      *
+720:      * @param integer $orderId
+721:      * @param integer $merId
+722:      * @param array $params
+723:      * @param integer $serviceLogId
+724:      * @return void
+725:      */
+726:     public function merDispatch(int $orderId, int $merId, array $params, int $serviceLogId = 0)
+727:     {
+728:         // 检查订单是否存在
+729:         $order = $this->orderInfo($orderId, $merId, 0);
+730:         return $this->dispatch($order, $merId, $params, self::ENABLE_ASSIGNED['DISPATCH'], $serviceLogId);
+731:     }
+732:     /**
+733:      * 同城配送派单
+734:      *
+735:      * @param $order
+736:      * @param int $merId 商家ID
+737:      * @param array $params 派单参数
+738:      * @return bool 派单结果
+739:      */
+740:     public function dispatch($order, int $merId, array $params, int $enableAssigned, int $serviceLogId = 0)
+741:     {
+742:         // 检查配送站是否存在
+743:         $station = app()->make(DeliveryStationRepository::class)->deliveryStationInfo($order['merchant_take_id'], $merId);
+744:         if($station['type']) {
+745:             throw new ValidateException("用户所选自提点不支持商家派单，请返回列表同步第三方配送订单。当前配送方式为【{$this::DELIVERY_TYPE[$station['type']]}】");
+746:         }
+747:         // 数据处理
+748:         $ret = [
+749:             'station_id' => $order['merchant_take_id'],
+750:             'order_sn' => $this->getOrderSn(),
+751:             'city_code' => $station['city_name'],
+752:             'receiver_phone' => $order['user_phone'],
+753:             'user_name' => $order['real_name'],
+754:             'from_address' => $station['station_address'],
+755:             'to_address' => $order['user_address'],
+756:             'order_code' => '',
+757:             'order_id' => $order['order_id'],
+758:             'mer_id' => $merId,
+759:             'status' => 3,
+760:             'station_type' => 0,
+761:             'distance' => '',
+762:             'fee' => $order['pay_postage'],
+763:             'mark' => $order['mark'],
+764:             'uid' => $order['uid'],
+765:             'reason' => '',
+766:             'service_id' => $params['service_id'],
+767:             'service_fee' => $this->getServiceFee($station, $order),
+768:         ];
+769:         //入库操作
+770:         try {
+771:             Db::transaction(function () use ($ret, $order, $enableAssigned, $serviceLogId) {
+772:                 // 创建配送订单
+773:                 $this->dao->create($ret);
+774:                 // 更新订单状态
+775:                 $order->enable_assigned = $enableAssigned;
+776:                 $order->delivery_type = 5;
+777:                 $order->status = 1;
+778:                 $order->save();
+779:                 // 构建订单状态变更信息
+780:                 $orderStatus = [
+781:                     'order_id' => $order->order_id,
+782:                     'order_sn' => $order->order_sn,
+783:                     'type' => StoreOrderStatusRepository::TYPE_ORDER,
+784:                     'change_message' => '订单已派单',
+785:                     'change_type' => StoreOrderStatusRepository::DELIVERY_ORDER_DISPATCH,
+786:                 ];
+787:                 // 根据服务人员ID是否存在，分别记录服务人员日志或管理员日志
+788:                 $storeOrderStatusRepository = app()->make(StoreOrderStatusRepository::class);
+789:                 if ($serviceLogId) {
+790:                     $storeOrderStatusRepository->createServiceLog($serviceLogId, $orderStatus);
+791:                 } else {
+792:                     $storeOrderStatusRepository->createAdminLog($orderStatus);
+793:                 }
+794:             });
+795: 
+796:             return true;
+797:         } catch (\Exception $e) {
+798:             throw new ValidateException('失败：' . $e->getMessage());
+799:         }
+800:     }
+801:     /**
+802:      * 商家改派/管理端改派
+803:      *
+804:      * @param integer $orderId
+805:      * @param integer $merId
+806:      * @param array $params
+807:      * @param integer $serviceLogId
+808:      * @return void
+809:      */
+810:     public function merUpdateDispatch(int $orderId, int $merId, array $params, int $serviceLogId = 0)
+811:     {
+812:         // 检查订单是否存在， 1 表示配送中
+813:         $order = $this->orderInfo($orderId, $merId, 1);
+814:         // 检查配送站是否存在
+815:         $station = app()->make(DeliveryStationRepository::class)->deliveryStationInfo($order['merchant_take_id'], $merId);
+816:         if($station['type']) {
+817:             throw new ValidateException('配送方式错误无法派单,请检查配送设置。当前设置配送方式为'.self::DELIVERY_TYPE[$station['type']]);
+818:         }
+819:         //入库操作
+820:         try {
+821:             Db::transaction(function () use ($params, $order, $serviceLogId) {
+822:                 // 更新配送员id
+823:                 $order->deliveryOrder->service_id = $params['service_id'];
+824:                 $order->deliveryOrder->save();
+825:                 // 构建订单状态变更信息
+826:                 $orderStatus = [
+827:                     'order_id' => $order->order_id,
+828:                     'order_sn' => $order->order_sn,
+829:                     'type' => StoreOrderStatusRepository::TYPE_ORDER,
+830:                     'change_message' => '订单已改派',
+831:                     'change_type' => StoreOrderStatusRepository::DELIVERY_ORDER_DISPATCH,
+832:                 ];
+833:                 // 根据服务人员ID是否存在，分别记录服务人员日志或管理员日志
+834:                 $storeOrderStatusRepository = app()->make(StoreOrderStatusRepository::class);
+835:                 if ($serviceLogId) {
+836:                     $storeOrderStatusRepository->createServiceLog($serviceLogId, $orderStatus);
+837:                 } else {
+838:                     $storeOrderStatusRepository->createAdminLog($orderStatus);
+839:                 }
+840:             });
+841: 
+842:             return true;
+843:         } catch (\Exception $e) {
+844:             throw new ValidateException('失败：' . $e->getMessage());
+845:         }
+846:     }
+847:     /**
+848:      * 订单信息
+849:      * @param int $orderId
+850:      * @param int $merId
+851:      * @param string $status
+852:      * @return mixed
+853:      */
+854:     protected function orderInfo(int $orderId, int $merId, $status = '')
+855:     {
+856:         $where = ['order_id' => $orderId, 'mer_id' => $merId, 'order_type' => 2, 'paid' => 1, 'is_del' => 0];
+857:         if ($status !== '') {
+858:             $where['status'] = $status;
+859:         }
+860:         $order = app()->make(StoreOrderRepository::class)->getWhere($where);
+861:         if (!$order) {
+862:             throw new ValidateException('订单状态异常，请检查');
+863:         }
+864: 
+865:         return $order;
+866:     }
+867:     /**
+868:      * 配送订单确认
+869:      * @param int $id
+870:      * @param int $merId
+871:      * @return bool
+872:      */
+873:     public function confirm(int $orderId, int $merId, int $serviceLogId = 0)
+874:     {
+875:         $order = $this->orderInfo($orderId, $merId);
+876:         if($order->status == 2) {
+877:             throw new ValidateException('订单已确认！');
+878:         }
+879:         try {
+880:             Db::transaction(function () use ($order, $serviceLogId) {
+881:                 // 配送完成
+882:                 if($order->deliveryOrder) {
+883:                     $order->deliveryOrder->status = 4;
+884:                     $order->deliveryOrder->save();
+885:                 }
+886:                 // 更新订单状态：待评价
+887:                 $order->status = 2;
+888:                 $order->save();
+889:                 // 构建订单状态变更信息
+890:                 $orderStatus = [
+891:                     'order_id' => $order->order_id,
+892:                     'order_sn' => $order->order_sn,
+893:                     'type' => StoreOrderStatusRepository::TYPE_ORDER,
+894:                     'change_message' => '订单已确认',
+895:                     'change_type' => StoreOrderStatusRepository::ORDER_STATUS_TAKE,
+896:                 ];
+897:                 //订单记录
+898:                 $user = app()->make(UserRepository::class)->get($order['uid']);
+899:                 app()->make(StoreOrderRepository::class)->takeAfter($order, $user);
+900:                 // 根据服务人员ID是否存在，分别记录服务人员日志或管理员日志
+901:                 $storeOrderStatusRepository = app()->make(StoreOrderStatusRepository::class);
+902:                 if ($serviceLogId) {
+903:                     $storeOrderStatusRepository->createServiceLog($serviceLogId, $orderStatus);
+904:                 } else {
+905:                     $storeOrderStatusRepository->createAdminLog($orderStatus);
+906:                 }
+907:             });
+908: 
+909:             return true;
+910:         } catch (\Exception $e) {
+911:             throw new ValidateException('失败：' . $e->getMessage());
+912:         }
+913:     }
+914:     /**
+915:      * 获取配送订单ID
+916:      * @param array $where
+917:      * @return array
+918:      */
+919:     public function getOrderIds(array $where)
+920:     {
+921:         $orderIds = $this->dao->search($where)->column('order_id');
+922:         return $orderIds;
+923:     }
+924:     /**
+925:      * 配送提成计算
+926:      *
+927:      * @param object $station
+928:      * @param object $order
+929:      * @return void
+930:      */
+931:     protected function getServiceFee($station, $order)
+932:     {
+933:         $deliveryConfigRepository = app()->make(DeliveryConfigRepository::class);
+934:         $deliverySettings = $deliveryConfigRepository->getDeliveryConfig($order['mer_id']);
+935:         if (!$deliverySettings) {
+936:             throw new ValidateException('商户：【' . $deliverySettings['merchant']['mer_name'] . '】，未设置配送费用信息，无法计算配送费');
+937:         }
+938:         // 如果不包邮，直接计算
+939:         if($order['pay_postage'] > 0) {
+940:             return bcmul(bcdiv($deliverySettings['commission_rate'], 100, 2), $order['pay_postage'], 2);
+941:         }
+942:         // 如果包邮，需要先获取到配送费再计算
+943:         // 计算重量
+944:         $totalWeight = 0;
+945:         foreach($order['orderProduct'] as $item) {
+946:             $totalWeight += $item['cart_info']['productAttr']['weight'] * $item['product_num'];
+947:         }
+948: 
+949:         $fee = $deliveryConfigRepository->deliveryFee(
+950:             $station['station_id'],
+951:             $totalWeight,
+952:             $deliverySettings->toArray(),
+953:             $order['user_address']
+954:         );
+955: 
+956:         return bcmul(bcdiv($deliverySettings['commission_rate'], 100, 2), $fee, 2);
+957:     }
+958: 
+959:     public function getDeliveryTrack($deliveryOrder)
+960:     {
+961:         try {
+962:             $data['order_code'] = $deliveryOrder['order_code'];
+963:             $data['origin_id'] = $deliveryOrder['order_sn'];
+964: 
+965:             return DeliverySevices::create($deliveryOrder['station_type'], $deliveryOrder['mer_id'])->getDeliveryTrack($data);
+966:         } catch (\Exception $e) {
+967:             return [];
+968:         }
+969:     }
+970: }
+</file>
+
+<file path="app/common/repositories/delivery/DeliveryServiceRepository.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: namespace app\common\repositories\delivery;
+ 12: 
+ 13: use FormBuilder\Factory\Iview;
+ 14: use app\common\dao\delivery\DeliveryServiceDao;
+ 15: use app\common\repositories\BaseRepository;
+ 16: use FormBuilder\Factory\Elm;
+ 17: use think\facade\Route;
+ 18: 
+ 19: /**
+ 20:  * 配送员
+ 21:  */
+ 22: class DeliveryServiceRepository extends BaseRepository
+ 23: {
+ 24:     public function __construct(DeliveryServiceDao $dao)
+ 25:     {
+ 26:         $this->dao = $dao;
+ 27:     }
+ 28: 
+ 29:     /**
+ 30:      *  添加 / 编辑 表单
+ 31:      * @param int|null $id
+ 32:      * @return void
+ 33:      * @author Qinii
+ 34:      */
+ 35:     public function form(?int $id)
+ 36:     {
+ 37:         $formData        = $id ? $this->dao->getWith($id, ['user' => function ($query) {
+ 38:             $query->field('avatar as src,uid as id,uid');
+ 39:         }])->toArray() : [];
+ 40: 
+ 41:         $form = Elm::createForm($id ? Route::buildUrl('merchantDeliveryServiceUpdate', ['id' => $id])->build() : Route::buildUrl('merchantDeliveryServiceCreate')->build());
+ 42: 
+ 43:         $prefix        = config('admin.merchant_prefix');
+ 44:         if($formData) {
+ 45:             $formData['uid'] = $formData['user'] ?? '';
+ 46:             $formData['uid']['src'] = $formData['user']['src'] ?: $formData['avatar'];
+ 47:         }
+ 48: 
+ 49:         $form->setRule([
+ 50:             Elm::frameImage('uid', '关联用户：', '/' . $prefix . '/setting/userList?field=uid&type=1')->prop('srcKey', 'src')->width('1000px')->height('600px')->appendValidate(Iview::validateObject()->message('请选择用户')->required('请选择用户'))->icon('el-icon-camera')->modal(['modal' => false]),
+ 51:             Elm::frameImage('avatar', '证件照：', '/' . $prefix . '/setting/uploadPicture?field=avatar&type=1', $formData['avatar'] ?? '')->width('1000px')->height('600px')->props(['footer' => false])->icon('el-icon-camera')->modal(['modal' => false]),
+ 52:             Elm::input('name', '姓名：', $formData['name'] ?? '')->placeholder('请输入姓名')->required('请输入姓名'),
+ 53:             Elm::input('phone', '手机号：', $formData['phone'] ?? '')->placeholder('请输入手机号')->required('请输入手机号'),
+ 54:             Elm::textarea('remark', '提示信息：', $formData['remark'] ?? '')->placeholder('特别提示信息'),
+ 55:             Elm::number('sort', '排序：', $formData['sort'] ?? 0),
+ 56:             Elm::switches('status', '是否开启：', 1)->inactiveValue(0)
+ 57:                 ->activeValue(1)->inactiveText('关闭')->className('switch-width-double')->activeText('开启'),
+ 58:         ]);
+ 59:         return $form->setTitle($id ? '编辑' : '添加')->formData($formData);
+ 60:     }
+ 61: 
+ 62:     /**
+ 63:      * 根据条件获取列表数据
+ 64:      *
+ 65:      * 本函数用于根据给定的条件数组$where，从数据库中检索满足条件的数据列表。
+ 66:      * 它支持分页查询，每页的数据数量由$limit参数指定，查询的页码由$page参数指定。
+ 67:      *
+ 68:      * @param array $where 查询条件数组，包含要匹配的数据库字段及其值。
+ 69:      * @param int $page 查询的页码，用于实现分页查询。
+ 70:      * @param int $limit 每页显示的数据条数。
+ 71:      * @return array 返回一个包含两个元素的数组，第一个元素是数据总数$count，第二个元素是当前页的数据列表$list。
+ 72:      */
+ 73:     public function getList(array $where, int $page, int $limit)
+ 74:     {
+ 75:         // 根据条件构建查询
+ 76:         $query = $this->dao->search($where)->order('ds.sort desc, ds.create_time desc');
+ 77: 
+ 78:         // 计算满足条件的数据总数
+ 79:         $count = $query->count();
+ 80: 
+ 81:         // 执行分页查询，并获取当前页的数据列表
+ 82:         $list = $query->page($page, $limit)->select();
+ 83: 
+ 84:         // 将数据总数和数据列表一起返回
+ 85:         return compact('count', 'list');
+ 86:     }
+ 87: 
+ 88:     /**
+ 89:      * 根据条件获取搜索选项
+ 90:      *
+ 91:      * 本函数通过调用DAO层的getSearch方法，根据传入的$where条件查询相关数据，
+ 92:      * 并返回查询结果中特定列的值。这些特定列包括：name（名称）、phone（电话）、service_id（服务ID）。
+ 93:      * 主要用于在前端展示搜索选项或过滤条件，例如用户服务列表。
+ 94:      *
+ 95:      * @param string|array $where 查询条件，可以是字符串或数组形式的SQL WHERE子句。
+ 96:      * @return array 返回一个包含name、phone和服务ID的列数组。
+ 97:      */
+ 98:     public function getOptions($where)
+ 99:     {
+100:         // 调用DAO层的getSearch方法查询数据，并指定返回的列
+101:         return $this->dao->getSearch($where)->column('name,phone,service_id');
+102:     }
+103: 
+104:     public function getStatisticsList($where, $page, $limit)
+105:     {
+106:         $query = $this->dao->statisticsSearch($where)
+107:             ->with(['user' => function ($query) {
+108:                 $query->field('nickname,avatar,uid,cancel_time');
+109:             }])
+110:             ->order('ds.sort DESC,ds.create_time DESC');
+111: 
+112:         $count = $query->count();
+113:         $list = $query->page($page, $limit)->select();
+114: 
+115:         return compact('count', 'list');
+116:     }
+117: 
+118:     public function getStatisticsDetail($id)
+119:     {
+120:         $info = $this->dao->getWith($id, ['deliveryOrder', 'user' => function ($query) {
+121:             $query->field('nickname,avatar,uid,cancel_time');
+122:         }])->toArray();
+123:         $deliveryOrder = $info['deliveryOrder'];
+124: 
+125:         $pendingNum = 0;
+126:         $serviceFee = 0;
+127:         foreach ($deliveryOrder as &$value) {
+128:             $serviceFee = bcadd($serviceFee, $value['service_fee'], 2);
+129:             // 待取货＝2 配送中＝3
+130:             if(in_array($value['status'], [2,3])) {
+131:                 $pendingNum ++;
+132:             }
+133: 
+134:             $orderProduct = [];
+135:             if($value['storeOrder']) {
+136:                 foreach ($value['storeOrder']['orderProduct'] as &$item) {
+137:                     $orderProduct[] = [
+138:                         'product_name' => $item['cart_info']['product']['store_name'],
+139:                         'product_image' => $item['cart_info']['product']['image'],
+140:                         'unique' => $item['cart_info']['productAttr']['unique'],
+141:                         'product_num' => $item['product_num'],
+142:                         'product_price' => $item['product_price']
+143:                     ];
+144:                 }
+145:                 unset($value['storeOrder']['orderProduct']);
+146: 
+147:                 $value['storeOrder']['orderProduct'] = $orderProduct;
+148:             }
+149:         }
+150: 
+151:         $info['deliveryOrder'] = $deliveryOrder;
+152:         $info['pendingNum'] = $pendingNum;
+153:         $info['serviceFee'] = $serviceFee;
+154:         $info['orderCount'] = count($deliveryOrder);
+155: 
+156:         return $info;
+157:     }
+158: 
+159: 
+160: }
+</file>
+
+<file path="app/common/repositories/delivery/DeliveryStationRepository.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: namespace app\common\repositories\delivery;
+ 12: 
+ 13: use app\common\dao\delivery\DeliveryStationDao;
+ 14: use app\common\repositories\BaseRepository;
+ 15: use app\common\repositories\system\config\ConfigClassifyRepository;
+ 16: use app\common\repositories\system\config\ConfigValueRepository;
+ 17: use crmeb\services\DeliverySevices;
+ 18: use FormBuilder\Factory\Elm;
+ 19: use think\Exception;
+ 20: use think\exception\ValidateException;
+ 21: use think\facade\Cache;
+ 22: use think\facade\Db;
+ 23: use think\facade\Route;
+ 24: use app\common\repositories\user\UserAddressRepository;
+ 25: 
+ 26: /**
+ 27:  * 同城配送门店
+ 28:  */
+ 29: class DeliveryStationRepository extends BaseRepository
+ 30: {
+ 31:     use DeliveryTrait;
+ 32: 
+ 33:     public function __construct(DeliveryStationDao $dao)
+ 34:     {
+ 35:         $this->dao = $dao;
+ 36:     }
+ 37: 
+ 38:     /**
+ 39:      * 同城配送设置表单生成方法
+ 40:      * 该方法用于构建同城配送的配置表单，包括是否开启同城配送、选择配送类型以及相应的配置项。
+ 41:      * 配送类型可以是达达快送或UU跑腿，每种配送类型需要不同的配置参数，如AppKey、AppSecret等。
+ 42:      *
+ 43:      * @return \think\response\View 返回一个包含同城配送设置表单的视图
+ 44:      */
+ 45:     public function deliveryForm()
+ 46:     {
+ 47:         // 从系统配置中获取同城配送相关的配置数据
+ 48:         $formData = systemConfig([
+ 49:             'delivery_status',
+ 50:             'uupt_appkey',
+ 51:             'uupt_app_id',
+ 52:             'uupt_open_id',
+ 53:             'delivery_type',
+ 54:             'dada_app_key',
+ 55:             'dada_app_sercret',
+ 56:             'dada_source_id',
+ 57:         ]);
+ 58: 
+ 59:         // 构建表单提交的URL
+ 60:         $formActionUrl = Route::buildUrl('systemDeliveryConfigSave')->build();
+ 61: 
+ 62:         // 使用Element UI构建表单
+ 63:         $form = Elm::createForm($formActionUrl);
+ 64: 
+ 65:         // 设置表单规则，包括是否开启同城配送的开关和选择配送类型的单选按钮
+ 66:         $form->setRule([
+ 67:             // 开关控件，用于开启或关闭同城配送
+ 68:             Elm::switches('delivery_status', '是否开启同城配送：', $formData['delivery_status'])->activeValue(1)->inactiveValue(0)->inactiveText('关闭')->className('switch-width-double')->activeText('开启'),
+ 69:             // 单选按钮，用于选择配送服务类型：达达快送或UU跑腿
+ 70:             Elm::radio('delivery_type', '配送类型：', $formData['delivery_type'])
+ 71:                 ->setOptions([
+ 72:                     ['value' => DeliverySevices::DELIVERY_TYPE_DADA, 'label' => '达达快送'],
+ 73:                     ['value' => DeliverySevices::DELIVERY_TYPE_UU, 'label' => 'UU跑腿'],
+ 74:                 ])
+ 75:                 ->control([
+ 76:                     // 配送类型为达达快送时的配置项：AppKey、AppSecret和商户ID
+ 77:                     [
+ 78:                         'value' => DeliverySevices::DELIVERY_TYPE_DADA,
+ 79:                         'rule' => [
+ 80:                             Elm::input('dada_app_key', 'AppKey (达达)：')->value($formData['dada_app_key'])->placeholder('请输入AppKey (达达)')->required('请输入AppKey (达达)'),
+ 81:                             Elm::input('dada_app_sercret', 'AppSercret (达达)：')->value($formData['dada_app_sercret'])->placeholder('请输入AppSercret (达达)')->required('请输入AppSercret (达达)'),
+ 82:                             Elm::input('dada_source_id', '商户ID (达达)：')->value($formData['dada_source_id'])->placeholder('请输入商户ID (达达)')->required('请输入商户ID (达达)'),
+ 83:                         ]
+ 84:                     ],
+ 85:                     // 配送类型为UU跑腿时的配置项：AppKey、AppId和OpenId
+ 86:                     [
+ 87:                         'value' => DeliverySevices::DELIVERY_TYPE_UU,
+ 88:                         'rule' => [
+ 89:                             Elm::input('uupt_appkey', 'AppKey (UU跑腿)：')->value($formData['uupt_appkey'])->placeholder('请输入AppKey (UU跑腿)')->required('请输入AppKey (UU跑腿)'),
+ 90:                             Elm::input('uupt_app_id', 'AppId (UU跑腿)：')->value($formData['uupt_app_id'])->placeholder('请输入AppId (UU跑腿)')->required('请输入AppId (UU跑腿)'),
+ 91:                             Elm::input('uupt_open_id', 'OpenId (UU跑腿)：')->value($formData['uupt_open_id'])->placeholder('请输入OpenId (UU跑腿)')->required('请输入OpenId (UU跑腿)'),
+ 92:                         ]
+ 93:                     ],
+ 94:                 ]),
+ 95:         ]);
+ 96: 
+ 97:         // 设置表单标题
+ 98:         $form->setTitle('同城配送设置');
+ 99: 
+100:         // 返回包含构建好的表单的视图
+101:         return $form;
+102:     }
+103: 
+104:     /**
+105:      * 获取支持配送类型
+106:      * @return mixed
+107:      * @author Qinii
+108:      */
+109:     public function getBusiness(int $merId = 0, $type)
+110:     {
+111:         return DeliverySevices::create($type, $merId)->getBusiness();
+112:     }
+113: 
+114:     /**
+115:      *  创建门店
+116:      * @param array $data
+117:      * @return mixed
+118:      * @author Qinii
+119:      * @day 2/14/22
+120:      */
+121:     public function save(array $data)
+122:     {
+123:         return Db::transaction(function () use ($data) {
+124:             if (!$data['origin_shop_id']) $data['origin_shop_id'] = $data['mer_id'] . '_' . $this->getSn();
+125:             if($data['bind_type'] == 0 && $data['type']) {
+126:                 DeliverySevices::create($data['type'])->addShop($data);
+127:             }
+128:             unset($data['bind_type']);
+129:             return $this->dao->create($data);
+130:         });
+131: 
+132:     }
+133: 
+134:     /**
+135:      * 生成订单编号
+136:      *
+137:      * 本函数旨在生成一个唯一的订单编号。编号由微秒时间戳和一个随机整数组成，
+138:      * 以此确保订单编号的全局唯一性。
+139:      *
+140:      * @return string 返回生成的订单编号
+141:      */
+142:     public function getSn()
+143:     {
+144:         // 获取当前时间的微秒和秒部分
+145:         list($msec, $sec) = explode(' ', microtime());
+146: 
+147:         // 将微秒和秒转换为毫秒，并去掉小数点，确保编号是整数
+148:         $msectime = number_format((floatval($msec) + floatval($sec)) * 1000, 0, '', '');
+149: 
+150:         // 生成订单编号：毫秒时间戳后跟一个4位随机数，确保唯一性
+151:         // 随机数生成范围是10000到当前毫秒时间戳转换的整数加10000，或98369之间的较大值
+152:         // 这样做是为了避免在极短的时间内生成相同的订单编号
+153:         // $orderId = $msectime . random_int(10000, max(intval($msec * 10000) + 10000, 98369));
+154: 
+155:         return $msectime;
+156:     }
+157: 
+158: 
+159:     /**
+160:      *  更新门店
+161:      * @param $id
+162:      * @param $data
+163:      * @return mixed
+164:      * @author Qinii
+165:      * @day 2/14/22
+166:      */
+167:     public function edit($id, $merId, $data)
+168:     {
+169:         $res = $this->dao->getSearch([$this->dao->getPk() => $id, 'mer_id' => $merId])->find();
+170:         if (!$res) throw new ValidateException('提货点不存在或不属于您');
+171: 
+172:         $origin_shop_id = $data['origin_shop_id'];
+173:         $data['origin_shop_id'] = $res['origin_shop_id'];
+174:         if ($data['bind_type'] == 1){
+175:             $data['origin_shop_id'] = $origin_shop_id;
+176:         }
+177:         return Db::transaction(function () use ($id, $data, $merId) {
+178:             if($data['type']) {
+179:                 DeliverySevices::create($data['type'], $merId)->updateShop($data);
+180:             }
+181:             unset($data['bind_type']);
+182:             return $this->dao->update($id, $data);
+183:         });
+184:     }
+185: 
+186:     /**
+187:      * 商户门店列表
+188:      * @param array $where
+189:      * @param int $page
+190:      * @param int $limit
+191:      * @return array
+192:      * @author Qinii
+193:      * @day 2/17/22
+194:      */
+195:     public function merList(array $where, int $page, int $limit)
+196:     {
+197:         $query = $this->dao->search($where);
+198:         $count = $query->count();
+199:         $list = $query->page($page, $limit)->order('create_time DESC')->select();
+200:         return compact('count', 'list');
+201:     }
+202: 
+203:     /**
+204:      *  系统门店列表
+205:      * @param array $where
+206:      * @param int $page
+207:      * @param int $limit
+208:      * @return array
+209:      * @author Qinii
+210:      */
+211:     public function sysList(array $where, int $page, int $limit)
+212:     {
+213:         $query = $this->dao->getSearch($where)->with([
+214:             'merchant' => function ($query) {
+215:                 $query->field('mer_id,mer_name');
+216:             }
+217:         ]);
+218:         $count = $query->count();
+219:         $list = $query->page($page, $limit)->order('create_time DESC')->select();
+220:         return compact('count', 'list');
+221:     }
+222: 
+223:     /**
+224:      * 根据ID和商户ID获取详细信息
+225:      *
+226:      * 本函数用于查询指定ID和可选的商户ID对应的数据详情。特别地，它还会加载该数据关联的商户信息，
+227:      * 但只包含商户的ID和名称。如果查询结果为空，则抛出一个验证异常，指出门店不存在。
+228:      *
+229:      * @param int $id 数据主键ID
+230:      * @param int|null $merId 商户ID，可为空，表示不按商户ID过滤
+231:      * @return array 查询到的数据详情
+232:      * @throws ValidateException 如果未查询到数据，则抛出门店不存在的异常
+233:      */
+234:     public function detail(int $id, ?int $merId)
+235:     {
+236:         // 根据主键ID准备查询条件
+237:         $where[$this->dao->getPk()] = $id;
+238:         // 如果提供了商户ID，则加入查询条件
+239:         if ($merId) $where['mer_id'] = $merId;
+240: 
+241:         // 执行查询，并加载关联的商户信息，但只包含指定的字段
+242:         $res = $this->dao->getSearch($where)
+243:             ->with([
+244:                 'merchant' => function ($query) {
+245:                     // 明确指定查询商户的ID和名称
+246:                     $query->field('mer_id,mer_name');
+247:                 }
+248:             ])
+249:             ->find();
+250: 
+251:         // 如果查询结果为空，则抛出异常，指出门店不存在
+252:         if (!$res) throw new ValidateException('门店不存在');
+253:         // 返回查询结果
+254:         return $res;
+255:     }
+256: 
+257:     /**
+258:      * 删除数据条目。
+259:      *
+260:      * 本函数用于根据给定的ID和商户ID删除特定的数据项。它首先通过ID和商户ID查询数据是否存在，
+261:      * 如果数据不存在，则抛出一个验证异常；如果数据存在，则执行删除操作。
+262:      *
+263:      * @param int $id 数据项的主键ID。
+264:      * @param int $merId 商户的ID，用于确定数据项所属的商户。
+265:      * @return bool 返回删除操作的结果，通常是TRUE表示删除成功，FALSE表示删除失败。
+266:      * @throws ValidateException 如果查询的数据项不存在，则抛出此异常。
+267:      */
+268:     public function destory($id, $merId)
+269:     {
+270:         // 根据主键ID和商户ID构建查询条件
+271:         $where = [
+272:             $this->dao->getPk() => $id,
+273:             'mer_id' => $merId,
+274:         ];
+275: 
+276:         // 根据查询条件查找数据项
+277:         $res = $this->dao->getSearch($where)->find();
+278: 
+279:         // 如果查询结果为空，即数据项不存在，则抛出异常
+280:         if (!$res) throw new ValidateException('数据不存在');
+281: 
+282:         // 执行删除操作，并返回删除结果
+283:         return $this->dao->delete($id);
+284:     }
+285: 
+286:     /**
+287:      * 标记商家订单 form 的生成方法
+288:      *
+289:      * 本方法用于生成一个用于商家标记订单的表单。通过传入订单ID和商家ID，
+290:      * 方法检索订单的当前备注信息，并构建一个表单以允许商家添加或更新订单备注。
+291:      *
+292:      * @param int $id 订单ID，用于定位特定的订单。
+293:      * @param int $merId 商家ID，用于确定操作订单的商家。
+294:      * @return string 返回生成的表单HTML代码。
+295:      */
+296:     public function markForm($id, $merId)
+297:     {
+298:         // 根据订单ID和商家ID构建查询条件
+299:         $where = [
+300:             $this->dao->getPk() => $id,
+301:             'mer_id' => $merId,
+302:         ];
+303: 
+304:         // 根据查询条件获取订单的当前备注信息
+305:         $formData = $this->dao->getWhere($where);
+306: 
+307:         // 构建表单URL，指向处理商家订单标记的路由
+308:         $formUrl = Route::buildUrl('merchantStoreDeliveryMark', ['id' => $id])->build();
+309: 
+310:         // 创建表单对象，并设置表单提交的URL
+311:         $form = Elm::createForm($formUrl);
+312: 
+313:         // 设置表单的验证规则，这里仅包含一个文本输入框用于输入备注信息
+314:         $form->setRule([
+315:             Elm::text('mark', '备注：', $formData['mark'])->placeholder('请输入备注'),
+316:         ]);
+317: 
+318:         // 设置表单的标题
+319:         $form->setTitle('备注');
+320: 
+321:         // 返回生成的表单HTML代码
+322:         return $form;
+323:     }
+324: 
+325:     /**
+326:      * 获取搜索选项
+327:      * 该方法通过查询数据库获取搜索选项，每个选项包含value和label两个属性，分别代表选项的值和显示文本。
+328:      * 这些选项通常用于下拉列表等选择控件，以提供用户友好的选择方式。
+329:      *
+330:      * @param array $where 查询条件，用于筛选选项。此参数应包含任何需要的条件，以限定查询的结果集。
+331:      * @return object $list 返回一个数组，其中每个元素都是一个包含value和label属性的对象。这些对象代表了可选的搜索条件。
+332:      */
+333:     public function getOptions($where)
+334:     {
+335:         // 使用DAO层的getSearch方法查询数据，指定查询的字段为station_id和station_name，
+336:         // 并按create_time降序排列。最终返回查询结果的数组。
+337:         $list = $this->dao->getSearch($where)->field('station_id value, station_name label')->order('create_time DESC')
+338:         ->select();
+339:         return $list;
+340:     }
+341: 
+342: 
+343: 
+344:     /**
+345:      * 获取城市列表
+346:      * @return mixed
+347:      * @author Qinii
+348:      */
+349:     public function getCityLst(int $merId = 0, $type)
+350:     {
+351:         $key = 'delivery_get_city_lst_' . $type . '_' . $merId;
+352:         if (!$data = Cache::get($key)) {
+353:             $data = DeliverySevices::create($type, $merId)->getCity([]);
+354:             Cache::set($key, $data, 3600);
+355:         }
+356:         return $data;
+357:     }
+358: 
+359:     /**
+360:      * 获取配送余额
+361:      *
+362:      * 本函数用于查询当前系统的配送余额。它首先通过系统配置确定配送方式，然后根据配送方式创建相应的配送服务对象，
+363:      * 最后通过该对象获取配送余额。如果系统没有配置配送方式，则默认返回配送余额为0。
+364:      *
+365:      * @return array 返回一个包含配送余额的数组。如果未配置配送类型，则数组中配送余额为0。
+366:      */
+367:     public function getBalance()
+368:     {
+369:         // 通过系统配置获取配送方式
+370:         $type = systemConfig('delivery_type');
+371: 
+372:         // 如果未配置配送方式，则直接返回配送余额为0
+373:         if (!$type) return ['deliverBalance' => 0];
+374: 
+375:         // 根据配送方式创建配送服务对象，并调用其方法获取配送余额
+376:         return DeliverySevices::create(systemConfig('delivery_type'))->getBalance([]);
+377:     }
+378: 
+379:     /**
+380:      * 获取充值方式
+381:      *
+382:      * 本方法通过调用DeliveryServices类的静态方法create，根据配置的配送类型创建相应的配送服务对象，
+383:      * 并进一步调用该对象的getRecharge方法来获取充值方式。此方法的设计允许系统灵活地支持不同类型的配送服务，
+384:      * 以及对应的充值方式获取逻辑，增强了系统的可扩展性和灵活性。
+385:      *
+386:      * @return array 充值方式列表
+387:      */
+388:     public function getRecharge()
+389:     {
+390:         // 根据系统配置的配送类型创建配送服务对象
+391:         return DeliverySevices::create(systemConfig('delivery_type'))->getRecharge([]);
+392:     }
+393:     /**
+394:      * 获取提货点列表
+395:      * 根据距离排序
+396:      *
+397:      * @param array $params
+398:      * @return void
+399:      */
+400:     public function getListSortByDistance(array $params)
+401:     {
+402:         $lat = 0;
+403:         $lng = 0;
+404:         if($params['switch_city']) {
+405:             $params['mer_delivery_type'] = merchantConfig($params['mer_id'], 'mer_delivery_type');
+406:             $address = app()->make(UserAddressRepository::class)->get($params['address_id'], $params['uid']);
+407:             $addressDetail = $address['province'] . $address['city'] . $address['district'] . $address['street'] . $address['detail'];
+408:             $addressLatAndLong = lbs_address([], $addressDetail);
+409: 
+410:             $lat = $addressLatAndLong['location']['lat'];
+411:             $lng = $addressLatAndLong['location']['lng'];
+412:         }
+413:         if($params['switch_take']) {
+414:             $lat = $params['latitude'];
+415:             $lng = $params['longitude'];
+416:         }
+417:         unset($params['switch_city'], $params['latitude'], $params['longitude']);
+418: 
+419:         // 获取提货点列表
+420:         $list = $this->dao->search($params)->order('station_id DESC,create_time DESC')->select()->toArray();
+421:         if ($lat && $lng) {
+422:             // 计算距离
+423:             foreach($list as &$item){
+424:                 $stationLat = $item['lat'];
+425:                 $stationLong = $item['lng'];
+426:                 $item['distance'] = '';
+427:                 $item['distanceM'] = 0;
+428:                 if (!$stationLat || !$stationLong)
+429:                     continue;
+430: 
+431:                 $distance = getDistance($lat, $lng, $stationLat, $stationLong);
+432:                 $item['distanceM'] = $distance;
+433:                 // 距离单位转换
+434:                 if ($distance < 0.9) {
+435:                     $distance = max(bcmul($distance, 1000, 0), 1).'m';
+436:                     if ($distance == '1m') {$distance = '100m以内';}
+437:                 } else {
+438:                     $distance.= 'km';
+439:                 }
+440:                 $item['distance'] = $distance;
+441:             }
+442:             // 距离排序
+443:             usort($list, function($a, $b) {
+444:                 return $a['distanceM'] > $b['distanceM'];
+445:             });
+446:         }
+447: 
+448:         return $list;
+449:     }
+450:     /**
+451:      * 配送站信息
+452:      * @param int $stationId
+453:      * @param int $merId
+454:      * @return mixed
+455:      */
+456:     public function deliveryStationInfo(int $stationId, int $merId)
+457:     {
+458:         $where = ['station_id' => $stationId, 'mer_id' => $merId, 'status' => 1];
+459:         $station = $this->getWhere($where);
+460:         if (!$station) {
+461:             throw new ValidateException('提货点不存在');
+462:         }
+463: 
+464:         return $station->toArray();
+465:     }
+466:     /**
+467:      * 配送半径验证
+468:      *
+469:      * @param array $address
+470:      * @param array $deliveryStation
+471:      * @return boolean
+472:      */
+473:     public function checkRadius(array $address, array $deliveryStation): bool
+474:     {
+475:         // 根据经纬度计算距离
+476:         $distance = $this->getAddressDistance($deliveryStation['lat'], $deliveryStation['lng'], $address);
+477:         // 配送半径验证
+478:         if ($deliveryStation['radius'] < $distance) {
+479:             return false;
+480:         }
+481: 
+482:         return true;
+483:     }
+484:     /**
+485:      * 配送区域验证
+486:      *
+487:      * @param array $address
+488:      * @param array $deliveryStation
+489:      * @return boolean
+490:      */
+491:     public function checkRegion(array $address, array $deliveryStation): bool
+492:     {
+493:         $isRegion = false;
+494:         $addresString = $address['province_id'] . ',' . $address['city_id'] . ',' . $address['district_id'];
+495:         foreach ($deliveryStation['region'] as $region) {
+496:             $regionString = implode(',', $region);
+497:             if (strpos($addresString, $regionString) !== false) {
+498:                 $isRegion = true;
+499:                 break;
+500:             }
+501:         }
+502: 
+503:         return $isRegion;
+504:     }
+505:     /**
+506:      * 配送围栏验证
+507:      *
+508:      * @param array $address
+509:      * @param array $deliveryStation
+510:      * @return boolean
+511:      */
+512:     public function checkFence(array $address, array $deliveryStation): bool
+513:     {
+514:         $isFence = false;
+515:         $addressDetail = $address['province'] . $address['city'] . $address['district'] . $address['street'] . $address['detail'];
+516:         $addressLatAndLong = lbs_address([], $addressDetail);
+517:         foreach ($deliveryStation['fence'] as $fence) {
+518:             $method = 'checkIn' . ucfirst($fence['type']);
+519:             if (method_exists($this, $method)) {
+520:                 if ($this->$method($fence, $addressLatAndLong)) {
+521:                     $isFence = true;
+522:                     break;
+523:                 }
+524:             }
+525:         }
+526: 
+527:         return $isFence;
+528:     }
+529: 
+530: 
+531: }
+</file>
+
+<file path="app/common/repositories/delivery/DeliveryTrait.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: namespace app\common\repositories\delivery;
+ 12: 
+ 13: use think\exception\ValidateException;
+ 14: 
+ 15: trait DeliveryTrait
+ 16: {
+ 17:     /**
+ 18:      * 获取距离
+ 19:      *
+ 20:      * @param float $merLat
+ 21:      * @param float $merLong
+ 22:      * @param array|string $address
+ 23:      * @return float
+ 24:      */
+ 25:     protected function getAddressDistance(float $merLat, float $merLong, $address): float
+ 26:     {
+ 27:         if(is_string($address)){
+ 28:             $addressDetail = $address;
+ 29:         } else {
+ 30:             $addressDetail = $address['province'] . $address['city'] . $address['district'] . $address['street'] . $address['detail'];
+ 31:         }
+ 32:         $addressLatAndLong = lbs_address([], $addressDetail);
+ 33:         if (!$addressLatAndLong || !$merLat || !$merLong) {
+ 34:             return false;
+ 35:         }
+ 36:         // 根据经纬度计算距离
+ 37:         return getDistance($addressLatAndLong['location']['lat'], $addressLatAndLong['location']['lng'], $merLat, $merLong);
+ 38:     }
+ 39:     /**
+ 40:      * 距离溢价计算
+ 41:      *
+ 42:      * @param integer $takeId
+ 43:      * @param integer $merId
+ 44:      * @param array $config
+ 45:      * @param array|string $address
+ 46:      * @return float
+ 47:      */
+ 48:     protected function distanceStackFee(int $takeId, int $merId,  array $config, $address): float
+ 49:     {
+ 50:         $fee = 0;
+ 51:         // 提货点
+ 52:         $deliveryStation = app()->make(DeliveryStationRepository::class)->deliveryStationInfo($takeId, $merId);
+ 53:         // 配送距离
+ 54:         $distance = $this->getAddressDistance($deliveryStation['lat'], $deliveryStation['lng'], $address);
+ 55:         // 小于第一等级距离
+ 56:         if ($distance <= $config['level_first']['lt_distance']) {
+ 57:             return $fee;
+ 58:         }
+ 59:         // 阶梯范围
+ 60:         if (!empty($config['level_stairs'])) {
+ 61:             foreach ($config['level_stairs'] as $level) {
+ 62:                 if(!$level['add_distance']) {
+ 63:                     throw new ValidateException('商户阶梯配送费设置错误，阶梯增加距离不能为0');
+ 64:                 };
+ 65: 
+ 66:                 if ($distance >= $level['end_distance']) {
+ 67:                     $exceedDistance = bcsub($level['end_distance'], $level['start_distance'], 2);
+ 68:                     $fee += bcmul(ceil(bcdiv($exceedDistance, $level['add_distance'], 2)), $level['add_amount']);
+ 69:                 }
+ 70:                 if ($distance > $level['start_distance'] && $distance <= $level['end_distance']) {
+ 71:                     $exceedDistance = bcsub($distance, $level['start_distance'], 2);
+ 72:                     $fee += bcmul(ceil(bcdiv($exceedDistance, $level['add_distance'], 2)), $level['add_amount']);
+ 73:                 }
+ 74:             }
+ 75:         }
+ 76:         // 最后等级距离
+ 77:         if ($distance > $config['level_last']['gt_distance']) {
+ 78:             $exceedDistance = bcsub($distance, $config['level_last']['gt_distance'], 2);
+ 79:             $fee += bcmul(ceil(bcdiv($exceedDistance,  $config['level_last']['add_distance'], 2)), $config['level_last']['add_amount']);
+ 80:         }
+ 81: 
+ 82:         return $fee;
+ 83:     }
+ 84:     /**
+ 85:      * 重量溢价计算
+ 86:      *
+ 87:      * @param float $totalWeight
+ 88:      * @param array $config
+ 89:      * @return float
+ 90:      */
+ 91:     protected function weightStackFee(float $totalWeight, array $config): float
+ 92:     {
+ 93:         $fee = 0;
+ 94:         // 小于第一等级重量
+ 95:         if ($totalWeight <= $config['level_first']['lt_weight']) {
+ 96:             return $fee;
+ 97:         }
+ 98:         // 阶梯范围
+ 99:         if (!empty($config['level_stairs'])) {
+100:             foreach ($config['level_stairs'] as $level) {
+101:                 if(!$level['add_weight']) {
+102:                     throw new ValidateException('商户阶梯配送费设置错误，阶梯增加重量不能为0');
+103:                 };
+104: 
+105:                 if ($totalWeight >= $level['end_weight']) {
+106:                     $exceedWeight = bcsub($level['end_weight'], $level['start_weight'], 2);
+107:                     $fee += bcmul(ceil(bcdiv($exceedWeight, $level['add_weight'], 2)), $level['add_amount']);
+108:                 }
+109:                 if ($totalWeight > $level['start_weight'] && $totalWeight <= $level['end_weight']) {
+110:                     $exceedWeight = bcsub($totalWeight, $level['start_weight'], 2);
+111:                     $fee += bcmul(ceil(bcdiv($exceedWeight, $level['add_weight'], 2)), $level['add_amount']);
+112:                 }
+113:             }
+114:         }
+115:         // 最后等级重量
+116:         if ($totalWeight > $config['level_last']['gt_weight']) {
+117:             $exceedWeight = bcsub($totalWeight, $config['level_last']['gt_weight'], 2);
+118:             $fee += bcmul(ceil(bcdiv($exceedWeight, $config['level_last']['add_weight'], 2)), $config['level_last']['add_amount']);
+119:         }
+120: 
+121:         return $fee;
+122:     }
+123:     /**
+124:      * 检查一个点是否在多边形内部
+125:      * 使用射线法判断点是否在多边形内
+126:      * 从该点向右发射一条射线，计算与多边形边的交点数
+127:      * 如果交点数为奇数，则点在多边形内部；如果为偶数，则在外部
+128:      *
+129:      * @param array $fence 围栏数据,包含多边形的顶点坐标
+130:      * @param array $addressLatAndLong 需要判断的点的坐标
+131:      * @return bool 返回点是否在多边形内
+132:      */
+133:     protected function checkInPolygon(array $fence, array $addressLatAndLong): bool
+134:     {
+135:         // 获取多边形的所有顶点
+136:         $paths = $fence['data']['paths'];
+137:         // 获取需要判断的点的坐标
+138:         $lat = $addressLatAndLong['location']['lat'];
+139:         $lng = $addressLatAndLong['location']['lng'];
+140:         // 初始化判断结果
+141:         $inside = false;
+142:         // 遍历多边形的所有边
+143:         $j = count($paths) - 1;
+144:         foreach ($paths as $i => $path) {
+145:             // 获取当前点的纬度和经度
+146:             $xi = $path['lat'];  // 当前点的纬度
+147:             $yi = $path['lng'];  // 当前点的经度
+148:             // 获取上一个点的纬度和经度
+149:             $xj = $paths[$j]['lat'];  // 上一个点的纬度
+150:             $yj = $paths[$j]['lng'];  // 上一个点的经度
+151:             // 判断射线是否与当前边相交
+152:             // 1: 边的两个端点一个在射线上方一个在下方; 2: 点的水平坐标小于边在该点纵坐标处的水平坐标
+153:             $intersect = (($yi > $lng) != ($yj > $lng)) &&
+154:                 ($lat < (bcsub($xj, $xi, 8)) * bcdiv(bcsub($lng, $yi, 8), bcsub($yj, $yi, 8), 8) + $xi);
+155:             // 如果相交,则改变内外性
+156:             if ($intersect) {
+157:                 $inside = !$inside;
+158:             }
+159:             $j = $i;
+160:         }
+161: 
+162:         return $inside;
+163:     }
+164:     /**
+165:      * 检查一个点是否在圆形配送范围内
+166:      * 使用欧几里得距离公式计算点到圆心的距离，判断是否在圆的半径范围内
+167:      *
+168:      * @param array $fence 圆形围栏数据,包含半径和圆心坐标
+169:      * @param array $addressLatAndLong 需要判断的点的坐标
+170:      * @return bool 返回点是否在圆内
+171:      */
+172:     protected function checkInCircle(array $fence, array $addressLatAndLong): bool
+173:     {
+174:         // 获取圆的半径(米)
+175:         $radius = $fence['data']['radius'];
+176:         // 获取圆心坐标
+177:         $center = $fence['data']['center'];
+178: 
+179:         // 获取需要判断的点的坐标
+180:         $lat = $addressLatAndLong['location']['lat'];
+181:         $lng = $addressLatAndLong['location']['lng'];
+182:         // 使用getDistance方法计算两点之间的实际距离(米)
+183:         $distance = getDistance(
+184:             $lat,
+185:             $lng,
+186:             $center['lat'],
+187:             $center['lng']
+188:         ) * 1000;
+189:         // 如果实际距离小于等于半径,则点在圆内
+190:         return $distance <= $radius;
+191:     }
+192:     /**
+193:      * 检查一个点是否在矩形配送范围内
+194:      * 通过判断点的经纬度是否在矩形的边界范围内来确定
+195:      *
+196:      * @param array $fence 矩形围栏数据,包含矩形的最小最大经纬度边界
+197:      * @param array $addressLatAndLong 需要判断的点的坐标
+198:      * @return bool 返回点是否在矩形内
+199:      */
+200:     protected function checkInRectangle(array $fence, array $addressLatAndLong): bool
+201:     {
+202:         // 获取矩形的中心点和宽高数据
+203:         $center = $fence['data']['center'];
+204:         $width = $fence['data']['width'];
+205:         $height = $fence['data']['height'];
+206:         // 获取需要判断的点的纬度和经度
+207:         $lat = $addressLatAndLong['location']['lat'];
+208:         $lng = $addressLatAndLong['location']['lng'];
+209:         // 将米转换为经纬度差
+210:         // 纬度1度约等于111000米，经度1度约等于111000*cos(纬度)米
+211:         $latPerMeter = 1 / 111000;  // 每米对应的纬度差
+212:         $lngPerMeter = 1 / (111000 * cos(deg2rad((float)$center['lat']))); // 每米对应的经度差
+213:         // 计算矩形的边界范围
+214:         $halfWidthDegree = bcdiv($width, 2, 8) * $lngPerMeter;
+215:         $halfHeightDegree = bcdiv($height, 2, 8) * $latPerMeter;
+216:         $minLat = bcsub($center['lat'], $halfHeightDegree, 8);
+217:         $maxLat = bcadd($center['lat'], $halfHeightDegree, 8);
+218:         $minLng = bcsub($center['lng'], $halfWidthDegree, 8);
+219:         $maxLng = bcadd($center['lng'], $halfWidthDegree, 8);
+220:         // 判断点的坐标是否在矩形的边界范围内
+221:         return $lat >= $minLat &&
+222:             $lat <= $maxLat &&
+223:             $lng >= $minLng &&
+224:             $lng <= $maxLng;
+225:     }
+226:     /**
+227:      * 检查一个点是否在椭圆配送范围内
+228:      * 使用椭圆标准方程 (x-x0)²/a² + (y-y0)²/b² = 1 判断点是否在椭圆内
+229:      * 其中(x0,y0)为椭圆中心点坐标，a和b分别为椭圆的长半轴和短半轴
+230:      *
+231:      * @param array $fence 椭圆围栏数据,包含椭圆的中心点坐标和长短半轴长度
+232:      * @param array $addressLatAndLong 需要判断的点的坐标
+233:      * @return bool 返回点是否在椭圆内
+234:      */
+235:     protected function checkInEllipse(array $fence, array $addressLatAndLong): bool
+236:     {
+237:         // 获取椭圆的参数数据
+238:         $ellipse = $fence['data'];
+239:         // 获取需要判断的点的纬度和经度
+240:         $lat = $addressLatAndLong['location']['lat'];
+241:         $lng = $addressLatAndLong['location']['lng'];
+242:         // 获取椭圆中心点的坐标
+243:         $x0 = $ellipse['center']['lat'];
+244:         $y0 = $ellipse['center']['lng'];
+245:         // 计算经度每米对应的度数(与纬度有关)
+246:         $lngPerMeter = 1 / (111000 * cos(deg2rad((float)$x0)));
+247:         // 获取椭圆的长半轴和短半轴(单位:米转换为度)
+248:         $latRadius = bcdiv($ellipse['minorRadius'], 111000, 8); // 纬度方向半径(短半轴)
+249:         $lngRadius = $lngPerMeter * $ellipse['majorRadius']; // 经度方向半径(长半轴)
+250:         // 使用椭圆方程判断点是否在椭圆内
+251:         // 如果 (x-x0)²/a² + (y-y0)²/b² <= 1，则点在椭圆内或椭圆上
+252:         return bcadd(bcpow(bcdiv(bcsub($lat, $x0, 8), $latRadius, 8), 2, 8), bcpow(bcdiv(bcsub($lng, $y0, 8), $lngRadius, 8), 2, 8), 8) <= 1;
+253:     }
+254: }
+</file>
+
+<file path="app/controller/admin/delivery/DeliveryOrder.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\controller\admin\delivery;
+15: 
+16: use app\common\repositories\delivery\DeliveryOrderRepository;
+17: use crmeb\basic\BaseController;
+18: use think\App;
+19: 
+20: /**
+21:  * 同城配送订单
+22:  */
+23: class DeliveryOrder extends BaseController
+24: {
+25:     protected $repository;
+26: 
+27:     public function __construct(App $app, DeliveryOrderRepository $repository)
+28:     {
+29:         parent::__construct($app);
+30:         $this->repository = $repository;
+31:     }
+32: 
+33:     /**
+34:      *  列表
+35:      * @return \think\response\Json
+36:      * @author Qinii
+37:      */
+38:     public function lst()
+39:     {
+40:         [$page, $limit] = $this->getPage();
+41:         $where = $this->request->params(['keyword', 'station_name', 'status', 'mer_id', 'date', 'order_sn', 'station_type']);
+42:         $data = $this->repository->sysList($where, $page, $limit);
+43:         return app('json')->success($data);
+44:     }
+45: 
+46:     /**
+47:      *  详情
+48:      * @param $id
+49:      * @return \think\response\Json
+50:      * @author Qinii
+51:      */
+52:     public function detail($id)
+53:     {
+54:         $data = $this->repository->detail($id, null);
+55:         return app('json')->success($data);
+56:     }
+57: 
+58:     /**
+59:      *  标题
+60:      * @return \think\response\Json
+61:      * @author Qinii
+62:      */
+63:     public function title()
+64:     {
+65:         $data = $this->repository->getTitle();
+66:         return app('json')->success($data);
+67:     }
+68: }
+</file>
+
+<file path="app/controller/admin/delivery/DeliveryStation.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\controller\admin\delivery;
+ 15: 
+ 16: use app\common\repositories\delivery\DeliveryStationRepository;
+ 17: use app\common\repositories\system\config\ConfigClassifyRepository;
+ 18: use app\common\repositories\system\config\ConfigRepository;
+ 19: use app\common\repositories\system\config\ConfigValueRepository;
+ 20: use app\common\repositories\system\serve\ServeOrderRepository;
+ 21: use crmeb\basic\BaseController;
+ 22: use think\App;
+ 23: 
+ 24: /**
+ 25:  * 同城配送门店
+ 26:  */
+ 27: class DeliveryStation extends BaseController
+ 28: {
+ 29:     protected $repository;
+ 30: 
+ 31:     public function __construct(App $app, DeliveryStationRepository $repository)
+ 32:     {
+ 33:         parent::__construct($app);
+ 34:         $this->repository = $repository;
+ 35:     }
+ 36: 
+ 37:     /**
+ 38:      * 配置表单
+ 39:      * @return \think\response\Json
+ 40:      * @author Qinii
+ 41:      */
+ 42:     public function deliveryForm()
+ 43:     {
+ 44:         return app('json')->success(formToData($this->repository->deliveryForm()));
+ 45:     }
+ 46: 
+ 47:     /**
+ 48:      *  配置保存
+ 49:      * @return \think\response\Json
+ 50:      * @author Qinii
+ 51:      */
+ 52:     public function saveDeliveryConfig()
+ 53:     {
+ 54:         $status = $this->request->param('delivery_status') == 1 ? 1 : 0;
+ 55:         $type = $this->request->param('delivery_type') == 1 ? 1 : 2;
+ 56:         if ($type == 1) {
+ 57:             $data = $this->request->params([
+ 58:                 'delivery_type',
+ 59:                 'dada_app_key',
+ 60:                 'dada_app_sercret',
+ 61:                 'dada_source_id'
+ 62:             ]);
+ 63:         } else {
+ 64:             $data = $this->request->params([
+ 65:                 'delivery_type',
+ 66:                 'uupt_appkey',
+ 67:                 'uupt_app_id',
+ 68:                 'uupt_open_id',
+ 69:             ]);
+ 70:         }
+ 71:         $data['delivery_status'] = $status;
+ 72:         $cid = app()->make(ConfigClassifyRepository::class)->keyById('delivery_config');
+ 73:         if (!$cid) return app('json')->fail('保存失败');
+ 74:         app()->make(ConfigValueRepository::class)->save($cid, $data, 0);
+ 75:         return app('json')->success('保存成功');
+ 76:     }
+ 77: 
+ 78:     /**
+ 79:      *  列表
+ 80:      * @return \think\response\Json
+ 81:      * @author Qinii
+ 82:      */
+ 83:     public function lst()
+ 84:     {
+ 85:         [$page, $limit] = $this->getPage();
+ 86:         $where = $this->request->params(['keyword', 'station_name', 'status', 'mer_id']);
+ 87:         $data = $this->repository->sysList($where, $page, $limit);
+ 88:         return app('json')->success($data);
+ 89:     }
+ 90: 
+ 91:     /**
+ 92:      *  详情
+ 93:      * @param $id
+ 94:      * @return \think\response\Json
+ 95:      * @author Qinii
+ 96:      */
+ 97:     public function detail($id)
+ 98:     {
+ 99:         $data = $this->repository->detail($id, null);
+100:         return app('json')->success($data);
+101:     }
+102: 
+103:     /**
+104:      *  获取余额
+105:      * @return \think\response\Json
+106:      * @author Qinii
+107:      */
+108:     public function getBalance()
+109:     {
+110:         return app('json')->success($this->repository->getBalance());
+111:     }
+112: 
+113:     /**
+114:      * 获取充值地址
+115:      * @return \think\response\Json
+116:      * @author Qinii
+117:      */
+118:     public function getRecharge()
+119:     {
+120:         return app('json')->success($this->repository->getRecharge());
+121:     }
+122: 
+123:     /**
+124:      * 充值记录
+125:      * @author Qinii
+126:      * @day 2/18/22
+127:      */
+128:     public function payLst()
+129:     {
+130:         [$page, $limit] = $this->getPage();
+131:         $where = $this->request->params(['mer_id', 'date']);
+132:         $where['type'] = 20;
+133:         $data = app()->make(ServeOrderRepository::class)->getList($where, $page, $limit);
+134:         return app('json')->success($data);
+135:     }
+136: 
+137:     public function options()
+138:     {
+139:         return app('json')->success($this->repository->getOptions(null));
+140:     }
+141: }
+</file>
+
+<file path="app/validate/merchant/DeliveryConfigValidate.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: namespace app\validate\merchant;
+ 12: 
+ 13: use think\Validate;
+ 14: 
+ 15: class DeliveryConfigValidate extends Validate
+ 16: {
+ 17:     protected $rule = [
+ 18:         'mer_delivery_type|配送方式' => 'require|array',
+ 19:         'mer_delivery_order_status|配送员抢单开关' => 'require|integer|in:0,1',
+ 20:         'dada_app_key|达达AppKey' => 'requireIn:mer_delivery_type,1',
+ 21:         'dada_app_sercret|达达AppSecret' => 'requireIn:mer_delivery_type,1',
+ 22:         'dada_source_id|达达商户ID' => 'requireIn:mer_delivery_type,1',
+ 23:         'uupt_appkey|UU跑腿AppKey' => 'requireIn:mer_delivery_type,2',
+ 24:         'uupt_app_id|UU跑腿AppId' => 'requireIn:mer_delivery_type,2',
+ 25:         'uupt_open_id|UU跑腿OpenId' => 'requireIn:mer_delivery_type,2',
+ 26:         'min_delivery_amount|起送价' => 'require|float|egt:0|elt:999999.99',
+ 27:         'base_shipping_fee|基础运费' => 'require|float|egt:0|elt:999999.99',
+ 28:         'free_shipping_amount|包邮金额' => 'require|float|egt:0|elt:999999.99',
+ 29:         'is_premium_stack_enabled|是否开启溢价叠加' => 'require|integer|in:0,1',
+ 30:         'distance_premium_config|距离溢价设置' => 'requireIf:is_premium_stack_enabled,1|array',
+ 31:         'distance_premium_config.level_first.lt_distance|第一级公里数' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 32:         'distance_premium_config.level_last.gt_distance|最后一级公里数' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 33:         'distance_premium_config.level_last.add_distance|最后一级公里数,增加公里数' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 34:         'distance_premium_config.level_last.add_amount|最后一级公里数,增加运费' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 35:         'weight_premium_config|重量溢价设置' => 'requireIf:is_premium_stack_enabled,1|array',
+ 36:         'weight_premium_config.level_first.lt_weight|第一级重量' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 37:         'weight_premium_config.level_last.gt_weight|最后一级重量' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 38:         'weight_premium_config.level_last.add_weight|最后一级重量,增加重量' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 39:         'weight_premium_config.level_last.add_amount|最后一级重量,增加运费' => 'requireIf:is_premium_stack_enabled,1|float|gt:0|elt:999999.99',
+ 40:         'delivery_time_type|配送时间类型' => 'require|integer|in:1,2',
+ 41:         'selectable_days|用户端可选天数' => 'requireIf:delivery_time_type,1|integer|between:0,30',
+ 42:         'delivery_prompt|尽快送达文案' => 'requireIf:delivery_time_type,2',
+ 43:         'commission_rate|配送员提成' => 'require|float|between:0,100',
+ 44:         'start_distance|距离阶梯,开始距离' => 'require|float|gt:0|elt:999999.99',
+ 45:         'end_distance|距离阶梯,结束距离' => 'require|float|gt:0|elt:999999.99',
+ 46:         'add_distance|距离阶梯,增加距离' => 'require|float|gt:0|elt:999999.99',
+ 47:         'start_weight|重量阶梯,开始重量' => 'require|float|gt:0|elt:999999.99',
+ 48:         'end_weight|重量阶梯,结束重量' => 'require|float|gt:0|elt:999999.99',
+ 49:         'add_weight|重量阶梯,增加重量' => 'require|float|gt:0|elt:999999.99',
+ 50:         'add_amount|重量阶梯,增加运费' => 'require|float|gt:0|elt:999999.99',
+ 51:     ];
+ 52: 
+ 53:     protected $scene = [
+ 54:         'basic'  =>  [
+ 55:             'mer_delivery_type',
+ 56:             'mer_delivery_order_status',
+ 57:             'dada_app_key',
+ 58:             'dada_app_sercret',
+ 59:             'dada_source_id',
+ 60:             'uupt_appkey',
+ 61:             'uupt_app_id',
+ 62:             'uupt_open_id'
+ 63:         ],
+ 64:         'config' => [
+ 65:             'min_delivery_amount',
+ 66:             'base_shipping_fee',
+ 67:             'free_shipping_amount',
+ 68:             'is_premium_stack_enabled',
+ 69:             'distance_premium_config',
+ 70:             'distance_premium_config.level_first.lt_distance',
+ 71:             'distance_premium_config.level_last.gt_distance',
+ 72:             'distance_premium_config.level_last.add_distance',
+ 73:             'distance_premium_config.level_last.add_amount',
+ 74:             'weight_premium_config',
+ 75:             'weight_premium_config.level_first.lt_weight',
+ 76:             'weight_premium_config.level_last.gt_weight',
+ 77:             'weight_premium_config.level_last.add_weight',
+ 78:             'weight_premium_config.level_last.add_amount',
+ 79:             'delivery_time_type',
+ 80:             'selectable_days',
+ 81:             'delivery_prompt',
+ 82:             'commission_rate'
+ 83:         ],
+ 84:         'stair_distance' => [
+ 85:             'start_distance',
+ 86:             'end_distance',
+ 87:             'add_distance',
+ 88:             'add_amount'
+ 89:         ],
+ 90:         'stair_weight' => [
+ 91:             'start_weight',
+ 92:             'end_weight',
+ 93:             'add_weight',
+ 94:             'add_amount'
+ 95:         ]
+ 96:     ];
+ 97: 
+ 98:     /**
+ 99:      * 验证某个字段包含某个值的时候必须
+100:      *
+101:      * @param string $value 配送方式
+102:      * @param string $rule 验证规则
+103:      * @param array $data 验证数据
+104:      * @return void
+105:      */
+106:     protected function requireIn(string $value, string $rule, array $data = [])
+107:     {
+108:         $rule = explode(',', $rule);
+109:         if(in_array($rule[1], $data['mer_delivery_type']) && $value === '') {
+110:             return false;
+111:         }
+112: 
+113:         return true;
+114:     }
+115: 
+116:     public function update(array $basicSettings, array $deliveryParams)
+117:     {
+118:         if(empty($basicSettings['mer_delivery_type'])) {
+119:             $this->error = '配送方式不能为空';
+120:             return false;
+121:         }
+122: 
+123:         if(!$this->scene('basic')->check($basicSettings)) {
+124:             return false;
+125:         }
+126:         if(!$this->scene('config')->check($deliveryParams)) {
+127:             return false;
+128:         }
+129:         if($deliveryParams['is_premium_stack_enabled']) {
+130:             // 距离溢价设置验证
+131:             $kaishiDistance = $deliveryParams['distance_premium_config']['level_first']['lt_distance'];
+132:             if(!empty($deliveryParams['distance_premium_config']['level_stairs'])) {
+133:                 foreach ($deliveryParams['distance_premium_config']['level_stairs'] as $key => $item) {
+134:                     $num = $key + 1;
+135:                     if (!$this->scene('stair_distance')->check($item)) {
+136:                         return false;
+137:                     }
+138:                     if($item['start_distance'] >= $item['end_distance']) {
+139:                         $this->error = '第'.$num.'级阶梯公里数范围有误';
+140:                         return false;
+141:                     }
+142:                     if($key == 0 && $kaishiDistance > $item['start_distance']) {
+143:                         $this->error = '范围公里数，必须大于等于基础公里数';
+144:                         return false;
+145:                     }
+146:                     if($kaishiDistance > $item['start_distance']) {
+147:                         $this->error = '第'.$num.'级范围公里数必须大于等于第'.($num - 1).'级范围公里数';
+148:                         return false;
+149:                     }
+150:                     if($item['add_distance'] === '' || $item['add_distance'] <= 0) {
+151:                         $this->error = '第'.$num.'级范围公里数,增加公里数必须大于0';
+152:                         return false;
+153:                     }
+154:                     if($item['add_amount'] === '' || $item['add_amount'] <= 0) {
+155:                         $this->error = '第'.$num.'级范围公里数,增加运费必须大于0';
+156:                         return false;
+157:                     }
+158: 
+159:                     $kaishiDistance = $item['end_distance'];
+160:                 }
+161:             }
+162:             if($kaishiDistance > $deliveryParams['distance_premium_config']['level_last']['gt_distance']) {
+163:                 $this->error = '最后一级公里数,必须大于等于上一级公里数';
+164:                 return false;
+165:             }
+166:             // 重量溢价设置验证
+167:             $kaishiWeight = $deliveryParams['weight_premium_config']['level_first']['lt_weight'];
+168:             if(!empty($deliveryParams['weight_premium_config']['level_stairs'])) {
+169:                 foreach ($deliveryParams['weight_premium_config']['level_stairs'] as $key => $item) {
+170:                     $num = $key + 1;
+171:                     if (!$this->scene('stair_weight')->check($item)) {
+172:                         return false;
+173:                     }
+174:                     if($item['start_weight'] >= $item['end_weight']) {
+175:                         $this->error = '第'.$num.'级阶梯重量范围有误';
+176:                         return false;
+177:                     }
+178:                     if($key == 0 && $kaishiWeight > $item['start_weight']) {
+179:                         $this->error = '范围重量，必须大于等于基础重量';
+180:                         return false;
+181:                     }
+182:                     if($kaishiWeight > $item['start_weight']) {
+183:                         $this->error = '第'.$num.'级范围重量必须大于等于第'.($num - 1).'级范围重量';
+184:                         return false;
+185:                     }
+186:                     if($item['add_weight'] === '' || $item['add_weight'] <= 0) {
+187:                         $this->error = '第'.$num.'级范围重量,增加重量必须大于0';
+188:                         return false;
+189:                     }
+190:                     if($item['add_amount'] === '' || $item['add_amount'] <= 0) {
+191:                         $this->error = '第'.$num.'级范围重量,增加运费必须大于0';
+192:                         return false;
+193:                     }
+194: 
+195:                     $kaishiWeight = $item['end_weight'];
+196:                 }
+197:             }
+198:             if($kaishiWeight > $deliveryParams['weight_premium_config']['level_last']['gt_weight']) {
+199:                 $this->error = '最后一级重量,必须大于等于上一级重量';
+200:                 return false;
+201:             }
+202:         }
+203: 
+204:         return true;
+205:     }
+206: }
+</file>
+
+<file path="app/validate/merchant/DeliveryServiceValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class DeliveryServiceValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'name|配送员名称' => 'require',
+25:         'phone|电话' => 'require|mobile',
+26:     ];
+27: }
+</file>
+
+<file path="app/validate/merchant/DeliveryStationValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\merchant;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class DeliveryStationValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'switch_city|同城配送' => 'require|in:0,1',
+25:         'switch_take|到店自提' => 'require|in:0,1',
+26:         'station_name|提货点名称' => 'require',
+27:         'type' => 'require|integer|in:0,1,2',
+28:         'business|配送品类' => 'requireIf:type,1|requireIf:type,2|number',
+29:         'city_name|所属城市' => 'requireIf:type,1|requireIf:type,2',
+30:         'station_address|提货点地址' => 'require',
+31:         'lng|提货点经度' => 'require',
+32:         'lat|提货点纬度' => 'require',
+33:         'contact_name|联系人姓名' => 'require',
+34:         'card_number|身份证号码' => 'number|length:18',
+35:         'phone|联系人电话' => 'require|mobile',
+36:         'business_date|营业日期' => 'require|array|max:7',
+37:         'business_time_start|营业开始时间' => 'require|date|max:20',
+38:         'business_time_end|营业结束时间' => 'require|date|max:20',
+39:         'status|状态' => 'require|in:0,1',
+40:         'bind_type|门店关联方式' => 'require|in:0,1',
+41:         'origin_shop_id|关联门店ID' => 'requireIf:bind_type,1',
+42:         'range_type|配送范围类型' => 'require|integer|in:1,2,3',
+43:         'radius|服务半径' => 'requireIf:range_type,1|float',
+44:         'region|服务行政区' => 'requireIf:range_type,2|array',
+45:         'fence|电子围栏设置' => 'requireIf:range_type,3|array'
+46:     ];
+47: 
+48:     public function sceneDada()
+49:     {
+50:         return $this->append('username','mobile');
+51:     }
+52: 
+53:     public $message = [
+54:         'username.mobile' => '达达账号必须是手机号'
+55:     ];
+56: }
+</file>
+
+<file path="crmeb/services/delivery/Delivery.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\services\delivery;
+14: 
+15: use crmeb\basic\BaseManager;
+16: use think\facade\Config;
+17: 
+18: class Delivery extends BaseManager
+19: {
+20:     /**
+21:      * 空间名
+22:      * @var string
+23:      */
+24:     protected $namespace = '\\crmeb\\services\\delivery\\storage\\';
+25: 
+26:     /**
+27:      * 设置默认
+28:      * @return mixed
+29:      */
+30:     protected function getDefaultDriver()
+31:     {
+32:         return Config::get('delivery.default', 'dada');
+33:     }
+34: }
+</file>
+
+<file path="crmeb/services/delivery/storage/Dada.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: namespace crmeb\services\delivery\storage;
+ 12: 
+ 13: use crmeb\basic\BaseStorage;
+ 14: use crmeb\interfaces\DeliveryInterface;
+ 15: use think\exception\ValidateException;
+ 16: use think\facade\Log;
+ 17: 
+ 18: class Dada extends BaseStorage implements DeliveryInterface
+ 19: {
+ 20:     const BASE_URL = 'https://newopen.imdada.cn';
+ 21:     // const BASE_URL = 'https://newopen.qa.imdada.cn';
+ 22: 
+ 23:     const ADD_MERCHANT = '/merchantApi/merchant/add';
+ 24:     // 添加门店
+ 25:     const ADD_SHOP = '/api/shop/add';
+ 26:     // 更新门店
+ 27:     const UPDATE_SHOP = '/api/shop/update';
+ 28:     // 获取城市编码列表
+ 29:     const GET_CITY_CODE = '/api/cityCode/list';
+ 30:     // 获取门店详情
+ 31:     const GET_SHOP_DETAIL = '/api/shop/detail';
+ 32:     // 计算订单价格
+ 33:     const GET_ORDER_PRICE = '/api/order/queryDeliverFee';
+ 34:     // 发布订单
+ 35:     const ADD_ORDER_AFTER_QUERY = '/api/order/addAfterQuery';
+ 36:     // 订单查询
+ 37:     const ADD_ORDER_STSATUS_QUERY = '/api/order/status/query';
+ 38:     // 获取取消原因列表
+ 39:     const GET_REASONS = '/api/order/cancel/reasons';
+ 40:     // 取消订单
+ 41:     const CANCEL_ORDER = '/api/order/formalCancel';
+ 42:     // 获取余额
+ 43:     const GET_BALANCE = '/api/balance/query';
+ 44:     // 充值余额
+ 45:     const GET_RECHARGE = '/api/recharge';
+ 46:     // 获取配送员轨迹信息
+ 47:     const DEIVER_TRACK = '/api/order/transporter/position';
+ 48: 
+ 49:     public $config;
+ 50: 
+ 51:     public function initialize(array $config)
+ 52:     {
+ 53:         // $config['app_key'] = 'dadaf3b5d27430a6e64';
+ 54:         // $config['app_secret'] = 'a457576705673ee60e109ed9fc4c5d1e';
+ 55:         // $config['source_id'] = '2111832530';
+ 56: 
+ 57:         $this->config = $config;
+ 58:     }
+ 59:     /**
+ 60:      * 创建商户
+ 61:      *
+ 62:      * @param array $data
+ 63:      * @return void
+ 64:      */
+ 65:     public function addMerchant($data)
+ 66:     {
+ 67:         return $this->sendRequest(self::ADD_MERCHANT, $data);
+ 68:     }
+ 69:     /**
+ 70:      * 创建门店
+ 71:      *
+ 72:      * @param array $data
+ 73:      * @return void
+ 74:      */
+ 75:     public function addShop($data)
+ 76:     {
+ 77:         $parmas = [];
+ 78: 
+ 79:         if (!($data['lng']) || !($data['lat']))
+ 80:             throw new ValidateException('经纬度不能为空');
+ 81:         if (!($data['phone']) || !($data['contact_name']))
+ 82:             throw new ValidateException('联系人信息不能为空');
+ 83:         if (!($data['business']))
+ 84:             throw new ValidateException('配送物品分类不能为空');
+ 85:         if (!($data['station_name']) || !$data['station_address'])
+ 86:             throw new ValidateException('门店信息不能为空');
+ 87:         $parmas = [
+ 88:             'lng' => (float)$data['lng'],
+ 89:             'lat' => (float)$data['lat'],
+ 90:             'phone' => $data['phone'],
+ 91:             'business' => (int)$data['business'],
+ 92:             'contact_name' => $data['contact_name'],
+ 93:             'station_name' => $data['station_name'],
+ 94:             'station_address' => $data['station_address'],
+ 95:             'status' => 1,
+ 96:             'origin_shop_id' => $data['origin_shop_id'],
+ 97:         ];
+ 98:         if (isset($data['username']) && $data['username']) $parmas['username'] = $data['username'];
+ 99:         if (isset($data['password']) && $data['password']) $parmas['password'] = $data['password'];
+100: 
+101:         return $this->sendRequest(self::ADD_SHOP, [$parmas]);
+102:     }
+103:     /**
+104:      * 更新门店
+105:      *
+106:      * @param array $data
+107:      * @return void
+108:      */
+109:     public function updateShop($data)
+110:     {
+111:         $params['origin_shop_id'] = $data['origin_shop_id'];
+112:         if (isset($data['new_shop_id'])) $params['new_shop_id'] = $data['new_shop_id'];
+113:         if (isset($data['station_name'])) $params['station_name'] = $data['station_name'];
+114:         if (isset($data['business'])) $params['business'] = $data['business'];
+115:         if (isset($data['station_address'])) $params['station_address'] = $data['station_address'];
+116:         if (isset($data['lng'])) $params['lng'] = $data['lng'];
+117:         if (isset($data['lat'])) $params['lat'] = $data['lat'];
+118:         if (isset($data['contact_name'])) $params['contact_name'] = $data['contact_name'];
+119:         if (isset($data['phone'])) $params['phone'] = $data['phone'];
+120:         if (isset($data['status'])) $params['status'] = $data['status'];
+121:         return $this->sendRequest(self::UPDATE_SHOP, $params);
+122:     }
+123:     /**
+124:      * 预发布订单
+125:      *
+126:      * @param array $data
+127:      * @return void
+128:      */
+129:     public function addOrder($data)
+130:     {
+131:         $params = [
+132:             'deliveryNo' => $data['deliveryNo'],
+133:         ];
+134:         return $this->sendRequest(self::ADD_ORDER_AFTER_QUERY, $params);
+135:     }
+136:     /**
+137:      * 计算订单价格
+138:      *
+139:      * @param array $data
+140:      * @return void
+141:      */
+142:     public function getOrderPrice($data)
+143:     {
+144:         $params = [
+145:             'shop_no'         => $data['shop_no'],
+146:             'origin_id'       => $data['origin_id'],
+147:             'city_code'       => $data['city_code'],
+148:             'cargo_price'     => $data['cargo_price'],
+149:             'is_prepay'       => $data['is_prepay'],
+150:             'receiver_name'   => $data['receiver_name'],
+151:             'receiver_address' => $data['receiver_address'],
+152:             'callback'        => $data['callback_url'],
+153:             'cargo_weight'    => $data['cargo_weight'],
+154:             'receiver_phone'  => $data['receiver_phone'],
+155:             'is_finish_code_needed' => $data['is_finish_code_needed'],
+156:             'receiver_lat' => $data['receiver_lat'],
+157:             'receiver_lng' => $data['receiver_lng'],
+158:         ];
+159:         return $this->sendRequest(self::GET_ORDER_PRICE, $params);
+160:     }
+161:     /**
+162:      * 获取订单详情
+163:      *
+164:      * @param array $data
+165:      * @return void
+166:      */
+167:     public function getOrderDetail($data)
+168:     {
+169:         $params['order_id'] = $data['origin_id'];
+170:         return $this->sendRequest(self::ADD_ORDER_STSATUS_QUERY, $params);
+171:     }
+172:     /**
+173:      * 配送员位置
+174:      *
+175:      * @param array $data
+176:      * @return void
+177:      */
+178:     public function getDeliveryTrack($data)
+179:     {
+180:         $params['orderIds'] = [$data['origin_id']];
+181:         $res = $this->sendRequest(self::DEIVER_TRACK, $params);
+182:         
+183:         return [
+184:             'lng' => $res['transporterLng'],
+185:             'lat' => $res['transporterLat'],
+186:             'driverMobile' => $res['transporterPhone'],
+187:             'driverName' => $res['transporterName'],
+188:             'orderCode' => '',
+189:             'originId' => $res['orderId'],
+190:         ];
+191:     }
+192:     /**
+193:      * 取消订单
+194:      *
+195:      * @param array $data
+196:      * @return void
+197:      */
+198:     public function cancelOrder($data)
+199:     {
+200:         $params['order_id'] = $data['origin_id'];
+201:         $params['cancel_reason'] = $data['cancel_reason'] ?? '无';
+202:         $params['cancel_reason_id'] = $data['reason'];
+203:         return $this->sendRequest(self::CANCEL_ORDER, $params);
+204:     }
+205:     /**
+206:      * 获取充值地址
+207:      *
+208:      * @param array $data
+209:      * @return void
+210:      */
+211:     public function getRecharge($data = [])
+212:     {
+213:         $params = [
+214:             'amount' => $data['amount'] ?? 100,
+215:             'category' => $data['category'] ?? 'PC',
+216:         ];
+217:         return $this->sendRequest(self::GET_RECHARGE, $params);
+218:     }
+219:     /**
+220:      * 获取余额
+221:      *
+222:      * @param array $data
+223:      * @return void
+224:      */
+225:     public function getBalance($data)
+226:     {
+227:         $params['category'] = $data['category'] ?? 3;
+228:         $res = $this->sendRequest(self::GET_BALANCE, $params);
+229:         return [
+230:             'deliverBalance' => $res['deliverBalance']
+231:         ];
+232:     }
+233:     /**
+234:      * 支付小费
+235:      *
+236:      * @param array $data
+237:      * @return void
+238:      */
+239:     public function addTip($data)
+240:     {
+241:         return true;
+242:     }
+243:     /**
+244:      * 取消原因
+245:      *
+246:      * @param string $data
+247:      * @return void
+248:      */
+249:     public function reasons($data = '')
+250:     {
+251:         $options = $this->sendRequest(self::GET_REASONS, $data);
+252:         foreach ($options as $option) {
+253:             $value = $option['id'];
+254:             $label = $option['reason'];
+255:             $res[] = compact('value', 'label');
+256:         }
+257:         return $res;
+258:     }
+259:     /**
+260:      * 获取城市信息
+261:      *
+262:      * @param string $data
+263:      * @return void
+264:      */
+265:     public function getCity($data = '')
+266:     {
+267:         $res = $this->sendRequest(self::GET_CITY_CODE, $data);
+268:         foreach ($res as $item) {
+269:             $name = $item['cityName'];
+270:             $data[$name] = [
+271:                 'key' => $name,
+272:                 'label' => $name,
+273:             ];
+274:         }
+275:         $data = array_values($data);
+276: 
+277:         return $data;
+278:     }
+279:     /**
+280:      * 获取门店详情
+281:      *
+282:      * @param string $id
+283:      * @return void
+284:      */
+285:     public function getShopDetail($id)
+286:     {
+287:         $data = ['origin_shop_id' => $id];
+288:         return $this->sendRequest(self::GET_SHOP_DETAIL, $data);
+289:     }
+290:     /**
+291:      * 配送物品分类
+292:      *
+293:      * @return void
+294:      */
+295:     public function getBusiness()
+296:     {
+297:         return [
+298:             ['key' => 1, 'label' => '食品小吃'],
+299:             ['key' => 2, 'label' => '饮料'],
+300:             ['key' => 3, 'label' => '鲜花绿植'],
+301:             ['key' => 5, 'label' => '其他'],
+302:             ['key' => 8, 'label' => '文印票务'],
+303:             ['key' => 9, 'label' => '便利店'],
+304:             ['key' => 13, 'label'  => '水果生鲜'],
+305:             ['key' => 19, 'label'  => '同城电商'],
+306:             ['key' => 20, 'label'  => '医药'],
+307:             ['key' => 21, 'label'  => '蛋糕'],
+308:             ['key' => 24, 'label'  => '酒品'],
+309:             ['key' => 25, 'label'  => '小商品市场'],
+310:             ['key' => 26, 'label'  => '服装'],
+311:             ['key' => 27, 'label'  => '汽修零配'],
+312:             ['key' => 28, 'label'  => '数码家电'],
+313:             ['key' => 29, 'label'  => '小龙虾/烧烤'],
+314:             ['key' => 31, 'label'  => '超市'],
+315:             ['key' => 51, 'label'  => '火锅'],
+316:             ['key' => 53, 'label'  => '个护美妆'],
+317:             ['key' => 55, 'label'  => '母婴'],
+318:             ['key' => 57, 'label'  => '家居家纺'],
+319:             ['key' => 59, 'label'  => '手机'],
+320:             ['key' => 61, 'label'  => '家装'],
+321:             ['key' => 63, 'label'  => '成人用品'],
+322:         ];
+323:     }
+324:     /**
+325:      * 发送请求
+326:      *
+327:      * @param string $api
+328:      * @param array $params
+329:      * @return void
+330:      */
+331:     public function sendRequest($api, $params)
+332:     {
+333:         $url = self::BASE_URL . $api;
+334:         $params = $this->bulidRequestParams($params);
+335:         $response = $this->httpRequestWithPost($url, $params);
+336:         $data = $this->getMessage($response);
+337:         return $data;
+338:     }
+339:     /**
+340:      * 构造请求数据
+341:      *
+342:      * @param array $params
+343:      * @return void
+344:      */
+345:     public function bulidRequestParams($params)
+346:     {
+347:         $requestParams = array();
+348:         $requestParams['app_key'] = $this->config['app_key'];
+349:         $requestParams['body'] = json_encode($params);
+350:         $requestParams['format'] = 'json';
+351:         $requestParams['v'] = '1.0';
+352:         $requestParams['source_id'] = $this->config['source_id'];
+353:         $requestParams['timestamp'] = time();
+354:         $requestParams['signature'] = $this->_sign($requestParams);
+355:         return json_encode($requestParams);
+356:     }
+357:     /**
+358:      * 签名生成signature
+359:      *
+360:      * @param array $data
+361:      * @return void
+362:      */
+363:     public function _sign($data)
+364:     {
+365:         //1.升序排序
+366:         ksort($data);
+367:         //2.字符串拼接
+368:         $args = "";
+369:         foreach ($data as $key => $value) {
+370:             $args .= $key . $value;
+371:         }
+372:         $args = $this->config['app_secret'] . $args . $this->config['app_secret'];
+373:         //3.MD5签名,转为大写
+374:         $sign = strtoupper(md5($args));
+375:         return $sign;
+376:     }
+377:     /**
+378:      * 发送请求,POST
+379:      *
+380:      * @param string $url
+381:      * @param array $data
+382:      * @param array $headers
+383:      * @return void
+384:      */
+385:     public function httpRequestWithPost($url, $data, $headers = [])
+386:     {
+387:         $headers = array(
+388:             'Content-Type: application/json',
+389:         );
+390:         $curl = curl_init($url);
+391:         curl_setopt($curl, CURLOPT_URL, $url);
+392:         curl_setopt($curl, CURLOPT_HEADER, false);
+393:         curl_setopt($curl, CURLOPT_POST, true);
+394:         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+395:         curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+396:         curl_setopt($curl, CURLOPT_TIMEOUT, 3);
+397:         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+398:         $resp = curl_exec($curl);
+399:         $info = curl_getinfo($curl);
+400:         curl_close($curl);
+401:         if (isset($info['http_code']) && $info['http_code'] == 200) {
+402:             return $resp;
+403:         }
+404:         return;
+405:     }
+406:     /**
+407:      * 获取错误信息
+408:      *
+409:      * @param $json
+410:      * @param string $message
+411:      * @return void
+412:      */
+413:     protected function getMessage($json, $message = '接口请求异常,请稍后重试')
+414:     {
+415:         $data = json_decode($json, true);
+416:         if(!$data) {
+417:             Log::info('【达达错误提示】:' . $message);
+418:             throw new ValidateException('【达达错误提示】:' . $message);
+419:         }
+420: 
+421:         if ($data['code'] !== 0) {
+422:             isset($data['msg']) && $message = $data['msg'];
+423:             if ($data['errorCode'] == 7718) {
+424:                 foreach ($data['result']['failedList'] as $datum) {
+425:                     $message .= ':' . $datum['shopName'] . '/' . $datum['msg'] . ';';
+426:                 }
+427:             }
+428:             Log::info('【达达错误提示】:' . $message . ', 错误码:' . $data['errorCode']);
+429:             throw new ValidateException('【达达错误提示】:' . $message);
+430:         } else {
+431:             if ($data['status'] == 'success') return $data['result'] ?? $data;
+432:             return $data;
+433:         }
+434:     }
+435: }
+</file>
+
+<file path="crmeb/services/delivery/storage/Uupt.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: namespace crmeb\services\delivery\storage;
+ 12: 
+ 13: use crmeb\basic\BaseStorage;
+ 14: use crmeb\interfaces\DeliveryInterface;
+ 15: use think\exception\ValidateException;
+ 16: use think\facade\Log;
+ 17: use think\facade\Db;
+ 18: 
+ 19: class Uupt extends BaseStorage implements DeliveryInterface
+ 20: {
+ 21:     // 域名
+ 22:     const BASE_URL = 'https://api-open.uupt.com';
+ 23:     // const BASE_URL = 'http://api-open.test.uupt.com';
+ 24:     // 发布订单
+ 25:     const ADD_ORDER = '/openapi/v3/order/storeAddOrder';
+ 26:     // 计算价格
+ 27:     const GET_ORDER_PRICE = '/openapi/v3/order/storeOrderPrice';
+ 28:     // 详情
+ 29:     const GET_ORDER_DETAIL = '/openapi/v3/order/orderDetail';
+ 30:     // 充值
+ 31:     const GET_RECHARGE = '/openapi/v3/user/recharge';
+ 32:     // 取消
+ 33:     const CANCEL_ORDER = '/openapi/v3/order/cancelOrder';
+ 34:     // 余额
+ 35:     const GET_BALANCEDE = '/openapi/v3/user/account';
+ 36:     // 添加门店
+ 37:     const ADD_SHOP = '/openapi/v3/store/addStore';
+ 38:     // 更新门店
+ 39:     const UPDATE_SHOP = '/openapi/v3/store/editStore';
+ 40:     // 配送员位置
+ 41:     const DEIVER_TRACK = '/openapi/v3/order/driverTrack';
+ 42:     // 取件码
+ 43:     const PICKUP_CODE = '/openapi/v3/order/syncPickupCode';
+ 44:     // 获取城市编码列表
+ 45:     const GET_CITY_CODE = '/openapi/v3/order/openCityList';
+ 46: 
+ 47:     public $config;
+ 48: 
+ 49:     public function initialize(array $config)
+ 50:     {
+ 51:         // 沙箱环境配置
+ 52:         // $config['app_id'] = '9e7b00d7a5d5406fb24f56709518bc6b';
+ 53:         // $config['open_id'] = '910a0dfd12bb4bc0acec147bcb1ae246';
+ 54:         // $config['app_key'] = '6ba86f556a984c299b68dd43ba92bbaf';
+ 55: 
+ 56:         $this->config = $config;
+ 57:     }
+ 58:     /**
+ 59:      * 创建商户
+ 60:      *
+ 61:      * @param array $data
+ 62:      * @return void
+ 63:      */
+ 64:     public function addMerchant($data)
+ 65:     {
+ 66:         return true;
+ 67:     }
+ 68:     /**
+ 69:      * 创建门店
+ 70:      *
+ 71:      * @param array $data
+ 72:      * @return void
+ 73:      */
+ 74:     public function addShop($data)
+ 75:     {
+ 76:         if (!($data['lng']) || !($data['lat'])) {
+ 77:             throw new ValidateException('【UU跑腿提示错误】:经纬度不能为空');
+ 78:         }
+ 79:         if (!($data['phone']) || !($data['contact_name'])) {
+ 80:             throw new ValidateException('【UU跑腿提示错误】:联系人信息不能为空');
+ 81:         }
+ 82:         if (!($data['business'])) {
+ 83:             throw new ValidateException('【UU跑腿提示错误】:配送物品分类不能为空');
+ 84:         }
+ 85:         if (!($data['station_name']) || !$data['station_address']) {
+ 86:             throw new ValidateException('【UU跑腿提示错误】:门店信息不能为空');
+ 87:         }
+ 88: 
+ 89:         $params['storeNo'] = $data['origin_shop_id'];
+ 90:         $params['storeName'] = $data['station_name'];
+ 91:         $params['contactName'] = $data['contact_name'];
+ 92:         $params['phone'] = $data['phone'];
+ 93:         $params['locationX'] = (float)$data['lng'];
+ 94:         $params['locationY'] = (float)$data['lat'];
+ 95:         $params['stationAddress'] = $data['station_address'];
+ 96:         $params['businessCate'] = $data['business'];
+ 97:         $params['cityName'] = $data['city_name'] ?? '';
+ 98:         $params['coordinateType'] = 0;
+ 99: 
+100:         return $this->sendRequest(self::ADD_SHOP, $params);
+101:     }
+102:     /**
+103:      * 更新门店
+104:      *
+105:      * @param array $data
+106:      * @return void
+107:      */
+108:     public function updateShop($data)
+109:     {
+110:         if (!($data['lng']) || !($data['lat'])) {
+111:             throw new ValidateException('【UU跑腿提示错误】:经纬度不能为空');
+112:         }
+113:         if (!($data['phone']) || !($data['contact_name'])) {
+114:             throw new ValidateException('【UU跑腿提示错误】:联系人信息不能为空');
+115:         }
+116:         if (!($data['business'])) {
+117:             throw new ValidateException('【UU跑腿提示错误】:配送物品分类不能为空');
+118:         }
+119:         if (!($data['station_name']) || !$data['station_address']) {
+120:             throw new ValidateException('【UU跑腿提示错误】:门店信息不能为空');
+121:         }
+122: 
+123:         $params['storeNo'] = $data['origin_shop_id'];
+124:         $params['storeName'] = $data['station_name'];
+125:         $params['contactName'] = $data['contact_name'];
+126:         $params['phone'] = $data['phone'];
+127:         $params['locationX'] = (float)$data['lng'];
+128:         $params['locationY'] = (float)$data['lat'];
+129:         $params['stationAddress'] = $data['station_address'];
+130:         $params['businessCate'] = $data['business'];
+131:         $params['cityName'] = $data['city_name'];
+132:         $params['coordinateType'] = 0;
+133: 
+134:         return $this->sendRequest(self::UPDATE_SHOP, $params);
+135:     }
+136:     /**
+137:      * 发布订单
+138:      *
+139:      * @param array $data
+140:      * @return void
+141:      */
+142:     public function addOrder($data)
+143:     {
+144:         $params['storeNo'] = $data['shop_no']; // 门店编号
+145:         $params['priceToken'] = $data['priceToken']; // 金额令牌，计算订单价格接口返回的price_token
+146:         $params['receiver'] = $data['receiver']; // 收件人名称
+147:         $params['receiverPhone'] = $data['receiver_phone']; // 收件人电话
+148:         $params['callbackUrl'] = $data['callback_url']; // 回调地址
+149:         $params['pushType'] = $data['push_type']; // 推送方式
+150:         $params['orderSource'] = 'OTHER'; // 订单来源,默认其他
+151:         $params['specialType'] = $data['special_type']; // 是否需要保温箱
+152:         $params['payType'] = 'BALANCE_PAY'; // 支付方式
+153:         $params['note'] = $data['note']; // 订单备注
+154: 
+155:         return $this->sendRequest(self::ADD_ORDER, $params);
+156:     }
+157:     /**
+158:      * 同步取件码
+159:      *
+160:      * @param array $data
+161:      * @return void
+162:      */
+163:     public function getPickupCode($data)
+164:     {
+165:         $params['originId'] = $data['order_sn'];
+166:         $params['orderCode'] = $data['order_code'];
+167:         $params['pickupCode'] = $this->createPickupCode();
+168: 
+169:         $this->sendRequest(self::PICKUP_CODE, $params);
+170: 
+171:         return $params['pickupCode'];
+172:     }
+173:     /**
+174:      * 配送员位置
+175:      *
+176:      * @param array $data
+177:      * @return void
+178:      */
+179:     public function getDeliveryTrack($data)
+180:     {
+181:         $params['originId'] = $data['origin_id'];
+182:         $params['orderCode'] = $data['order_code'];
+183: 
+184:         $res = $this->sendRequest(self::DEIVER_TRACK, $params);
+185: 
+186:         [$lng, $lat] = explode(',', $res['driverLastLoc']);
+187:         return [
+188:             'lng' => $lng,
+189:             'lat' => $lat,
+190:             'driverMobile' => $res['driverMobile'],
+191:             'driverName' => $res['driverName'],
+192:             'orderCode' => $res['orderCode'],
+193:             'originId' => $res['originId'],
+194:         ];
+195:     }
+196:     /**
+197:      * 计算订单价格
+198:      *
+199:      * @param array $data
+200:      * @return void
+201:      */
+202:     public function getOrderPrice($data)
+203:     {
+204:         $params['storeNo'] = $data['shop_no']; // 门店编号
+205:         $params['originId'] = $data['origin_id']; // 三方对接平台订单ID
+206:         $params['sendType'] = 'SEND'; // 订单小类，参考枚举值
+207:         $params['toAddress'] = $data['to_address']; // 收货人地址
+208:         $params['toLat'] = $data['to_lat']; // 收货地址坐标纬度(坐标系为百度地图坐标系)
+209:         $params['toLng'] = $data['to_lng']; // 收货地址坐标经度(坐标系为百度地图坐标系)
+210:         $params['goodsType'] = 'OTHER'; // 物品类型，参考物品类型枚举
+211:         $params['goodsWeight'] = $data['cargo_weight']; // 货物重量（单位KG）
+212: 
+213:         return $this->sendRequest(self::GET_ORDER_PRICE, $params);
+214:     }
+215:     /**
+216:      * 获取订单详情
+217:      *
+218:      * @param array $data
+219:      * @return void
+220:      */
+221:     public function getOrderDetail($data)
+222:     {
+223:         if($data['order_sn'] && $data['order_code']) {
+224:             throw new ValidateException('【UU跑腿提示错误】:订单号和UU跑腿订单号不能同时为空');
+225:         }
+226: 
+227:         $params['originId'] = $data['order_sn'];
+228:         $params['orderCode'] = $data['order_code'];
+229: 
+230:         return $this->sendRequest(self::GET_ORDER_DETAIL, $params);
+231:     }
+232:     /**
+233:      * 取消订单
+234:      *
+235:      * @param array $data
+236:      * @return void
+237:      */
+238:     public function cancelOrder($data)
+239:     {
+240:         $params['originId']  = $data['origin_id'];
+241:         $params['orderCode'] = $data['order_code'];
+242:         $params['reason'] = $data['reason'] ? $data['reason'] : '用户取消';
+243: 
+244:         return $this->sendRequest(self::CANCEL_ORDER, $params);
+245:     }
+246:     /**
+247:      * 获取充值地址
+248:      *
+249:      * @param array $data
+250:      * @return void
+251:      */
+252:     public function getRecharge($data = [])
+253:     {
+254:         return $this->sendRequest(self::GET_RECHARGE, $data);
+255:     }
+256:     /**
+257:      * 获取余额
+258:      *
+259:      * @param array $data
+260:      * @return void
+261:      */
+262:     public function getBalance($data)
+263:     {
+264:         $params['payTypeEnum'] = 'BALANCE_PAY';
+265: 
+266:         $res = $this->sendRequest(self::GET_BALANCEDE, $params);
+267:         return ['deliverBalance' => $res['balance']];
+268:     }
+269:     /**
+270:      * 添加小费
+271:      *
+272:      * @param array $data
+273:      * @return void
+274:      */
+275:     public function addTip($data)
+276:     {
+277:         return true;
+278:     }
+279:     /**
+280:      * 获取城市支持列表
+281:      *
+282:      * @param array $data
+283:      * @return void
+284:      */
+285:     public function getCity($data = "")
+286:     {
+287:         $res = $this->sendRequest(self::GET_CITY_CODE, $data);
+288: 
+289:         $openCityList = $res['openCityList'];
+290:         foreach ($openCityList as $item) {
+291:             $name = $item['cityName'] ? $item['cityName'] : $item['countyName'];
+292:             $data[$name] = [
+293:                 'key' => $name,
+294:                 'label' => $name,
+295:             ];
+296:             
+297:         }
+298:         $data = array_values($data);
+299: 
+300:         return $data;
+301:     }
+302:     /**
+303:      * 获取配送物品分类
+304:      *
+305:      * @param array $data
+306:      * @return void
+307:      */
+308:     public function getBusiness()
+309:     {
+310:         return [
+311:             ["key" => 10000000, "label" => "餐饮服务"],
+312:             ["key" => 11000000, "label" => "商超百货"],
+313:             ["key" => 12000000, "label" => "垂直零售"],
+314:             ["key" => 13000000, "label" => "电子产品"],
+315:             ["key" => 14000000, "label" => "鲜花绿植"],
+316:             ["key" => 15000000, "label" => "果蔬生鲜"],
+317:             ["key" => 16000000, "label" => "服装纺织"],
+318:             ["key" => 17000000, "label" => "医药保健"],
+319:             ["key" => 18000000, "label" => "文体办公"],
+320:             ["key" => 19000000, "label" => "家居建材"],
+321:             ["key" => 20000000, "label" => "汽修配件"],
+322:             ["key" => 21000000, "label" => "公司企业"],
+323:             ["key" => 22000000, "label" => "生活服务"],
+324:             ["key" => 23000000, "label" => "其他行业"]
+325:         ];
+326:     }
+327:     /**
+328:      * 发送请求
+329:      *
+330:      * @param string $api
+331:      * @param array $params
+332:      * @return void
+333:      */
+334:     public function sendRequest($api, $params = [])
+335:     {
+336:         $url = self::BASE_URL . $api;
+337:         $requestParams = $this->bulidRequestParams($params);
+338:         $response = $this->httpRequestWithPost($url, json_encode($requestParams));
+339:         $data = $this->getMessage($response);
+340:         return $data['body'];
+341:     }
+342:     /**
+343:      * 构建请求参数
+344:      *
+345:      * @param array $params
+346:      * @return array
+347:      */
+348:     public function bulidRequestParams(array $params = [])
+349:     {
+350:         $requestParams['biz'] = $params ? json_encode($params) : '';
+351:         $requestParams['openid'] = $this->config['open_id'];
+352:         $requestParams['timestamp'] = time();
+353:         $requestParams['sign'] = $this->_sign($requestParams);
+354: 
+355:         return $requestParams;
+356:     }
+357:     /**
+358:      * 生成签名
+359:      *
+360:      * @param array $params
+361:      * @return string
+362:      */
+363:     public function _sign($params)
+364:     {
+365:         ksort($params);
+366:         $str = $params['biz'] . $this->config['app_key'] . $params['timestamp'];
+367:         return strtoupper(md5($str));
+368:     }
+369:     /**
+370:      * 发送POST请求
+371:      *
+372:      * @param string $url
+373:      * @param string $data
+374:      * @return void
+375:      */
+376:     public function httpRequestWithPost($url, $data)
+377:     {
+378:         $appId = $this->config['app_id'];
+379:         $headers = array(
+380:             "Content-Type: application/json",
+381:             "X-App-Id: {$appId}"
+382:         );
+383: 
+384:         $curl = curl_init($url);
+385:         curl_setopt($curl, CURLOPT_URL, $url);
+386:         curl_setopt($curl, CURLOPT_HEADER, false);
+387:         curl_setopt($curl, CURLOPT_POST, true);
+388:         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+389:         curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+390:         curl_setopt($curl, CURLOPT_TIMEOUT, 3);
+391:         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+392:         $resp = curl_exec($curl);
+393:         $info = curl_getinfo($curl);
+394:         curl_close($curl);
+395:         return $resp;
+396:     }
+397:     /**
+398:      * 获取错误信息
+399:      *
+400:      * @param $json
+401:      * @param string $message
+402:      * @return void
+403:      */
+404:     protected function getMessage($json, $message = '接口请求异常,请稍后重试')
+405:     {
+406:         $data = json_decode($json, true);
+407:         if (!$data) {
+408:             Log::info('【UU跑腿提示错误】:' . $message);
+409:             throw new ValidateException('【UU跑腿提示错误】:' . $message);
+410:         }
+411:         if ($data['code'] !== 1) {
+412:             Log::info('【UU跑腿提示错误】:' . $data['msg']);
+413:             throw new ValidateException('【UU跑腿提示错误】:' . $data['msg']);
+414:         }
+415: 
+416:         return $data;
+417:     }
+418: 
+419:     /**
+420:      * 生成取件码四位数
+421:      * 
+422:      * @return string
+423:      */
+424:     public function createPickupCode()
+425:     {
+426:         return str_pad((string)random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+427:     }
+428: }
+</file>
+
+<file path="route/admin/delivery.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: 
+ 12: use think\facade\Route;
+ 13: use app\common\middleware\AdminAuthMiddleware;
+ 14: use app\common\middleware\AdminTokenMiddleware;
+ 15: use app\common\middleware\AllowOriginMiddleware;
+ 16: use app\common\middleware\LogMiddleware;
+ 17: 
+ 18: Route::group(function () {
+ 19: 
+ 20:     //同城配送
+ 21:     Route::group('delivery', function () {
+ 22:         //配置表单
+ 23:         Route::get('/config/form', 'DeliveryStation/deliveryForm')->name('systemDeliveryConfigForm')->option([
+ 24:             '_alias' => '配置表单',
+ 25:             '_auth' => false,
+ 26:             '_form' => 'saveDeliveryConfig',
+ 27:         ]);
+ 28:         //保存
+ 29:         Route::post('/config/save', 'DeliveryStation/saveDeliveryConfig')->name('systemDeliveryConfigSave')->option([
+ 30:             '_alias' => '编辑配置',
+ 31:             '_path' => '/systemForm/delivery',
+ 32:             ]);
+ 33: 
+ 34:         //门店列表
+ 35:         Route::get('station/lst', 'DeliveryStation/lst')->name('systemDeliveryStationlst')->option([
+ 36:             '_alias' => '门店列表',
+ 37:             '_path' => '/delivery/station',
+ 38:             ]);
+ 39: 
+ 40:         //详情
+ 41:         Route::get('station/detail/:id', 'DeliveryStation/detail')->name('systemDeliveryStationDetail')->option([
+ 42:             '_alias' => '门店详情',
+ 43:             '_path' => '/delivery/station',
+ 44:         ]);
+ 45: 
+ 46:         //
+ 47:         Route::get('station/options', 'DeliveryStation/options')->name('systemStoreDeliveryOptions')->option([
+ 48:             '_alias' => '门店筛选',
+ 49:             '_auth'  => false,
+ 50:         ]);
+ 51: 
+ 52:         //详情
+ 53:         Route::get('recharge', 'DeliveryStation/getRecharge')->name('systemDeliveryStationGetRecharge')->option([
+ 54:             '_alias' => '充值',
+ 55:             '_auth'  => false,
+ 56:         ]);
+ 57: 
+ 58:         //lst
+ 59:         Route::get('order/lst', 'DeliveryOrder/lst')->name('systemDeliveryOrderLst')->option([
+ 60:             '_alias' => '配送记录',
+ 61:             '_path' => '/delivery/usage_record',
+ 62:             ]);
+ 63: 
+ 64:         //详情
+ 65:         Route::get('order/detail/:id', 'DeliveryOrder/detail')->name('systemDeliveryOrderDetail')->option([
+ 66:             '_alias' => '配送详情',
+ 67:             '_path' => '/delivery/usage_record',
+ 68:             ]);
+ 69: 
+ 70: 
+ 71:         //充值记录
+ 72:         Route::get('station/payLst', 'DeliveryStation/payLst')->name('systemDeliveryStationPaayyLst')->option([
+ 73:             '_alias' => '充值记录',
+ 74:             '_path' => '/delivery/recharge_record',
+ 75:             ]);
+ 76: 
+ 77:         //lst
+ 78:         Route::get('title', 'DeliveryOrder/title')->name('systemDeliveryOrderTitle')->option([
+ 79:             '_alias' => '统计',
+ 80:             '_path' => '/delivery/recharge_record',
+ 81:             ]);
+ 82: 
+ 83:         //详情
+ 84:         Route::get('belence', 'DeliveryStation/getBalance')->name('systemDeliveryStationGetBalance')->option([
+ 85:             '_alias' => '余额',
+ 86:             '_path' => '/delivery/recharge_record',
+ 87:             ]);
+ 88: 
+ 89:     })->prefix('admin.delivery.')->option([
+ 90:         '_auth' => true,
+ 91:     ]);
+ 92: 
+ 93:     //地址快快递公司
+ 94:     Route::group('store/express', function () {
+ 95:         Route::get('lst', '/lst')->name('systemExpressLst')->option([
+ 96:             '_alias' => '列表',
+ 97:         ]);
+ 98:         Route::post('status/:id', '/switchStatus')->name('systemExpressSwitchStatus')->option([
+ 99:             '_alias' => '修改状态',
+100:         ]);
+101:         Route::get('update/form/:id', '/updateForm')->name('systemExpressUpdateForm')->option([
+102:             '_alias' => '编辑表单',
+103:             '_auth' => false,
+104:             '_form' => 'systemExpressUpdate',
+105:         ]);
+106:         Route::post('update/:id', '/update')->name('systemExpressUpdate')->option([
+107:             '_alias' => '编辑',
+108:         ]);
+109:         Route::delete('delete/:id', '/delete')->name('systemExpressDelete')->option([
+110:             '_alias' => '删除',
+111:         ]);
+112:         Route::get('sync', '/syncAll')->name('systemExpressSync')->option([
+113:             '_alias' => '同步',
+114:         ]);
+115:         Route::get('/options','/options')->option([
+116:             '_alias' => '列表',
+117:             '_auth' => false,
+118:         ]);
+119:     })->prefix('admin.store.Express')->option([
+120:         '_path' => '/freight/express',
+121:         '_auth' => true,
+122:     ]);
+123: 
+124:     //地址快快递公司
+125:     Route::group('store/city', function () {
+126:         Route::get('lst/:id', '/lst')->name('systemCityAreaLst')->option([
+127:             '_alias' => '列表',
+128:         ]);
+129:         Route::get('create/form/:id', '/createForm')->name('systemCityAreaCreateForm')->option([
+130:             '_alias' => '编辑表单',
+131:             '_auth' => false,
+132:             '_form' => 'systemCityAreaCreate',
+133:         ]);
+134:         Route::post('create', '/create')->name('systemCityAreaCreate')->option([
+135:             '_alias' => '编辑',
+136:         ]);
+137:         Route::get('update/:id/form', '/updateForm')->name('systemCityAreaUpdateForm')->option([
+138:             '_alias' => '编辑表单',
+139:             '_auth' => false,
+140:             '_form' => 'systemExpressUpdate',
+141:         ]);
+142:         Route::post('update/:id', '/update')->name('systemCityAreaUpdate')->option([
+143:             '_alias' => '编辑',
+144:         ]);
+145:         Route::delete('delete/:id', '/delete')->name('systemCityAreaDelete')->option([
+146:             '_alias' => '删除',
+147:         ]);
+148:     })->prefix('admin.store.CityArea')->option([
+149:         '_path' => '/freight/express',
+150:         '_auth' => true,
+151:     ]);
+152: 
+153: 
+154: })->middleware(AllowOriginMiddleware::class)
+155:     ->middleware(AdminTokenMiddleware::class, true)
+156:     ->middleware(AdminAuthMiddleware::class)
+157:     ->middleware(LogMiddleware::class);
+</file>
+
+</files>

@@ -1,0 +1,3528 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: **/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+accounts.php
+analytics.php
+attachment.php
+behalfcustomerorder.php
+config.php
+content.php
+coupon.php
+delivery.php
+diy.php
+form.php
+group.php
+marketing.php
+notLogin.php
+openapi.php
+order.php
+product.php
+role.php
+service.php
+staffs.php
+system.php
+users.php
+yihaotong.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="accounts.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: use app\common\middleware\AllowOriginMiddleware;
+ 12: use app\common\middleware\LogMiddleware;
+ 13: use app\common\middleware\MerchantAuthMiddleware;
+ 14: use app\common\middleware\MerchantTokenMiddleware;
+ 15: use think\facade\Route;
+ 16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+ 17: 
+ 18: Route::group(function () {
+ 19: 
+ 20:     Route::group('financial', function () {
+ 21:         Route::post('refund/margin', 'Financial/refundMargin')->name('merchantFinancialRefundMargin')->option([
+ 22:             '_alias' => '退保证金检测',
+ 23:         ]);
+ 24:         Route::post('refund/margin_apply', 'Financial/refundMarginApply')->name('merchantFinancialRefundMarginApply')->option([
+ 25:             '_alias' => '退保证金申请',
+ 26:         ]);
+ 27:     })->prefix('merchant.system.financial.')->option([
+ 28:         '_path' => '/systemForm/modifyStoreInfo',
+ 29:         '_auth' => true,
+ 30:     ]);
+ 31: 
+ 32:     Route::group('financial', function () {
+ 33:         Route::get('account/form', '/accountForm')->name('merchantFinancialAccountForm')->option([
+ 34:             '_alias' => '收款方式表单',
+ 35:             '_auth' => false,
+ 36:             '_form' => 'merchantFinancialAccountSave',
+ 37:         ]);
+ 38:         Route::post('account', '/accountSave')->name('merchantFinancialAccountSave')->option([
+ 39:             '_alias' => '收款方式',
+ 40:         ]);
+ 41:     })->prefix('merchant.system.financial.Financial')->option([
+ 42:         '_path' => '/accounts/payType',
+ 43:         '_auth' => true,
+ 44:     ]);
+ 45: 
+ 46:     //转账记录
+ 47:     Route::group('financial', function () {
+ 48: 
+ 49:         Route::get('lst', 'Financial/lst')->name('merchantFinancialLst')->option([
+ 50:             '_alias' => '转账记录',
+ 51:         ]);
+ 52:         Route::get('detail/:id', 'Financial/detail')->name('merchantFinancialDetail')->option([
+ 53:             '_alias' => '详情',
+ 54:         ]);
+ 55:         Route::get('create/form', 'Financial/createForm')->name('merchantFinancialCreateForm')->option([
+ 56:             '_alias' => '申请表单',
+ 57:             '_auth' => false,
+ 58:             '_form' => 'merchantFinancialCreateSave',
+ 59:         ]);
+ 60:         Route::post('create', 'Financial/createSave')->name('merchantFinancialCreateSave')->option([
+ 61:             '_alias' => '申请',
+ 62:         ]);
+ 63:         Route::delete('delete/:id', 'Financial/delete')->name('merchantFinancialDelete')->option([
+ 64:             '_alias' => '删除',
+ 65:         ]);
+ 66:         Route::get('mark/:id/form', 'Financial/markForm')->name('merchantFinancialMarkForm')->option([
+ 67:             '_alias' => '备注表单',
+ 68:             '_auth' => false,
+ 69:             '_form' => 'merchantFinancialMark',
+ 70:         ]);
+ 71:         Route::post('mark/:id', 'Financial/mark')->name('merchantFinancialMark')->option([
+ 72:             '_alias' => '备注',
+ 73:         ]);
+ 74:         Route::get('export', 'Financial/export')->name('merchantFinancialExport')->option([
+ 75:             '_alias' => '导出',
+ 76:         ]);
+ 77:         Route::post('refund/margin', 'Financial/refundMargin')->name('merchantFinancialRefundMargin')->option([
+ 78:             '_alias' => '列表',
+ 79:         ]);
+ 80:     })->prefix('merchant.system.financial.')->option([
+ 81:         '_path' => '/accounts/transManagement',
+ 82:         '_auth' => true,
+ 83:     ]);
+ 84: 
+ 85: 
+ 86:     //资金流水
+ 87:     Route::group('financial_record', function () {
+ 88:         //资金流水
+ 89:         Route::get('list', '/lst')->name('merchantFinancialRecordList')->option([
+ 90:             '_alias' => '列表',
+ 91:         ]);
+ 92:         Route::get('export', '/export')->name('merchantFinancialRecordExport')->option([
+ 93:             '_alias' => '导出',
+ 94:         ]);
+ 95:         Route::get('count', '/title')->name('merchantFinancialCount')->option([
+ 96:             '_alias' => '统计',
+ 97:         ]);
+ 98:     })->prefix('admin.system.merchant.FinancialRecord')->option([
+ 99:         '_auth' => true,
+100:         '_path'  => '/accounts/capitalFlow',
+101:         '_append'=> [
+102:             [
+103:                 '_name'  =>'merchantStoreExcelLst',
+104:                 '_path'  =>'/accounts/capitalFlow',
+105:                 '_alias' => '导出列表',
+106:                 '_auth'  => true,
+107:             ],
+108:             [
+109:                 '_name'  =>'merchantStoreExcelDownload',
+110:                 '_path'  =>'/accounts/capitalFlow',
+111:                 '_alias' => '导出下载',
+112:                 '_auth'  => true,
+113:             ],
+114: 
+115:         ]
+116:     ]);
+117: 
+118:     //账单管理
+119:     Route::group('financial_record', function () {
+120:         //账单管理
+121:         Route::get('lst', '/getList')->name('merchantFinanciaRecordlLst')->option([
+122:             '_alias' => '列表',
+123:         ]);
+124:         Route::get('title', '/getTitle')->name('merchantFinancialTitle')->option([
+125:             '_alias' => '统计',
+126:         ]);
+127:         Route::get('detail/:type', '/detail')->name('merchantFinancialRecordDetail')->option([
+128:            '_alias' => '详情',
+129:         ]);
+130:         Route::get('detail_export/:type', '/exportDetail')->name('merchantFinancialRecordDetailExport')->option([
+131:             '_alias' => '导出',
+132:         ]);
+133:     })->prefix('admin.system.merchant.FinancialRecord')->option([
+134:         '_auth' => true,
+135:         '_path'  => '/accounts/statement',
+136:         '_append'=> [
+137:             [
+138:                 '_name'  =>'merchantStoreExcelLst',
+139:                 '_path'  =>'/accounts/statement',
+140:                 '_alias' => '导出列表',
+141:                 '_auth'  => true,
+142:             ],
+143:             [
+144:                 '_name'  =>'merchantStoreExcelDownload',
+145:                 '_path'  =>'/accounts/statement',
+146:                 '_alias' => '导出下载',
+147:                 '_auth'  => true,
+148:             ],
+149: 
+150:         ]
+151:     ]);
+152: 
+153:     //发票
+154:     Route::group('store/receipt', function () {
+155:         Route::get('lst', '/lst')->name('merchantOrderReceiptLst')->option([
+156:             '_alias' => '列表',
+157:         ]);
+158:         Route::get('detail/:id', '/detail')->name('merchantOrderReceiptDetail')->option([
+159:             '_alias' => '详情',
+160:         ]);
+161:         Route::get('set_recipt', '/setRecipt')->name('merchantOrderReceiptSetRecipt')->option([
+162:             '_alias' => '开发票',
+163:         ]);
+164:         Route::post('save_recipt', '/saveRecipt')->name('merchantOrderReceiptSave')->option([
+165:             '_alias' => '保存发票',
+166:         ]);
+167:         Route::get('mark/:id/form', '/markForm')->name('merchantOrderReceiptMarkForm')->option([
+168:             '_alias' => '备注表单',
+169:             '_auth' => false,
+170:             '_form' => 'merchantOrderReceiptMark',
+171:         ]);
+172:         Route::post('mark/:id', '/mark')->name('merchantOrderReceiptMark')->option([
+173:             '_alias' => '备注',
+174:         ]);
+175:         Route::post('update/:id', '/update')->name('merchantOrderReceiptUpdate')->option([
+176:             '_alias' => '编辑',
+177:         ]);
+178:     })->prefix('merchant.store.order.OrderReceipt')->option([
+179:         '_path' => '/order/invoice',
+180:         '_auth' => true,
+181:     ]);
+182: 
+183: 
+184:     //分账单
+185:     Route::group('profitsharing', function () {
+186:         Route::get('lst', '/getList')->name('merchantOrderProfitsharingLst')->option([
+187:             '_alias' => '列表',
+188:         ]);
+189:         Route::get('export', '/export')->name('merchantOrderProfitsharingExport')->option([
+190:             '_alias' => '导出',
+191:         ]);
+192:     })->prefix('admin.order.OrderProfitsharing')->option([
+193:         '_path' => '/systemForm/applyList',
+194:         '_auth' => true,
+195:         '_append'=> [
+196:             [
+197:                 '_name'  =>'merchantStoreExcelLst',
+198:                 '_path'  =>'/systemForm/applyList',
+199:                 '_alias' => '导出列表',
+200:                 '_auth'  => true,
+201:             ],
+202:             [
+203:                 '_name'  =>'merchantStoreExcelDownload',
+204:                 '_path'  =>'/systemForm/applyList',
+205:                 '_alias' => '导出下载',
+206:                 '_auth'  => true,
+207:             ],
+208: 
+209:         ]
+210:     ]);
+211: 
+212:     //申请分账商户
+213:     Route::group('applyments',function(){
+214:         Route::get('index','/index');
+215:         Route::get('areas','/areas');
+216:         Route::get('banks','/banks');
+217:         Route::get('banks/branches','/branches');
+218:         Route::post('create','/create')->name('merchantApplymentsCreate')->option([
+219:             '_alias' => '申请',
+220:         ]);
+221:         Route::get('detail','/detail')->name('merchantApplymentsDetail')->option([
+222:             '_alias' => '详情',
+223:         ]);
+224:         Route::post('update/:id','/update')->name('merchantApplymentsUpdate')->option([
+225:             '_alias' => '编辑',
+226:         ]);
+227:         Route::post('upload/:field','/uploadImage')->name('merchantApplymentsUpload')->option([
+228:             '_alias' => '上传图片',
+229:         ]);
+230:         Route::post('upload/video/:field','/uploadVideo')->name('merchantApplymentsUploadVideo')->option([
+231:             '_alias' => '上传视频',
+232:         ]);
+233:         Route::get('check','/check')->name('merchantApplymentsCheck')->option([
+234:             '_alias' => '查询审核结果',
+235:             '_auth' => false,
+236:         ]);
+237:     })->prefix('merchant.system.MerchantApplyments')->option([
+238:         '_path' => '/systemForm/applyments',
+239:         '_auth' => true,
+240:     ]);
+241: })->middleware(AllowOriginMiddleware::class)
+242:     ->middleware(MerchantTokenMiddleware::class, true)
+243:     ->middleware(MerchantAuthMiddleware::class)
+244:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+245:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="analytics.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: use think\facade\Route;
+13: use app\common\middleware\AllowOriginMiddleware;
+14: use app\common\middleware\LogMiddleware;
+15: use app\common\middleware\MerchantAuthMiddleware;
+16: use app\common\middleware\MerchantTokenMiddleware;
+17: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+18: 
+19: Route::group(function () {
+20: 
+21:     //订单统计
+22:     Route::group('analytics/order', function () {
+23:         //顶部统计
+24:         Route::get('top', '/top')->name('merchantAnalyticsOrderTop')->option([
+25:             '_alias' => '顶部统计',
+26:         ]);
+27:         Route::get('line_chart', '/lineChart')->name('merchantAnalyticsOrderLineChart')->option([
+28:             '_alias' => '折线图统计',
+29:         ]);
+30:         Route::get('pie_chart/:type', '/typePieCahrt')->name('merchantAnalyticsOrderTypePieChart')->option([
+31:             '_alias' => '折线图统计',
+32:         ]);
+33:     })->prefix('admin.analytics.StoreOrder')->option([
+34:         '_path' => '/statistic/order',
+35:         '_auth' => true,
+36:     ]);
+37: 
+38:     //商品统计
+39:     Route::group('analytics/product', function () {
+40:         //顶部统计
+41:         Route::get('top', '/top')->name('merchantAnalyticsProductTop')->option([
+42:             '_alias' => '顶部统计',
+43:         ]);
+44:         Route::get('line_chart', '/lineChart')->name('merchantAnalyticsProductLineChart')->option([
+45:             '_alias' => '折线图统计',
+46:         ]);
+47:         Route::get('pie_chart/:type', '/typePieCahrt')->name('merchantAnalyticsProductTypePieChart')->option([
+48:             '_alias' => '折线图统计',
+49:         ]);
+50:     })->prefix('admin.analytics.StoreProduct')->option([
+51:         '_path' => '/statistic/product',
+52:         '_auth' => true,
+53:     ]);
+54: })->middleware(AllowOriginMiddleware::class)
+55:     ->middleware(MerchantTokenMiddleware::class, true)
+56:     ->middleware(MerchantAuthMiddleware::class)
+57:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+58:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="attachment.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: use app\common\middleware\AllowOriginMiddleware;
+12: use app\common\middleware\LogMiddleware;
+13: use app\common\middleware\MerchantAuthMiddleware;
+14: use app\common\middleware\MerchantTokenMiddleware;
+15: use think\facade\Route;
+16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+17: 
+18: Route::group(function () {
+19: 
+20:     //附件管理
+21:     Route::group('system/attachment', function () {
+22:         Route::post('chunk/video', '/videoUpload');
+23:         Route::get('scan_upload/qrcode/:pid', '/scanUploadQrcode')->name('merchantAttachmentScanQrcode')->option([
+24:             '_alias' => '上传二维码',
+25:         ]);
+26:         Route::get('scan_upload/image/:token', '/scanUploadImage')->name('merchantAttachmentScanImage')->option([
+27:             '_alias' => '扫码上传图片',
+28:         ]);
+29:         Route::post('scan_upload/image/:token', '/scanUploadSave')->name('merchantAttachmentScanImageSave')->option([
+30:             '_alias' => '扫码上传保存',
+31:         ]);
+32:         Route::post('online_upload', '/onlineUpload')->name('merchantAttachmentOnline')->option([
+33:             '_alias' => '在线图片',
+34:         ]);
+35:         Route::get('lst', '/getList')->name('merchantAttachmentLst')->option([
+36:             '_alias' => '列表',
+37:             ]);
+38:         Route::delete('delete', '/delete')->name('merchantAttachmentDelete')->option([
+39:             '_alias' => '删除',
+40:             ]);
+41:         Route::post('category', '/batchChangeCategory')->name('merchantAttachmentBatchChangeCategory')->option([
+42:             '_alias' => '批量修改',
+43:             ]);
+44:         Route::get('update/:id/form', '/updateForm')->name('merchantAttachmentUpdateForm')->option([
+45:             '_alias' => '编辑表单的',
+46:             '_auth' => false,
+47:             '_form' => 'merchantAttachmentUpdate',
+48:         ]);
+49:         Route::post('update/:id', '/update')->name('merchantAttachmentUpdate')->option([
+50:             '_alias' => '编辑',
+51:             ]);
+52:     })->prefix('admin.system.attachment.Attachment')->option([
+53:         '_path' => '/config/picture',
+54:         '_auth' => true,
+55:     ]);
+56: 
+57:     //上传图片
+58:     Route::post('upload/image/:id/:field', 'admin.system.attachment.Attachment/image')->name('merchantUploadImage')->option([
+59:         '_path' => 'attachment',
+60:         '_alias' => '上传图片',
+61: 
+62:     ]);
+63: 
+64:     //附件分类管理
+65:     Route::group('system/attachment/category', function () {
+66:         Route::get('formatLst', '/getFormatList')->name('merchantAttachmentCategoryGetFormatList')->option([
+67:             '_alias' => '列表',
+68:             ]);
+69:         Route::get('create/form', '/createForm')->name('merchantAttachmentCategoryCreateForm')->option([
+70:             '_alias' => '添加表单',
+71:             '_auth' => false,
+72:             '_form' => 'merchantAttachmentCategoryCreate',
+73:         ]);
+74:         Route::get('update/form/:id', '/updateForm')->name('merchantAttachmentCategoryUpdateForm')->option([
+75:             '_alias' => '编辑表单',
+76:             '_auth' => false,
+77:             '_form' => 'merchantAttachmentCategoryUpdate',
+78:         ]);
+79:         Route::post('create', '/create')->name('merchantAttachmentCategoryCreate')->option([
+80:             '_alias' => '添加',
+81:             ]);
+82:         Route::post('update/:id', '/update')->name('merchantAttachmentCategoryUpdate')->option([
+83:             '_alias' => '编辑',
+84:             ]);
+85:         Route::delete('delete/:id', '/delete')->name('merchantAttachmentCategoryDelete')->option([
+86:             '_alias' => '删除',
+87:             ]);
+88:     })->prefix('admin.system.attachment.AttachmentCategory')->option([
+89:         '_path' => '/config/picture',
+90:         '_auth' => true,
+91:     ]);
+92: 
+93: })->middleware(AllowOriginMiddleware::class)
+94:     ->middleware(MerchantTokenMiddleware::class, true)
+95:     ->middleware(MerchantAuthMiddleware::class)
+96:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+97:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="behalfcustomerorder.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: use app\common\middleware\AllowOriginMiddleware;
+12: use app\common\middleware\LogMiddleware;
+13: use app\common\middleware\MerchantAuthMiddleware;
+14: use app\common\middleware\MerchantTokenMiddleware;
+15: use think\facade\Route;
+16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+17: 
+18: Route::group(function () {
+19:     // 代客下单
+20:     Route::group('store/behalf', function () {
+21:         Route::get('productCategory', 'Product/category')->name('behalfProductCategory')->option([
+22:             '_alias' => '商品分类',
+23:         ]);
+24:         Route::get('productList', 'Product/list')->name('behalfProductList')->option([
+25:             '_alias' => '商品列表',
+26:         ]);
+27:         Route::get('productDetail/:id', 'Product/detail')->name('behalfProductDetail')->option([
+28:             '_alias' => '商品规格详情',
+29:         ]);
+30:         Route::get('userQuery', 'User/query')->name('behalfUserQuery')->option([
+31:             '_alias' => '会员查询',
+32:         ]);
+33:         Route::get('userInfo', 'User/info')->name('behalfUserInfo')->option([
+34:             '_alias' => '会员详情',
+35:         ]);
+36:         Route::post('userCreate', 'User/create')->name('behalfUserCreate')->option([
+37:             '_alias' => '会员添加',
+38:         ]);
+39:         Route::get('userAddressList', 'User/addressList')->name('behalfUserAddressList')->option([
+40:             '_alias' => '地址列表',
+41:         ]);
+42:         Route::post('userAddressCreate', 'User/addressCreate')->name('behalfUserAddressCreate')->option([
+43:             '_alias' => '地址添加',
+44:         ]);
+45:         Route::get('cartList', 'Cart/list')->name('behalfCartList')->option([
+46:             '_alias' => '购物车列表',
+47:         ]);
+48:         Route::post('cartCreate', 'Cart/create')->name('behalfCartCreate')->option([
+49:             '_alias' => '添加购物车',
+50:         ]);
+51:         Route::post('cartChange/:id', 'Cart/change')->name('behalfCartChange')->option([
+52:             '_alias' => '修改购物车数据',
+53:         ]);
+54:         Route::delete('cartDelete/:id', 'Cart/delete')->name('behalfCartDelete')->option([
+55:             '_alias' => '删除购物数据',
+56:         ]);
+57:         Route::post('cartClear', 'Cart/clear')->name('behalfCartClear')->option([
+58:             '_alias' => '清空购物车',
+59:         ]);
+60:         Route::get('cartCount', 'Cart/count')->name('behalfCartCount')->option([
+61:             '_alias' => '购物车总数量',
+62:         ]);
+63:         Route::post('cartUpdatePrice/:id', 'Cart/updatePrice')->name('behalfCartUpdatePrice')->option([
+64:             '_alias' => '修改价格',
+65:         ]);
+66:         Route::post('cartBatchUpdatePrice', 'Cart/batchUpdatePrice')->name('behalfCartBatchUpdatePrice')->option([
+67:             '_alias' => '批量修改价格',
+68:         ]);
+69:         Route::post('orderCheck', 'Order/check')->name('behalfCheck')->option([
+70:             '_alias' => '校验订单',
+71:         ]);
+72:         Route::post('payConfig', 'Order/payConfig')->name('behalfPayConfig')->option([
+73:             '_alias' => '支付配置',
+74:         ]);
+75:         Route::post('orderCreate', 'Order/create')->name('behalfCreate')->option([
+76:             '_alias' => '创建订单',
+77:         ]);
+78:         Route::post('orderPay/:id', 'Order/pay')->name('behalfPay')->option([
+79:             '_alias' => '支付',
+80:         ]);
+81:         Route::post('payStatus/:id', 'Order/payStatus')->name('behalfPayStatus')->option([
+82:             '_alias' => '获取结果',
+83:         ]);
+84:         Route::post('orderVerify', 'Order/verify')->name('behalfVerify')->option([
+85:             '_alias' => '余额支付获取验证码',
+86:         ]);
+87:     })->prefix('merchant.store.behalfcustomerorder.')->option([
+88:         '_path'=>'/order/customer',
+89:         '_auth' => true
+90:     ]);
+91: 
+92: })->middleware(AllowOriginMiddleware::class)
+93: ->middleware(MerchantTokenMiddleware::class, true)
+94: ->middleware(MerchantAuthMiddleware::class)
+95: ->middleware(MerchantCheckBaseInfoMiddleware::class)
+96: ->middleware(LogMiddleware::class);
+</file>
+
+<file path="config.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: use app\common\middleware\AllowOriginMiddleware;
+12: use app\common\middleware\LogMiddleware;
+13: use app\common\middleware\MerchantAuthMiddleware;
+14: use app\common\middleware\MerchantTokenMiddleware;
+15: use think\facade\Route;
+16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+17: 
+18: Route::group(function () {
+19: 
+20:     Route::get('config/:key', 'admin.system.config.Config/form')->name('merchantConfigForm')->option([
+21:         '_alias' => '配置获取',
+22:         '_path' => 'config',
+23:         '_auth'  => false,
+24:     ]);
+25: 
+26:     Route::post('config/save/:key', 'admin.system.config.ConfigValue/save')->name('merchantConfigSave')->option([
+27:         '_alias' => '配置保存',
+28:         '_path' => 'config',
+29:         '_auth'  => false,
+30:     ]);
+31: 
+32: })->middleware(AllowOriginMiddleware::class)
+33:     ->middleware(MerchantTokenMiddleware::class, true)
+34:     ->middleware(MerchantAuthMiddleware::class)
+35:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+36:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="content.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: use app\common\middleware\AllowOriginMiddleware;
+12: use app\common\middleware\LogMiddleware;
+13: use app\common\middleware\MerchantAuthMiddleware;
+14: use app\common\middleware\MerchantTokenMiddleware;
+15: use think\facade\Route;
+16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+17: 
+18: Route::group(function () {
+19:     //申请分账商户
+20:     Route::group('community',function(){
+21:         Route::get('cate/lst','/cateLst')->name('merchantCommunityCateLst')->option([
+22:             '_alias' => '分类列表',
+23:         ]);
+24:         Route::get('lst','/lst')->name('merchantCommunityLst')->option([
+25:             '_alias' => '列表',
+26:         ]);
+27:         Route::post('create','/create')->name('merchantCommunityCreate')->option([
+28:             '_alias' => '添加',
+29:         ]);
+30:         Route::get('detail/:id','/detail')->name('merchantCommunityDetail')->option([
+31:             '_alias' => '详情',
+32:         ]);
+33:         Route::post('update/:id','/update')->name('merchantCommunityUpdate')->option([
+34:             '_alias' => '编辑',
+35:         ]);
+36:         Route::delete('delete/:id','/delete')->name('merchantCommunityDelete')->option([
+37:             '_alias' => '删除',
+38:         ]);
+39:         Route::get('reply/:id','/reply')->name('merchantCommunityReply')->option([
+40:             '_alias' => '评论',
+41:         ]);
+42:     })->prefix('merchant.store.content.Community')->option([
+43:         '_path' => '/community/list',
+44:         '_auth' => true,
+45:     ]);
+46: })->middleware(AllowOriginMiddleware::class)
+47:     ->middleware(MerchantTokenMiddleware::class, true)
+48:     ->middleware(MerchantAuthMiddleware::class)
+49:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+50:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="coupon.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: use app\common\middleware\AllowOriginMiddleware;
+ 12: use app\common\middleware\LogMiddleware;
+ 13: use app\common\middleware\MerchantAuthMiddleware;
+ 14: use app\common\middleware\MerchantTokenMiddleware;
+ 15: use think\facade\Route;
+ 16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+ 17: 
+ 18: Route::group(function () {
+ 19: 
+ 20:     //发送优惠券
+ 21:     Route::get('store/coupon/product/:id', 'admin.store.Coupon/product')->name('merchantCouponProduct')->option([
+ 22:         '_alias' => '优惠券可用商品',
+ 23:         '_path' => '/user/list',
+ 24:         '_auth' => true,
+ 25:     ]);
+ 26: 
+ 27:     Route::get('store/coupon_send/lst', 'merchant.store.coupon.CouponSend/lst')->name('merchantCouponSendLst')->option([
+ 28:             '_alias' => '发送优惠券记录',
+ 29:             '_path' => '/marketing/coupon/send',
+ 30:             '_auth' => true,
+ 31:         ]);
+ 32: 
+ 33:     //优惠券
+ 34:     Route::group('store/coupon', function () {
+ 35:         Route::get('create/form', '/createForm')->name('merchantCouponCreateForm')->option([
+ 36:             '_alias' => '添加表单',
+ 37:             '_auth' => false,
+ 38:             '_form' => 'merchantCouponCreate',
+ 39:         ]);
+ 40:         Route::get('clone/form/:id', '/cloneForm')->name('merchantCouponIssueCloneForm')->option([
+ 41:             '_alias' => '复制表单',
+ 42:             '_auth' => false,
+ 43:             '_form' => 'merchantCouponCreate',
+ 44:         ]);
+ 45:         Route::post('create', '/create')->name('merchantCouponCreate')->option([
+ 46:             '_alias' => '添加',
+ 47:         ]);
+ 48:         Route::post('status/:id', '/changeStatus')->name('merchantCouponIssueChangeStatus')->option([
+ 49:             '_alias' => '修改状态',
+ 50:         ]);
+ 51:         Route::get('lst', '/lst')->name('merchantCouponLst')->option([
+ 52:             '_alias' => '列表',
+ 53:         ]);
+ 54:         Route::get('issue', '/issue')->name('merchantCouponIssue')->option([
+ 55:             '_alias' => '使用记录',
+ 56:             '_path' => '/marketing/coupon/user',
+ 57:         ]);
+ 58:         Route::get('select', '/select')->option([
+ 59:             '_alias' => '筛选',
+ 60:             '_auth'  => false,
+ 61:         ]);
+ 62: 
+ 63:         Route::delete('delete/:id', '/delete')->name('merchantCouponDelete')->option([
+ 64:             '_alias' => '删除',
+ 65:         ]);
+ 66:         Route::get('detail/:id', '/detail')->name('merchantCouponDetail')->option([
+ 67:             '_alias' => '详情',
+ 68:         ]);
+ 69:         Route::get('update/:id/form', '/updateForm')->name('systemCouponUpdateForm')->option([
+ 70:             '_alias' => '编辑表单',
+ 71:             '_auth' => false,
+ 72:             '_form' => 'systemCouponUpdate',
+ 73:         ]);
+ 74:         Route::post('update/:id', '/update')->name('systemCouponUpdate')->option([
+ 75:             '_alias' => '编辑',
+ 76:         ]);
+ 77: 
+ 78:     })->prefix('merchant.store.coupon.Coupon')->option([
+ 79:         '_alias' => '配置保存',
+ 80:         '_path' => '/marketing/coupon/list',
+ 81:         '_auth'  => true,
+ 82:         '_append'=> [
+ 83:             [
+ 84:                 '_name'  =>'merchantUploadImage',
+ 85:                 '_path'  =>'/marketing/coupon/list',
+ 86:                 '_alias' => '上传图片',
+ 87:                 '_auth'  => true,
+ 88:             ],
+ 89:             [
+ 90:                 '_name'  =>'merchantAttachmentLst',
+ 91:                 '_path'  =>'/marketing/coupon/list',
+ 92:                 '_alias' => '图片列表',
+ 93:                 '_auth'  => true,
+ 94:             ],
+ 95:         ]
+ 96:     ]);
+ 97: 
+ 98:     Route::post('store/coupon/send', 'merchant.store.coupon.Coupon/send')
+ 99:         ->name('merchantCouponSendCoupon')->option([
+100:             '_alias' => '发送优惠券',
+101:             '_path' => '/user/list',
+102:             '_auth'  => true,
+103:         ]);
+104: 
+105: })->middleware(AllowOriginMiddleware::class)
+106:     ->middleware(MerchantTokenMiddleware::class, true)
+107:     ->middleware(MerchantAuthMiddleware::class)
+108:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+109:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="delivery.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: use app\common\middleware\AllowOriginMiddleware;
+ 12: use app\common\middleware\LogMiddleware;
+ 13: use app\common\middleware\MerchantAuthMiddleware;
+ 14: use app\common\middleware\MerchantTokenMiddleware;
+ 15: use think\facade\Route;
+ 16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+ 17: 
+ 18: Route::group(function () {
+ 19: 
+ 20:     //快递公司
+ 21:     Route::group('expr',function(){
+ 22:         Route::get('/lst','/lst')->name('merchantServeExportLst')->option([
+ 23:             '_alias' => '列表',
+ 24:         ]);
+ 25:         Route::get('/options','/options')->option([
+ 26:             '_alias' => '列表',
+ 27:             '_auth' => false,
+ 28:         ]);
+ 29: 
+ 30:         Route::get('/partner/:id/form','/partnerForm')->name('merchantExpressPratnerUpdateForm')->option([
+ 31:             '_alias' => '月结账号编辑表单',
+ 32:             '_auth' => false,
+ 33:             '_form' => 'merchantExpressPratnerUpdate',
+ 34:         ]);
+ 35:         Route::post('/partner/:id','/partner')->name('merchantExpressPratnerUpdate')->option([
+ 36:             '_alias' => '月结账号编辑',
+ 37:         ]);
+ 38:         Route::post('/changeMerStatus/:id','/merStatus')->name('merchantExpressChangeMerStatus')->option([
+ 39:             '_alias' => '修改状态',
+ 40:         ]);
+ 41:     })->prefix('admin.store.Express')->option([
+ 42:         '_path' => '/config/freight/express',
+ 43:         '_auth' => true,
+ 44:     ]);
+ 45: 
+ 46:     //同城配送
+ 47:     Route::group('delivery/station', function () {
+ 48:         //获取分类
+ 49:         Route::get('business','/getBusiness')->name('merchantStoreDeliveryBusiness')->option([
+ 50:                 '_alias' => '获取分类',
+ 51:             ]);
+ 52:         //添加
+ 53:         Route::post('create','/create')->name('merchantStoreDeliveryCreate')->option([
+ 54:                 '_alias' => '添加',
+ 55:             ]);
+ 56:         //编辑
+ 57:         Route::post('update/:id','/update')->name('merchantStoreDeliveryUpdate')->option([
+ 58:                 '_alias' => '编辑',
+ 59:             ]);
+ 60:         //编辑状态
+ 61:         Route::post('status/:id','/switchWithStatus')->name('merchantStoreDeliveryStatus')->option([
+ 62:                 '_alias' => '编辑状态',
+ 63:             ]);
+ 64:         //列表
+ 65:         Route::get('lst','/lst')->name('merchantStoreDeliveryLst')->option([
+ 66:                 '_alias' => '列表',
+ 67:             ]);
+ 68:         //详情
+ 69:         Route::get('detail/:id','/detail')->name('merchantStoreDeliveryDetail')->option([
+ 70:                 '_alias' => '详情',
+ 71:             ]);
+ 72:         //删除
+ 73:         Route::delete('delete/:id','/delete')->name('merchantStoreDeliveryDelete')->option([
+ 74:                 '_alias' => '删除',
+ 75:             ]);
+ 76:         //备注
+ 77:         Route::get('mark/:id/form','/markForm')->name('merchantStoreDeliveryMarkForm')->option([
+ 78:             '_alias' => '备注表单',
+ 79:             '_auth' => false,
+ 80:             '_form' => 'merchantStoreDeliveryMark',
+ 81:         ]);
+ 82:         Route::post('mark/:id','/mark')->name('merchantStoreDeliveryMark')->option([
+ 83:             '_alias' => '备注',
+ 84:         ]);
+ 85: 
+ 86:         Route::get('options','/options')->option([
+ 87:             '_alias' => '列表',
+ 88:             '_auth' => false,
+ 89:         ]);
+ 90: 
+ 91:         Route::get('select','/select')->option([
+ 92:             '_alias' => '列表',
+ 93:             '_auth' => false,
+ 94:         ]);
+ 95:         //城市列表
+ 96:         Route::get('getCity','/getCityLst')->name('merchantStoreDeliveryCityList')->option([
+ 97:                 '_alias' => '城市列表',
+ 98:             ]);
+ 99: 
+100:         //充值记录
+101:         Route::get('payLst','/payLst')->name('merchantStoreDeliveryPayLst')->option([
+102:                 '_alias' => '充值记录',
+103:                 '_path' => '/delivery/recharge_record',
+104:             ]);
+105:         Route::get('code','/getQrcode')->name('merchantStoreDeliveryGetQrcode')->option([
+106:             '_alias' => '充值二维码',
+107:             '_path' => '/delivery/recharge_record',
+108:             '_auth' => false,
+109:         ]);
+110: 
+111:     })->prefix('merchant.store.delivery.DeliveryStation')->option([
+112:         '_path' => '/delivery/store_manage',
+113:         '_auth' => true,
+114:     ]);
+115: 
+116:     Route::group('delivery/service', function () {
+117:         Route::get('lst','/lst')->name('merchantDeliveryServiceLst')->option([
+118:             '_alias' => '列表',
+119:         ]);
+120:         Route::post('status/:id','/switchWithStatus')->name('merchantDeliveryServiceStatus')->option([
+121:             '_alias' => '修改状态',
+122:         ]);
+123:         Route::get('create/form','/createForm')->name('merchantDeliveryServiceCreateForm')->option([
+124:             '_alias' => '添加表单',
+125:             '_auth' => false,
+126:             '_form' => 'merchantServiceCreate',
+127:         ]);
+128:         //添加
+129:         Route::post('create','/create')->name('merchantDeliveryServiceCreate')->option([
+130:             '_alias' => '添加',
+131:         ]);
+132:         //编辑
+133:         Route::get('update/:id/form','/updateForm')->name('merchantDeliveryServiceUpdateForm')->option([
+134:             '_alias' => '编辑',
+135:             '_auth' => false,
+136:             '_form' => 'merchantServiceUpdate',
+137:         ]);
+138:         //编辑
+139:         Route::post('update/:id','/update')->name('merchantDeliveryServiceUpdate')->option([
+140:             '_alias' => '编辑',
+141:         ]);
+142:         //删除
+143:         Route::delete('delete/:id','/delete')->name('merchantDeliveryServiceDelete')->option([
+144:             '_alias' => '删除',
+145:         ]);
+146:         Route::get('statisticsList','/statisticsList')->name('merchantDeliveryServiceStatisticsList')->option([
+147:             '_alias' => '统计列表',
+148:         ]);
+149:         Route::get('statisticsDetail/:id','/statisticsDetail')->name('merchantDeliveryServiceStatisticsDetail')->option([
+150:             '_alias' => '统计详情',
+151:         ]);
+152:         Route::get('options','/options');
+153:     })->prefix('merchant.store.delivery.DeliveryService')->option([
+154:         '_path' => '/delivery/personnel_manage',
+155:         '_auth' => true,
+156:     ]);
+157: 
+158: 
+159:     //同城配送
+160:     Route::group('delivery/order', function () {
+161:         //
+162:         Route::get('lst','/lst')
+163:             ->name('merchantStoreDeliveryOrderLst')->option([
+164:                 '_alias' => '列表',
+165:             ]);
+166:         //取消
+167:         Route::get('cancel/:id/form','/cancelForm')
+168:             ->name('merchantStoreDeliveryOrderCancelForm')->option([
+169:                 '_alias' => '取消表单',
+170:                 '_auth' => false,
+171:                 '_form' => 'merchantStoreDeliveryOrderCancel',
+172:             ]);
+173: 
+174:         Route::post('cancel/:id','/cancel')
+175:             ->name('merchantStoreDeliveryOrderCancel')->option([
+176:                 '_alias' => '取消',
+177:             ]);
+178: 
+179:         //详情
+180:         Route::get('detail/:id','/detail')
+181:             ->name('merchantStoreDeliveryOrderDetail')->option([
+182:                 '_alias' => '详情',
+183:             ]);
+184: 
+185:     })->prefix('merchant.store.delivery.DeliveryOrder')->option([
+186:         '_path' => '/delivery/usage_record',
+187:         '_auth' => true,
+188:     ]);
+189: 
+190:     //运费模板
+191:     Route::group('store/shipping', function () {
+192:         Route::get('lst', '/lst')->name('merchantStoreShippingTemplateLst')->option([
+193:             '_alias' => '列表',
+194:             '_auth' => false,
+195:         ]);
+196:         Route::get('list', '/getList')->option([
+197:             '_alias' => '列表 ',
+198:         ]);
+199:         Route::post('create', '/create')->name('merchantStoreShippingTemplateCreate')->option([
+200:             '_alias' => '添加 ',
+201:         ]);
+202:         Route::post('update/:id', '/update')->name('merchantStoreShippingTemplateUpdate')->option([
+203:             '_alias' => '编辑',
+204:         ]);
+205:         Route::get('detail/:id', '/detail')->name('merchantStoreShippingTemplateDetail')->option([
+206:             '_alias' => '详情',
+207:         ]);
+208:         Route::delete('delete/:id', '/delete')->name('merchantStoreShippingTemplateDelete')->option([
+209:             '_alias' => '删除',
+210:         ]);
+211:         Route::get('setDefault/:id', '/setDefault')->name('merchantStoreShippingTemplateSetDefault')->option([
+212:             '_alias' => '设置默认模板',
+213:         ]);
+214:     })->prefix('merchant.store.shipping.ShippingTemplate')->option([
+215:         '_path' => '/config/freight/shippingTemplates',
+216:         '_auth' => true,
+217:     ]);
+218: 
+219:     //地址信息
+220:     Route::get('system/city/lst', 'merchant.store.shipping.City/lst')->option([
+221:         '_alias' => '列表',
+222:         '_auth' => false,
+223:     ]);
+224:     Route::get('v2/system/city/lst/:pid', 'merchant.store.shipping.City/lstV2')->option([
+225:         '_alias' => '列表',
+226:         '_auth' => false,
+227:     ]);
+228:     // 配送设置
+229:     Route::group('delivery/config', function () {
+230:         Route::get('settings','/configuration')->name('merchantDeliveryConfigSettings')->option([
+231:             '_alias' => '配送设置信息'
+232:         ]);
+233:         Route::post('update/:id','/update')->name('merchantDeliveryConfigUpdate')->option([
+234:             '_alias' => '更新配送设置信息'
+235:         ]);
+236:     })->prefix('merchant.store.delivery.DeliveryConfig')->option([
+237:         '_path' => '/delivery/delivery_settings',
+238:         '_auth' => true,
+239:     ]);
+240: })->middleware(AllowOriginMiddleware::class)
+241:     ->middleware(MerchantTokenMiddleware::class, true)
+242:     ->middleware(MerchantAuthMiddleware::class)
+243:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+244:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="diy.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: 
+ 12: use think\facade\Route;
+ 13: use app\common\middleware\LogMiddleware;
+ 14: use app\common\middleware\AllowOriginMiddleware;
+ 15: use app\common\middleware\MerchantAuthMiddleware;
+ 16: use app\common\middleware\MerchantTokenMiddleware;
+ 17: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+ 18: 
+ 19: Route::group(function () {
+ 20: 
+ 21:     Route::get('change/color', 'admin.Common/getChangeColor')->name('merchantGetChangeColor')->option([
+ 22:         '_alias' => '一键换色',
+ 23:         '_path' => '/setting/theme_style',
+ 24:         '_auth' => false,
+ 25:         '_form' => 'systemSetChangeColor'
+ 26:     ]);
+ 27: 
+ 28:     Route::get('diy/link/getLinks/:id', 'admin.system.diy.PageLink/getLinks')->option([
+ 29:         '_alias' => '列表',
+ 30:         '_auth' => false,
+ 31:     ]);
+ 32: 
+ 33:     Route::get('diy/link/lst', 'admin.system.diy.PageLink/lst')->name('merchantDiyPageLinkLst')->option([
+ 34:         '_alias' => '列表',
+ 35:         '_path' => '/devise/diy/list',
+ 36:     ])->append(['type' => 1]);
+ 37: 
+ 38: 
+ 39:     Route::get('diy/categroy/options', 'admin.system.diy.PageCategroy/options')->option([
+ 40:         '_alias' => '列表 ',
+ 41:         '_auth' => false,
+ 42:     ])->append(['type' => 1]);
+ 43: 
+ 44: 
+ 45:     Route::group('diy/', function () {
+ 46: 
+ 47:         Route::get('lst', '/lst')->name('merchantDiyLst')->option([
+ 48:             '_alias' => '列表 ',
+ 49:         ]);
+ 50: 
+ 51:         Route::get('review/:id', '/review');
+ 52: 
+ 53:         Route::get('default_lst', '/defaultLst')->name('merchantDefaultDiyLst')->option([
+ 54:             '_alias' => '默认模板列表 ',
+ 55:         ]);
+ 56: 
+ 57:         Route::get('detail/:id', '/getInfo')->name('merchantDiyDetail')->option([
+ 58:             '_alias' => '详情 ',
+ 59:         ]);
+ 60: 
+ 61:         Route::post('create/:id', '/saveData')->name('merchantDiyCreate')->option([
+ 62:             '_alias' => '添加/编辑',
+ 63:         ]);
+ 64: 
+ 65:         Route::post('status/:id', '/setStatus')->name('merchantDiyStatus')->option([
+ 66:             '_alias' => '使用模板',
+ 67:         ]);
+ 68: 
+ 69:         Route::post('set_default_data/:id', '/setDefaultData')->name('merchantDiySetDefault')->option([
+ 70:             '_alias' => '使用模板',
+ 71:         ]);
+ 72: 
+ 73:         Route::get('recovery/:id', '/recovery/')->name('merchantDiyRecovery')->option([
+ 74:             '_alias' => '重置模板',
+ 75:         ]);
+ 76: 
+ 77:         Route::get('show', '/getDiyInfo')->name('merchantDiyInfo')->option([
+ 78:             '_alias' => '当前使用模板',
+ 79:         ]);
+ 80: 
+ 81:         Route::delete('delete/:id', '/del')->name('merchantDiyDelete')->option([
+ 82:             '_alias' => '删除',
+ 83:         ]);
+ 84: 
+ 85:         Route::get('product/lst', '/productLst')->name('merchantDiyProductLst')->option([
+ 86:             '_alias' => '店铺街装修',
+ 87:         ]);
+ 88: 
+ 89:         Route::get('copy/:id', '/copy')->name('merchantDiyCopy')->option([
+ 90:             '_alias' => '复制',
+ 91:         ]);
+ 92: 
+ 93:     })->prefix('merchant.system.diy.Diy')->option([
+ 94:         '_path' => '/devise/diy/list',
+ 95:         '_auth' => true,
+ 96:         '_append'=> [
+ 97:             [
+ 98:                 '_name'  =>'uploadImage',
+ 99:                 '_path'  =>'/devise/diy/list',
+100:                 '_alias' => '上传图片',
+101:                 '_auth'  => true,
+102:             ],
+103:             [
+104:                 '_name'  =>'systemAttachmentLst',
+105:                 '_path'  =>'/devise/diy/list',
+106:                 '_alias' => '图片列表',
+107:                 '_auth'  => true,
+108:             ],
+109:         ]
+110:     ]);
+111:     // 商户商品分类
+112:     Route::group('diy/productCategory', function () {
+113:         Route::get('info', '/productCategoryInfo')->name('merchantDiyProductCategoryInfo')->option([
+114:             '_alias' => '商品分类信息',
+115:         ]);
+116:         Route::post('create/:id', '/saveData')->name('merchantDiyProductCategorySave')->option([
+117:             '_alias' => '保存商品分类',
+118:         ]);
+119:     })->prefix('merchant.system.diy.Diy')->option([
+120:         '_path' => '/devise/diy/product_category',
+121:         '_auth' => true
+122:     ])->append(['is_diy' => 4, 'name' => '商户商品分类', 'title' => '商户商品分类']);
+123: 
+124: })->middleware(AllowOriginMiddleware::class)
+125:     ->middleware(MerchantTokenMiddleware::class, true)
+126:     ->middleware(MerchantAuthMiddleware::class)
+127:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+128:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="form.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: use think\facade\Route;
+13: use app\common\middleware\AdminAuthMiddleware;
+14: use app\common\middleware\AdminTokenMiddleware;
+15: use app\common\middleware\AllowOriginMiddleware;
+16: use app\common\middleware\LogMiddleware;
+17: 
+18: Route::group(function () {
+19: 
+20:     Route::group('store/form',function () {
+21:         Route::post('create', '/create')->name('merFormCreate')->option([
+22:             '_alias' => '添加',
+23:             '_auth' => true,
+24:         ]);
+25:         Route::post('update/:id', '/update')->name('merFormUpdate')->option([
+26:             '_alias' => '编辑',
+27:             '_auth' => true,
+28:         ]);
+29:         Route::delete('delete/:id', '/delete')->name('merFormDelete')->option([
+30:             '_alias' => '删除',
+31:             '_auth' => true,
+32:         ]);
+33:         Route::get('detail/:id', '/detail')->name('merFormDetail')->option([
+34:             '_alias' => '详情',
+35:             '_auth' => true,
+36:         ]);
+37:         Route::get('lst', '/lst')->name('merFormLst')->option([
+38:             '_alias' => '列表',
+39:             '_auth' => true,
+40:         ]);
+41: 
+42:         Route::get('select', '/select');
+43:         Route::get('info/:id', '/info');
+44: 
+45:     })->prefix('admin.system.form.Form')->option([
+46:         '_path' => '/systemForm/form_list',
+47:         '_auth' => true,
+48:     ]);
+49: 
+50: })->middleware(AllowOriginMiddleware::class)
+51:     ->middleware(\app\common\middleware\MerchantTokenMiddleware::class, true)
+52:     ->middleware(\app\common\middleware\MerchantAuthMiddleware::class)
+53:     ->middleware(\app\common\middleware\MerchantCheckBaseInfoMiddleware::class)
+54:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="group.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: use app\common\middleware\AllowOriginMiddleware;
+13: use app\common\middleware\LogMiddleware;
+14: use app\common\middleware\MerchantAuthMiddleware;
+15: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+16: use app\common\middleware\MerchantTokenMiddleware;
+17: use think\facade\Route;
+18: 
+19: Route::group(function () {
+20: 
+21:     Route::group('group', function () {
+22:         Route::get('detail/:id', '/get')->name('merchantGroupDetail')->option([
+23:             '_alias' => '数据详情',
+24:         ]);
+25:         Route::get('data/lst/:groupId', 'Data/lst')->name('merchantGroupDataLst')->option([
+26:             '_alias' => '数据列表',
+27:         ]);
+28: 
+29:         Route::get('data/create/table/:groupId', 'Data/createTable')->name('merchantGroupDataCreateForm')->option([
+30:             '_alias' => '数据添加表单',
+31:             '_auth' => false,
+32:             '_form' => 'groupDataCreate',
+33:         ]);
+34:         Route::post('data/create/:groupId', 'Data/create')->name('merchantGroupDataCreate')->option([
+35:             '_alias' => '数据添加',
+36:         ]);
+37: 
+38:         Route::get('data/update/table/:groupId/:id', 'Data/updateTable')->name('merchantGroupDataUpdateForm')->option([
+39:             '_alias' => '数据编辑表单',
+40:             '_auth' => false,
+41:             '_form' => 'groupDataUpdate',
+42:         ]);
+43:         Route::post('data/update/:groupId/:id', 'Data/update')->name('merchantGroupDataUpdate')->option([
+44:             '_alias' => '数据编辑',
+45:             ]);
+46:         Route::delete('data/delete/:id', 'Data/delete')->name('merchantGroupDataDelete')->option([
+47:             '_alias' => '数据删除',
+48:         ]);
+49:         Route::post('data/status/:id', 'Data/changeStatus')->name('merchantGroupDataChangeStatus')->option([
+50:             '_alias' => '数据修改状态',
+51:         ]);
+52:         Route::get('data/detail/:id', 'Data/baseDetail');
+53:     })->prefix('admin.system.groupData.Group')->option([
+54:         '_auth' => true,
+55:         '_init'  => [ \crmeb\services\UpdateAuthInit::class,'groupData'],
+56:         '_append' => [
+57:             [
+58:                 '_name' => 'uploadImage',
+59:                 '_alias' => '上传图片',
+60:                 '_auth' => true,
+61:             ],
+62:             [
+63:                 '_name' => 'systemAttachmentLst',
+64:                 '_alias' => '图片列表',
+65:                 '_auth' => true,
+66:             ],
+67:         ]
+68:     ]);
+69: 
+70: })->middleware(AllowOriginMiddleware::class)
+71:     ->middleware(MerchantTokenMiddleware::class, true)
+72:     ->middleware(MerchantAuthMiddleware::class)
+73:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+74:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="marketing.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: use app\common\middleware\AllowOriginMiddleware;
+ 12: use app\common\middleware\LogMiddleware;
+ 13: use app\common\middleware\MerchantAuthMiddleware;
+ 14: use app\common\middleware\MerchantTokenMiddleware;
+ 15: use think\facade\Route;
+ 16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+ 17: 
+ 18: Route::group(function () {
+ 19:     //商品列表， 用于活动筛选的商品信息
+ 20:     Route::get('product_list', 'merchant.store.product.Product/product_list');
+ 21: 
+ 22:     //秒杀活动
+ 23:     Route::group('store/seckill/active', function () {
+ 24:         Route::get('lst', '/list')->name('merchantStoreSeckillActiveGetActiveList')->option([
+ 25:             '_alias' => '列表',
+ 26:         ]);
+ 27:         Route::get('detail/:id', '/detail')->name('merchantStoreSeckillActiveGetActiveInfo')->option([
+ 28:             '_alias' => '详情',
+ 29:         ]);
+ 30:         Route::get('select', '/select')->name('merchantStoreSeckillActiveGetActiveAll')->option([
+ 31:             '_alias' => '列表',
+ 32:         ]);
+ 33:         Route::get('chart_panel/:id', '/chart_panel')->name('merchantStoreSeckillActiveChartPanel')->option([
+ 34:             '_alias' => '活动统计数据面板',
+ 35:         ]);
+ 36:         Route::get('chart_people/:id', '/chart_people')->name('merchantStoreSeckillActiveChartPeople')->option([
+ 37:             '_alias' => '活动参与人统计列表',
+ 38:         ]);
+ 39:         Route::get('chart_order/:id', '/chart_order')->name('merchantStoreSeckillActiveChartOrder')->option([
+ 40:             '_alias' => '活动订单统计列表',
+ 41:         ]);
+ 42:         Route::get('chart_product/:id', '/chart_product')->name('merchantStoreSeckillActiveChartProduct')->option([
+ 43:             '_alias' => '活动商品统计列表',
+ 44:         ]);
+ 45:     })->prefix('merchant.store.seckill.SeckillActive')->option([
+ 46:         '_path' => '/marketing/seckill/store_seckill/list',
+ 47:         '_auth' => true,
+ 48:     ]);
+ 49: 
+ 50:     //秒杀商品
+ 51:     Route::group('store/seckill_product', function () {
+ 52:         Route::get('lst', '/get_page_list')->name('merchantStoreSeckillProductPageLst')->option([
+ 53:             '_alias' => '分页列表',
+ 54:         ]);
+ 55:         Route::get('list', '/get_list')->name('merchantStoreSeckillProductLst')->option([
+ 56:             '_alias' => '列表',
+ 57:         ]);
+ 58: 
+ 59:         Route::get('product_list', '/get_product_list')->name('merchantStoreSeckillProductGetProductList')->option([
+ 60:             '_alias' => '商品列表',
+ 61:         ]);
+ 62:         Route::get('lst_filter', '/getStatusFilter')->name('merchantStoreSeckillProductLstFilter')->option([
+ 63:             '_alias' => '统计',
+ 64:         ]);
+ 65:         Route::post('create', '/create')->name('merchantStoreSeckillProductCreate')->option([
+ 66:             '_alias' => '添加 ',
+ 67:         ]);
+ 68:         Route::get('detail/:id', '/detail')->name('merchantStoreSeckillProductDetail')->option([
+ 69:             '_alias' => '详情',
+ 70:         ]);
+ 71:         Route::post('status/:id', '/switchStatus')->name('merchantStoreSeckillProductSwitchStatus')->option([
+ 72:             '_alias' => '修改状态',
+ 73:         ]);
+ 74:         Route::post('labels/:id', '/setLabels')->name('merchantStoreSeckillProductSetLabels')->option([
+ 75:             '_alias' => '设置标签',
+ 76:         ]);
+ 77:         Route::post('update/:id', '/update')->name('merchantStoreSeckillProductUpdate')->option([
+ 78:             '_alias' => '修改商品',
+ 79:         ]);
+ 80:         Route::delete('delete/:id', '/delete')->name('merchantStoreSeckillProductDelete')->option([
+ 81:             '_alias' => '加入回收站',
+ 82:         ]);
+ 83:         Route::delete('destory/:id', '/destory')->name('merchantStoreSeckillProductDestory')->option([
+ 84:             '_alias' => '删除',
+ 85:         ]);
+ 86:         Route::post('restore/:id', '/restore')->name('merchantStoreSeckillProductRestore')->option([
+ 87:             '_alias' => '恢复',
+ 88:         ]);
+ 89:         Route::post('sort/:id', '/updateSort')->name('merchantStoreSeckillProductUpdateSort')->option([
+ 90:             '_alias' => '排序',
+ 91:         ]);
+ 92:         Route::post('preview', '/preview')->name('merchantStoreSeckillProductPreview')->option([
+ 93:             '_alias' => '预览',
+ 94:         ]);
+ 95:     })->prefix('merchant.store.seckill.SeckillProduct')->option([
+ 96:         '_path' => '/marketing/seckill/product/list',
+ 97:         '_auth' => true,
+ 98:     ]);
+ 99: 
+100: 
+101: 
+102:     //秒杀场次
+103:     Route::get('store/seckill/time/lst', 'merchant.store.seckill.SeckillTime/lst');
+104: 
+105:     //预售商品
+106:     Route::group('store/product/presell', function () {
+107:         Route::get('lst', '/lst')->name('merchantStoreProductPresellLst')->option([
+108:             '_alias' => '列表',
+109:         ]);
+110:         Route::post('create', '/create')->name('merchantStoreProductPresellCreate')->option([
+111:             '_alias' => '添加',
+112:         ]);
+113:         Route::get('detail/:id', '/detail')->name('merchantStoreProductPresellDetail')->option([
+114:             '_alias' => '详情',
+115:         ]);
+116:         Route::post('update/:id', '/update')->name('merchantStoreProductPresellUpdate')->option([
+117:             '_alias' => '编辑',
+118:         ]);
+119:         Route::delete('delete/:id', '/delete')->name('merchantStoreProductPresellDelete')->option([
+120:             '_alias' => '删除',
+121:         ]);
+122:         Route::post('status/:id', '/switchStatus')->name('merchantStoreProductPresellStatus')->option([
+123:             '_alias' => '修改状态',
+124:         ]);
+125:         Route::get('number', '/number')->option([
+126:             '_alias' => '统计',
+127:             '_auth'  => false,
+128:         ]);
+129:         Route::post('sort/:id', '/updateSort')->name('merchantStoreProductPresellUpdateSort')->option([
+130:             '_alias' => '排序',
+131:         ]);
+132:         Route::post('preview', '/preview')->name('merchantStoreProductPresellPreview')->option([
+133:             '_alias' => '预览',
+134:         ]);
+135:         Route::post('labels/:id', '/setLabels')->name('merchantStoreProductPreselltLabels')->option([
+136:             '_alias' => '设置标签',
+137:         ]);
+138:     })->prefix('merchant.store.product.ProductPresell')->option([
+139:         '_path' => '/marketing/presell/list',
+140:         '_auth' => true,
+141:         '_append'=> [
+142:             [
+143:                 '_name'  =>'merchantUploadImage',
+144:                 '_path'  =>'/marketing/presell/list',
+145:                 '_alias' => '上传图片',
+146:                 '_auth'  => true,
+147:             ],
+148:             [
+149:                 '_name'  =>'merchantAttachmentLst',
+150:                 '_path'  =>'/marketing/presell/list',
+151:                 '_alias' => '图片列表',
+152:                 '_auth'  => true,
+153:             ],
+154:         ]
+155:     ]);
+156: 
+157:     //助力商品
+158:     Route::group('store/product/assist', function () {
+159:         Route::get('lst', '/lst')->name('merchantStoreProductAssistLst')->option([
+160:             '_alias' => '列表 ',
+161:         ]);
+162:         Route::post('create', '/create')->name('merchantStoreProductAssistCreate')->option([
+163:             '_alias' => '添加',
+164:         ]);
+165:         Route::get('detail/:id', '/detail')->name('merchantStoreProductAssistDetail')->option([
+166:             '_alias' => '详情',
+167:         ]);
+168:         Route::post('update/:id', '/update')->name('merchantStoreProductAssistUpdate')->option([
+169:             '_alias' => '编辑',
+170:         ]);
+171:         Route::delete('delete/:id', '/delete')->name('merchantStoreProductAssistDelete')->option([
+172:             '_alias' => '删除',
+173:         ]);
+174:         Route::post('status/:id', '/switchStatus')->name('merchantStoreProductAssistStatus')->option([
+175:             '_alias' => '修改状态',
+176:         ]);
+177:         Route::post('sort/:id', '/updateSort')->name('merchantStoreProductAssistUpdateSort')->option([
+178:             '_alias' => '排序',
+179:         ]);
+180:         Route::post('preview', '/preview')->name('merchantStoreProductAssistPreview')->option([
+181:             '_alias' => '预览',
+182:         ]);
+183:         Route::post('labels/:id', '/setLabels')->name('merchantStoreProductAssistLabels')->option([
+184:             '_alias' => '设置标签',
+185:         ]);
+186:     })->prefix('merchant.store.product.ProductAssist')->option([
+187:         '_path' => '/marketing/assist/list',
+188:         '_auth' => true,
+189:         '_append'=> [
+190:             [
+191:                 '_name'  =>'merchantUploadImage',
+192:                 '_path'  =>'/marketing/assist/list',
+193:                 '_alias' => '上传图片',
+194:                 '_auth'  => true,
+195:             ],
+196:             [
+197:                 '_name'  =>'merchantAttachmentLst',
+198:                 '_path'  =>'/marketing/assist/list',
+199:                 '_alias' => '图片列表',
+200:                 '_auth'  => true,
+201:             ],
+202:         ]
+203:     ]);
+204: 
+205:     //助力活动
+206:     Route::group('store/product/assist_set', function () {
+207:         Route::get('lst', '/lst')->name('merchantStoreProductAssistSetLst')->option([
+208:             '_alias' => '活动列表',
+209:         ]);
+210:         Route::get('detail/:id', '/detail')->name('merchantStoreProductAssistSetDetail')->option([
+211:             '_alias' => '活动详情',
+212:         ]);
+213:     })->prefix('merchant.store.product.ProductAssistSet')->option([
+214:         '_path' => '/marketing/assist/assist_set',
+215:         '_auth' => true,
+216:     ]);
+217: 
+218:     //拼团商品
+219:     Route::group('store/product/group', function () {
+220:         Route::get('lst', '/lst')->name('merchantStoreProductGroupLst')->option([
+221:             '_alias' => '列表',
+222:         ]);
+223:         Route::post('create', '/create')->name('merchantStoreProductGroupCreate')->option([
+224:             '_alias' => '添加',
+225:         ]);
+226:         Route::get('detail/:id', '/detail')->name('merchantStoreProductGroupDetail')->option([
+227:             '_alias' => '详情',
+228:         ]);
+229:         Route::post('update/:id', '/update')->name('merchantStoreProductGroupUpdate')->option([
+230:             '_alias' => '编辑',
+231:         ]);
+232:         Route::delete('delete/:id', '/delete')->name('merchantStoreProductGroupDelete')->option([
+233:             '_alias' => '删除',
+234:         ]);
+235:         Route::post('status/:id', '/switchStatus')->name('merchantStoreProductGroupStatus')->option([
+236:             '_alias' => '修改状态',
+237:         ]);
+238:         Route::post('sort/:id', '/updateSort')->name('merchantStoreProductGroupSort')->option([
+239:             '_alias' => '排序',
+240:         ]);
+241:         Route::post('preview', '/preview')->name('merchantStoreProductGroupPreview')->option([
+242:             '_alias' => '预览',
+243:         ]);
+244:         Route::post('labels/:id', '/setLabels')->name('merchantStoreProductGroupLabels')->option([
+245:             '_alias' => '设置标签',
+246:         ]);
+247:     })->prefix('merchant.store.product.ProductGroup')->option([
+248:         '_path' => '/marketing/combination/combination_goods',
+249:         '_auth' => true,
+250:         '_append'=> [
+251:             [
+252:                 '_name'  =>'merchantUploadImage',
+253:                 '_path'  =>'/marketing/combination/combination_goods',
+254:                 '_alias' => '上传图片',
+255:                 '_auth'  => true,
+256:             ],
+257:             [
+258:                 '_name'  =>'merchantAttachmentLst',
+259:                 '_path'  =>'/marketing/combination/combination_goods',
+260:                 '_alias' => '图片列表',
+261:                 '_auth'  => true,
+262:             ],
+263:         ]
+264:     ]);
+265: 
+266:     Route::get('config/others/group_buying', 'admin.system.config.ConfigOthers/getGroupBuying')
+267:         ->name('merchantConfigGroupBuying')->option([
+268:             '_alias' => '拼团配置',
+269:             '_path' => '/marketing/combination/combination_goods',
+270:             '_auth' => true,
+271:         ]);;
+272: 
+273:     //拼团活动
+274:     Route::group('store/product/group/buying', function () {
+275:         Route::get('lst', '/lst')->name('merchantStoreProductGroupBuyingLst')->option([
+276:             '_alias' => '活动列表 ',
+277:         ]);
+278:         Route::get('detail/:id', '/detail')->name('merchantStoreProductGroupBuyingDetail')->option([
+279:             '_alias' => '活动详情',
+280:         ]);
+281:     })->prefix('merchant.store.product.ProductGroupBuying')->option([
+282:         '_path' => '/marketing/combination/combination_list',
+283:         '_auth' => true,
+284:         '_append'=> [
+285:             [
+286:                 '_name'  =>'merchantUploadImage',
+287:                 '_path'  =>'/marketing/combination/combination_list',
+288:                 '_alias' => '上传图片',
+289:                 '_auth'  => true,
+290:             ],
+291:             [
+292:                 '_name'  =>'merchantAttachmentLst',
+293:                 '_path'  =>'/marketing/combination/combination_list',
+294:                 '_alias' => '图片列表',
+295:                 '_auth'  => true,
+296:             ],
+297:         ]
+298:     ]);
+299: 
+300: 
+301: 
+302:     //直播间
+303:     Route::group('broadcast/room', function () {
+304:         Route::get('lst', '/lst')->name('merchantBroadcastRoomLst')->option([
+305:             '_alias' => '列表 ',
+306:         ]);
+307:         Route::get('detail/:id', '/detail')->name('merchantBroadcastRoomDetail')->option([
+308:             '_alias' => '详情',
+309:         ]);
+310:         Route::get('create/form', '/createForm')->name('merchantBroadcastRoomCreateForm')->option([
+311:             '_alias' => '添加表单',
+312:             '_auth' => false,
+313:             '_form' => 'merchantBroadcastRoomCreate',
+314:         ]);
+315:         Route::post('create', '/create')->name('merchantBroadcastRoomCreate')->option([
+316:             '_alias' => '添加',
+317:         ]);
+318:         Route::get('update/form/:id', '/updateForm')->name('merchantBroadcastRoomUpdateForm')->option([
+319:             '_alias' => '编辑表单',
+320:             '_auth' => false,
+321:             '_form' => 'merchantBroadcastRoomUpdate',
+322:         ]);
+323:         Route::post('update/:id', '/update')->name('merchantBroadcastRoomUpdate')->option([
+324:             '_alias' => '编辑',
+325:         ]);
+326:         Route::post('status/:id', '/changeStatus')->name('merchantBroadcastRoomChangeStatus')->option([
+327:             '_alias' => '修改状态',
+328:         ]);
+329:         Route::post('export_goods', '/exportGoods')->name('merchantBroadcastRoomExportGoods')->option([
+330:             '_alias' => '导入商品',
+331:         ]);
+332:         Route::post('rm_goods', '/rmExportGoods')->name('merchantBroadcastRoomRmExportGoods')->option([
+333:             '_alias' => '删除商品',
+334:         ]);
+335:         Route::post('mark/:id', '/mark')->name('merchantBroadcastRoomMark')->option([
+336:             '_alias' => '备注',
+337:         ]);
+338:         Route::get('goods/:id', '/goodsList')->name('merchantBroadcastRoomGoods')->option([
+339:             '_alias' => '商品详情',
+340:         ]);
+341: 
+342:         Route::post('closeKf/:id', '/closeKf')->name('merchantBroadcastRoomCloseKf')->option([
+343:             '_alias' => '关闭客服',
+344:         ]);
+345:         Route::post('comment/:id', '/banComment')->name('merchantBroadcastRoomCloseComment')->option([
+346:             '_alias' => '禁言',
+347:         ]);
+348:         Route::post('feedsPublic/:id', '/isFeedsPublic')->name('merchantBroadcastRoomCloseFeeds')->option([
+349:             '_alias' => '收录',
+350:         ]);
+351:         Route::post('on_sale/:id', '/onSale')->name('merchantBroadcastOnSale')->option([
+352:             '_alias' => '商品上下架',
+353:         ]);
+354:         Route::delete('delete/:id', '/delete')->name('merchantBroadcastRoomDelete')->option([
+355:             '_alias' => '删除',
+356:         ]);
+357:         Route::get('addassistant/form/:id', '/addAssistantForm')->name('merchantBroadcastAddAssistantForm')->option([
+358:             '_alias' => '添加客服表单',
+359:             '_auth' => false,
+360:             '_form' => 'merchantBroadcastAddAssistant',
+361:         ]);
+362:         Route::post('addassistant/:id', '/addAssistant')->name('merchantBroadcastAddAssistant')->option([
+363:             '_alias' => '添加 客服',
+364:         ]);
+365:         Route::get('push_message/:id', '/pushMessage')->name('merchantBroadcastPushMessage')->option([
+366:             '_alias' => '消息推送',
+367:         ]);
+368: 
+369:     })->prefix('merchant.store.broadcast.BroadcastRoom')->option([
+370:         '_path' => '/marketing/studio/list',
+371:         '_auth' => true,
+372:         '_append'=> [
+373:             [
+374:                 '_name'  =>'merchantUploadImage',
+375:                 '_path'  =>'/marketing/studio/list',
+376:                 '_alias' => '上传图片',
+377:                 '_auth'  => true,
+378:             ],
+379:             [
+380:                 '_name'  =>'merchantAttachmentLst',
+381:                 '_path'  =>'/marketing/studio/list',
+382:                 '_alias' => '图片列表',
+383:                 '_auth'  => true,
+384:             ],
+385:         ]
+386:     ]);
+387: 
+388:     //直播小助手
+389:     Route::group('broadcast/assistant', function () {
+390:         Route::get('lst', '/lst')->name('merchantBroadcastAssistantLst')->option([
+391:             '_alias' => '列表',
+392:         ]);
+393:         Route::get('create/form', '/createForm')->name('merchantBroadcastAssistantCreateForm')->option([
+394:             '_alias' => '添加表单',
+395:             '_auth' => false,
+396:             '_form' => 'merchantBroadcastAssistantCreate',
+397:         ]);
+398:         Route::post('create', '/create')->name('merchantBroadcastAssistantCreate')->option([
+399:             '_alias' => '添加',
+400:         ]);
+401:         Route::get('update/:id/form', '/updateForm')->name('merchantBroadcastAssistantUpdateForm')->option([
+402:             '_alias' => '编辑表单',
+403:             '_auth' => false,
+404:             '_form' => 'merchantBroadcastAssistantUpdate',
+405:         ]);
+406:         Route::post('update/:id', '/update')->name('merchantBroadcastAssistantUpdate')->option([
+407:             '_alias' => '编辑',
+408:         ]);
+409:         Route::post('mark/:id', '/mark')->name('merchantBroadcastAssistantMark')->option([
+410:             '_alias' => '备注',
+411:         ]);
+412:         Route::delete('delete/:id', '/delete')->name('merchantBroadcastAssistantDelete')->option([
+413:             '_alias' => '删除',
+414:         ]);
+415:     })->prefix('merchant.store.broadcast.BroadcastAssistant')->option([
+416:         '_path' => '/marketing/studio/assistant',
+417:         '_auth' => true,
+418:         '_append'=> [
+419:             [
+420:                 '_name'  =>'merchantUploadImage',
+421:                 '_path'  =>'/marketing/studio/assistant',
+422:                 '_alias' => '上传图片',
+423:                 '_auth'  => true,
+424:             ],
+425:             [
+426:                 '_name'  =>'merchantAttachmentLst',
+427:                 '_path'  =>'/marketing/studio/assistant',
+428:                 '_alias' => '图片列表',
+429:                 '_auth'  => true,
+430:             ],
+431:         ]
+432:     ]);
+433: 
+434:     //直播间商品
+435:     Route::group('broadcast/goods', function () {
+436:         Route::get('lst', '/lst')->name('merchantBroadcastGoodsLst')->option([
+437:             '_alias' => '列表',
+438:         ]);
+439:         Route::get('detail/:id', '/detail')->name('merchantBroadcastGoodsDetail')->option([
+440:             '_alias' => '详情',
+441:         ]);
+442:         Route::get('create/form', '/createForm')->name('merchantBroadcastGoodsCreateForm')->option([
+443:             '_alias' => '添加表单',
+444:             '_auth' => false,
+445:             '_form' => 'merchantBroadcastGoodsCreate',
+446:         ]);
+447:         Route::post('create', '/create')->name('merchantBroadcastGoodsCreate')->option([
+448:             '_alias' => '添加',
+449:         ]);
+450:         Route::get('update/form/:id', '/updateForm')->name('merchantBroadcastGoodsUpdateForm')->option([
+451:             '_alias' => '编辑表单',
+452:             '_auth' => false,
+453:             '_form' => 'merchantBroadcastGoodsUpdate',
+454:         ]);
+455:         Route::post('update/:id', '/update')->name('merchantBroadcastGoodsUpdate')->option([
+456:             '_alias' => '编辑',
+457:         ]);
+458:         Route::post('status/:id', '/changeStatus')->name('merchantBroadcastGoodsChangeStatus')->option([
+459:             '_alias' => '修改状态',
+460:         ]);
+461:         Route::post('mark/:id', '/mark')->name('merchantBroadcastGoodsMark')->option([
+462:             '_alias' => '备注',
+463:         ]);
+464:         Route::delete('delete/:id', '/delete')->name('merchantBroadcastGoodsDelete')->option([
+465:             '_alias' => '删除',
+466:         ]);
+467:         Route::post('batch_create', '/batchCreate')->name('merchantBroadcastGoodsbatchCreate')->option([
+468:             '_alias' => '批量添加',
+469:         ]);
+470:     })->prefix('merchant.store.broadcast.BroadcastGoods')->option([
+471:         '_path' => '/marketing/studio/list',
+472:         '_auth' => true,
+473:         '_append'=> [
+474:             [
+475:                 '_name'  =>'merchantUploadImage',
+476:                 '_path'  =>'/marketing/studio/list',
+477:                 '_alias' => '上传图片',
+478:                 '_auth'  => true,
+479:             ],
+480:             [
+481:                 '_name'  =>'merchantAttachmentLst',
+482:                 '_path'  =>'/marketing/studio/list',
+483:                 '_alias' => '图片列表',
+484:                 '_auth'  => true,
+485:             ],
+486:         ]
+487:     ]);
+488: 
+489: 
+490:     Route::group('activity/label',function(){
+491:         Route::get('select','/select');
+492:         Route::get('options','/options');
+493:         Route::post('batch_create','/batchCreate');
+494:     })->prefix('merchant.store.StoreActivityLabel');
+495: 
+496: 
+497:     //积分
+498:     Route::group('integral',function(){
+499:         Route::get('lst','/getList')->name('merchantIntegralList')->option([
+500:             '_alias' => '列表',
+501:         ]);
+502:         Route::get('title','/getTitle')->name('merchantIntegralTitle')->option([
+503:             '_alias' => '统计',
+504:         ]);
+505:     })->prefix('merchant.user.UserIntegral')->option([
+506:         '_path' => '/marketing/integral/log',
+507:         '_auth' => true,
+508:         '_append'=> [
+509:             [
+510:                 '_name'  =>'merchantConfigForm',
+511:                 '_path'  =>'/marketing/integral/log',
+512:                 '_alias' => '配置获取',
+513:                 '_auth'  => true,
+514:             ],
+515:             [
+516:                 '_name'  =>'merchantConfigSave',
+517:                 '_path'  =>'/marketing/integral/log',
+518:                 '_alias' => '配置保存',
+519:                 '_auth'  => true,
+520:             ],
+521: 
+522:         ]
+523:     ]);
+524: })->middleware(AllowOriginMiddleware::class)
+525:     ->middleware(MerchantTokenMiddleware::class, true)
+526:     ->middleware(MerchantAuthMiddleware::class)
+527:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+528:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="notLogin.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: use think\facade\Route;
+13: use app\common\middleware\AllowOriginMiddleware;
+14: 
+15: //不带token认证
+16: Route::group(function () {
+17:     Route::get('test', 'merchant.system.admin.Login/test');
+18: 
+19:     //验证码
+20:     Route::get('captcha', 'merchant.system.admin.Login/getCaptcha');
+21:     //登录
+22:     Route::post('login', 'merchant.system.admin.Login/login');
+23:     Route::post('ajstatus', 'merchant.system.admin.Login/ajCaptchaStatus');
+24: 
+25:     Route::get('login_config', 'admin.Common/loginConfig');
+26: 
+27:     //滑块验证码
+28:     Route::get('ajcaptcha', 'api.Auth/ajcaptcha');
+29:     Route::post('ajcheck', 'api.Auth/ajcheck');
+30: 
+31: })->middleware(AllowOriginMiddleware::class)->option([
+32:     '_auth' => false,
+33: ]);
+</file>
+
+<file path="openapi.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: use app\common\middleware\AllowOriginMiddleware;
+12: use app\common\middleware\LogMiddleware;
+13: use app\common\middleware\MerchantAuthMiddleware;
+14: use app\common\middleware\MerchantTokenMiddleware;
+15: use think\facade\Route;
+16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+17: 
+18: Route::group(function () {
+19:     Route::group('openapi/',function(){
+20:         Route::get('lst','OpenApi/lst')->name('merchantOpenapiLst')->option([
+21:             '_alias' => '列表',
+22:         ]);
+23:         Route::get('create/form','OpenApi/createForm')->name('merchantOpenapiCreateForm')->option([
+24:             '_alias' => '添加Form',
+25:             '_auth' => false,
+26:             '_form' => 'merchantOpenapiCreate',
+27:         ]);
+28:         Route::post('create','OpenApi/create')->name('merchantOpenapiCreate')->option([
+29:             '_alias' => '添加',
+30:         ]);
+31:         Route::get('update/:id/form','OpenApi/updateForm')->name('merchantOpenapiUpdateForm')->option([
+32:             '_alias' => '编辑Form',
+33:             '_auth' => false,
+34:             '_form' => 'merchantOpenapiUpdate',
+35:         ]);
+36:         Route::post('update/:id','OpenApi/update')->name('merchantOpenapiUpdate')->option([
+37:             '_alias' => '编辑',
+38:         ]);
+39:         Route::post('status/:id','OpenApi/switchWithStatus')->name('merchantOpenapiStatus')->option([
+40:             '_alias' => '修改状态',
+41:         ]);
+42:         Route::delete('delete/:id','OpenApi/delete')->name('merchantOpenapiDeleta')->option([
+43:             '_alias' => '删除',
+44:         ]);
+45:         Route::get('get_secret_key/:id','OpenApi/getSecretKey')->name('merchantOpenapiGetSecretKey')->option([
+46:             '_alias' => '查看',
+47:         ]);
+48:         Route::post('set_secret_key/:id','OpenApi/setSecretKey')->name('merchantOpenapiSetSecretKey')->option([
+49:             '_alias' => '重置',
+50:         ]);
+51:     })->prefix('merchant.system.openapi.')->option([
+52:         '_path' => '/systemForm/openAuth/list',
+53:         '_auth' => true,
+54:     ]);
+55: 
+56: })->middleware(AllowOriginMiddleware::class)
+57:     ->middleware(MerchantTokenMiddleware::class, true)
+58:     ->middleware(MerchantAuthMiddleware::class)
+59:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+60:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="order.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: 
+ 12: use app\common\middleware\AllowOriginMiddleware;
+ 13: use app\common\middleware\LogMiddleware;
+ 14: use app\common\middleware\MerchantAuthMiddleware;
+ 15: use app\common\middleware\MerchantTokenMiddleware;
+ 16: use think\facade\Route;
+ 17: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+ 18: 
+ 19: Route::group(function () {
+ 20: 
+ 21:     //电子面单
+ 22:     Route::group('expr',function(){
+ 23: 
+ 24:         Route::get('/temps','/getExportTemp')->name('merchantServeExportTemps')->option([
+ 25:             '_alias' => '预览',
+ 26:         ]);
+ 27:         Route::get('/dump_lst','/dumpLst')->name('merchantServeExportDumpLst')->option([
+ 28:             '_alias' => '默认模板',
+ 29:         ]);
+ 30: 
+ 31:     })->prefix('admin.system.serve.Export')->option([
+ 32:         '_path' => '/order/list',
+ 33:         '_auth' => true,
+ 34:     ]);
+ 35: 
+ 36:     //Order
+ 37:     Route::group('store/order', function () {
+ 38: 
+ 39:         //获取快递信息
+ 40:         Route::get('kuaidi_coms', 'Order/getKuaidiComs')->option(['real_name' => '获取快递信息']);
+ 41:         //获取寄件价格
+ 42:         Route::get('shipment/getPrice/:id', 'Order/getPrice')->name('merchantStoreOrderGetPrice')->option([
+ 43:             '_alias' => '获取商家寄件价格',
+ 44:         ]);
+ 45:         //获取寄件价格
+ 46:         Route::get('shipment/list', 'Order/shipmentList')->name('merchantStoreOrderShipmentList')->option([
+ 47:             '_alias' => '获取商家寄件价格',
+ 48:         ]);
+ 49:         Route::post('shipment/cancel/:id', 'Order/cancelShipment')->name('merchantStoreOrderCancelShipment')
+ 50:             ->option([
+ 51:             '_alias' => '取消商家寄件',
+ 52:         ]);
+ 53:         Route::get('note', 'Order/note')->name('merchantStoreOrderNote')->option([
+ 54:             '_alias' => '配货单',
+ 55:         ]);
+ 56:         Route::get('excel', 'Order/excel')->name('merchantStoreOrderExcel')->option([
+ 57:             '_alias' => '导出',
+ 58:         ]);
+ 59:         Route::get('printer/:id', 'Order/printer')->name('merchantStoreOrderPrinter')->option([
+ 60:             '_alias' => '打印小票',
+ 61:         ]);
+ 62:         Route::get('chart', 'Order/chart')->name('merchantStoreOrderTitle')->option([
+ 63:             '_alias' => '统计',
+ 64:         ]);
+ 65:         Route::get('filtter', 'Order/orderType')->name('merchantStoreOrderFiltter')->option([
+ 66:             '_alias' => '类型',
+ 67:             '_auth' => false,
+ 68:         ]);
+ 69:         Route::get('lst', 'Order/lst')->name('merchantStoreOrderLst')->option([
+ 70:             '_alias' => '列表',
+ 71:         ]);
+ 72:         Route::get('express/:id', 'Order/express')->name('merchantStoreOrderExpress')->option([
+ 73:             '_alias' => '快递查询',
+ 74:         ]);
+ 75:         Route::post('delivery/:id', 'Order/delivery')->name('merchantStoreOrderDelivery')->option([
+ 76:             '_alias' => '发货',
+ 77:         ]);
+ 78:         Route::post('delivery_batch', 'Order/batchDelivery')->name('merchantStoreOrderBatchDelivery')->option([
+ 79:             '_alias' => '批量发货',
+ 80:         ]);
+ 81:         Route::post('repeat_dump/:id', 'Order/repeatDump')->name('merchantStoreOrderRepeatDump')->option([
+ 82:             '_alias' => '电子面单复打',
+ 83:         ]);
+ 84:         Route::get('delivery_export', 'Order/deliveryExport')->name('merchantStoreOrderDeliveryExport')->option([
+ 85:             '_alias' => '导出发货单',
+ 86:         ]);
+ 87:         Route::get('title', 'Order/title')->name('merchantStoreOrderStat')->option([
+ 88:             '_alias' => '头部统计',
+ 89:         ]);
+ 90:         Route::get('update/:id/form', 'Order/updateForm')->name('merchantStoreOrderUpdateForm')->option([
+ 91:             '_alias' => '编辑表单',
+ 92:             '_auth' => false,
+ 93:             '_form' => 'merchantStoreOrderUpdate',
+ 94:         ]);
+ 95:         Route::post('update/:id', 'Order/update')->name('merchantStoreOrderUpdate')->option([
+ 96:             '_alias' => '编辑',
+ 97:         ]);
+ 98:         Route::get('detail/:id', 'Order/detail')->name('merchantStoreOrderDetail')->option([
+ 99:             '_alias' => '详情',
+100:         ]);
+101:         Route::get('log/:id', 'Order/status')->name('merchantStoreOrderLog')->option([
+102:             '_alias' => '操作记录',
+103:         ]);
+104:         Route::get('remark/:id/form', 'Order/remarkForm')->name('merchantStoreOrderRemarkForm')->option([
+105:             '_alias' => '备注表单',
+106:             '_auth' => false,
+107:             '_form' => 'merchantStoreOrderRemark',
+108:         ]);
+109:         Route::post('remark/:id', 'Order/remark')->name('merchantStoreOrderRemark')->option([
+110:             '_alias' => '备注',
+111:         ]);
+112:         Route::get('collectCargo/:id/form', 'Order/collectCargoForm')->name('merchantStoreOrderCollectCargoForm')->option([
+113:             '_alias' => '修改收货信息表单',
+114:             '_auth' => false,
+115:             '_form' => 'merchantStoreOrderCollectCargoForm',
+116:         ]);
+117:         Route::post('collectCargo/:id', 'Order/collectCargo')->name('merchantStoreOrderCollectCargo')->option([
+118:             '_alias' => '修改收货信息',
+119:         ]);
+120:         Route::get('verify/:code', 'Order/verifyDetail')->name('merchantStoreOrderVerifyDetail')->option([
+121:             '_alias' => '核销详情',
+122:         ]);
+123:         Route::post('verify/:id', 'Order/verify')->name('merchantStoreOrderVerify')->option([
+124:             '_alias' => '核销',
+125:         ]);
+126:         Route::post('delete/:id', 'Order/delete')->name('merchantStoreOrderDelete')->option([
+127:             '_alias' => '删除',
+128:         ]);
+129:         Route::get('children/:id', 'Order/childrenList')->name('merchantStoreOrderChildrenList')->option([
+130:              '_alias' => '关联订单',
+131:         ]);
+132:         Route::post('offline/:id', 'Order/offline')->name('merchantStoreOrderOffline')->option([
+133:             '_alias' => '线下支付',
+134:         ]);
+135:         Route::group('reservation', function () {
+136:             Route::post('dispatch/:id', 'Order/reservationDispatch')->name('merchantStoreOrderReservationDispatch')->option([
+137:                 '_alias' => '预约订单派单',
+138:             ]);
+139:             Route::post('updateDispatch/:id', 'Order/reservationUpdateDispatch')->name('merchantStoreOrderReservationUpdateDispatch')->option([
+140:                 '_alias' => '预约订单改派',
+141:             ]);
+142:             Route::post('reschedule/:id', 'Order/reservationReschedule')->name('merchantStoreOrderReservationReschedule')->option([
+143:                 '_alias' => '预约订单改约',
+144:             ]);
+145:             Route::post('reservationTime/:id', 'Order/reservationTime')->name('merchantStoreOrderReservationTime')->option([
+146:                 '_alias' => '单独修改预约时间',
+147:             ]);
+148:             Route::post('verify/:id', 'Order/reservationVerify')->name('merchantStoreOrderReservationVerify')->option([
+149:                 '_alias' => '预约订单核销',
+150:             ]);
+151:         });
+152:         Route::group('delivery', function () {
+153:             Route::post('dispatch/:id', 'Order/deliveryDispatch')->name('merchantStoreOrderDeliveryDispatch')->option([
+154:                 '_alias' => '同城配送派单',
+155:             ]);
+156:             Route::post('updateDispatch/:id', 'Order/deliveryUpdateDispatch')->name('merchantStoreOrderDeliveryUpdateDispatch')->option([
+157:                 '_alias' => '同城配送改派',
+158:             ]);
+159:             Route::post('confirm/:id', 'Order/deliveryConfirm')->name('merchantStoreOrderDeliveryConfirm')->option([
+160:                 '_alias' => '同城配送核销',
+161:             ]);
+162:         });
+163:         Route::post('deliveryOrderSync', 'Order/deliveryOrderSync')->name('merchantStoreOrderDeliverySync')->option([
+164:             '_alias' => '同城配送再次同步',
+165:         ]);
+166:     })->prefix('merchant.store.order.')->option([
+167:         '_path' => '/order/list',
+168:         '_auth' => true,
+169:         '_append'=> [
+170:             [
+171:                 '_name'  =>'merchantStoreExcelLst',
+172:                 '_path'  =>'/order/list',
+173:                 '_alias' => '导出列表',
+174:                 '_auth'  => true,
+175:             ],
+176:             [
+177:                 '_name'  =>'merchantStoreExcelDownload',
+178:                 '_path'  =>'/order/list',
+179:                 '_alias' => '导出下载',
+180:                 '_auth'  => true,
+181:             ],
+182:         ]
+183:     ]);
+184: 
+185:     //Order
+186:     Route::group('store/order', function () {
+187:         Route::get('takechart', 'Order/takeChart')->name('merchantStoreTakeOrderTitle')->option([
+188:             '_alias' => '统计',
+189:             '_auth' => false,
+190:         ]);
+191:         Route::get('take_title', 'Order/takeTitle')->name('merchantStoreOrderTakeTitle')->option([
+192:             '_alias' => '统计',
+193:         ]);
+194:         Route::get('takelst', 'Order/takeLst')->name('merchantStoreTakeOrderLst')->option([
+195:             '_alias' => '列表',
+196:         ]);
+197:     })->prefix('merchant.store.order.')->option([
+198:         '_path' => '/order/cancellation',
+199:         '_auth' => true,
+200:     ]);
+201: 
+202:     Route::get('store/refundorder/refund_message', 'api.Common/refundMessage');
+203:     //退款订单
+204:     Route::group('store/refundorder', function () {
+205:         Route::get('check/:id', '/check');
+206:         Route::post('compute', '/compute');
+207:         Route::post('create', '/create')->name('merchantStoreRefundOrderCreate')->option([
+208:             '_alias' => '创建',
+209:         ]);
+210:         Route::get('lst', '/lst')->name('merchantStoreRefundOrderLst')->option([
+211:             '_alias' => '列表',
+212:         ]);
+213:         Route::get('detail/:id', '/detail')->name('merchantStoreRefundOrderDetail')->option([
+214:             '_alias' => '详情',
+215:         ]);
+216:         Route::get('status/:id/form', '/switchStatusForm')->name('merchantStoreRefundOrderSwitchStatusForm')->option([
+217:             '_alias' => '审核表单',
+218:             '_auth' => false,
+219:             '_form' => 'merchantStoreRefundOrderSwitchStatus',
+220:         ]);
+221:         Route::post('status/:id', '/switchStatus')->name('merchantStoreRefundOrderSwitchStatus')->option([
+222:             '_alias' => '审核',
+223:         ]);
+224:         Route::post('refund/:id', '/refundPrice')->name('merchantStoreRefundOrderRefund')->option([
+225:             '_alias' => '收到退回商品后确认退款',
+226:         ]);
+227:         Route::delete('delete/:id', '/delete')->name('merchantStoreRefundDelete')->option([
+228:             '_alias' => '删除',
+229:         ]);
+230:         Route::get('mark/:id/form', '/markForm')->name('merchantStoreRefundMarkForm')->option([
+231:             '_alias' => '备注表单',
+232:             '_auth' => false,
+233:             '_form' => 'merchantStoreRefundMark',
+234:         ]);
+235:         Route::post('mark/:id', '/mark')->name('merchantStoreRefundMark')->option([
+236:             '_alias' => '备注',
+237:         ]);
+238:         Route::get('log/:id', '/log')->name('merchantStoreRefundLog')->option([
+239:             '_alias' => '操作记录',
+240:         ]);
+241:         Route::get('express/:id', '/express')->name('merchantStoreRefundExpress')->option([
+242:             '_alias' => '快递查询',
+243:         ]);
+244:         Route::get('excel', '/createExcel')->name('merchantStoreRefundCreateExcel')->option([
+245:             '_alias' => '导出',
+246:         ]);
+247:     })->prefix('merchant.store.order.RefundOrder')->option([
+248:         '_path' => '/order/refund',
+249:         '_auth' => true,
+250:         '_append'=> [
+251:             [
+252:                 '_name'  =>'merchantStoreExcelLst',
+253:                 '_path'  =>'/order/refund',
+254:                 '_alias' => '导出列表',
+255:                 '_auth'  => true,
+256:             ],
+257:             [
+258:                 '_name'  =>'merchantStoreExcelDownload',
+259:                 '_path'  =>'/order/refund',
+260:                 '_alias' => '导出下载',
+261:                 '_auth'  => true,
+262:             ],
+263: 
+264:         ]
+265:     ]);
+266: 
+267:     // 导入
+268:     Route::group('store/import', function () {
+269:         Route::post('/:type', 'StoreImport/import')->name('merchantStoreOrderDeliveryImport')->option([
+270:             '_alias' => '导入',
+271:         ]);
+272:         Route::get('lst', 'StoreImport/lst')->name('merchantStoreOrderDeliveryImportLst')->option([
+273:             '_alias' => '导入记录',
+274:         ]);
+275:         Route::get('detail/:id', 'StoreImport/detail')->name('merchantStoreOrderDeliveryImportDetail')->option([
+276:             '_alias' => '详情',
+277:         ]);
+278:         Route::get('excel/:id', 'StoreImport/export')->name('merchantStoreOrderDeliveryImportExcel')->option([
+279:             '_alias' => '导出发货记录',
+280:         ]);
+281:     })->prefix('merchant.store.')->option([
+282:         '_path' => '/order/list',
+283:         '_auth' => true,
+284:         '_append'=> [
+285:             [
+286:                 '_name'  =>'merchantStoreExcelLst',
+287:                 '_path'  =>'/order/list',
+288:                 '_alias' => '导出列表',
+289:                 '_auth'  => true,
+290:             ],
+291:             [
+292:                 '_name'  =>'merchantStoreExcelDownload',
+293:                 '_path'  =>'/order/list',
+294:                 '_alias' => '导出下载',
+295:                 '_auth'  => true,
+296:             ],
+297: 
+298:         ]
+299:     ]);
+300: 
+301:     Route::group('reservation/service', function () {
+302:         Route::get('list', 'ReservationService/list')->name('merchantReservationServiceList')->option([
+303:             '_alias' => '预约日历',
+304:             '_auth' => true,
+305:         ]);;
+306:     })->prefix('merchant.store.order.')->option([
+307:         '_path' => '/order/reservation',
+308:         '_auth' => true
+309:     ]);
+310: 
+311: 
+312: })->middleware(AllowOriginMiddleware::class)
+313:     ->middleware(MerchantTokenMiddleware::class, true)
+314:     ->middleware(MerchantAuthMiddleware::class)
+315:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+316:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="product.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: use app\common\middleware\AllowOriginMiddleware;
+ 12: use app\common\middleware\LogMiddleware;
+ 13: use app\common\middleware\MerchantAuthMiddleware;
+ 14: use app\common\middleware\MerchantTokenMiddleware;
+ 15: use think\facade\Route;
+ 16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+ 17: 
+ 18: Route::group(function () {
+ 19: 
+ 20:     //参数模板
+ 21:     Route::group('store/params', function () {
+ 22:         Route::get('temp/lst', '/lst')->name('merchantStoreParameterTemplateLst')->option([
+ 23:             '_alias' => '列表',
+ 24:         ]);
+ 25:         Route::get('temp/detail/:id', '/detail')->name('merchantStoreParameterTemplateDetail')->option([
+ 26:             '_alias' => '详情',
+ 27:         ]);
+ 28:         Route::delete('temp/delete/:id', '/delete')->name('merchantStoreParameterTemplateDelete')->option([
+ 29:             '_alias' => '删除',
+ 30:         ]);
+ 31:         Route::delete('temp/delete/value/:id', '/deleteValue')->name('merchantStoreParameterTemplateDeleteValue')
+ 32:         ->option([
+ 33:             '_alias' => '删除属性',
+ 34:         ]);
+ 35:         Route::post('temp/create', '/create')->name('merchantStoreParameterTemplateCreate')->option([
+ 36:             '_alias' => '添加',
+ 37:         ]);
+ 38:         Route::post('temp/update/:id', '/update')->name('merchantStoreParameterTemplateUpdate')->option([
+ 39:             '_alias' => '编辑',
+ 40:         ]);
+ 41: 
+ 42:         Route::get('temp/select', '/select')->option([
+ 43:             '_alias' => '筛选列表',
+ 44:             '_auth' => false,
+ 45:         ]);
+ 46:         Route::get('temp/show', '/show')->option([
+ 47:             '_alias' => '参数',
+ 48:             '_auth' => false,
+ 49:         ]);
+ 50:     })->prefix('admin.parameter.ParameterTemplate')->option([
+ 51:         '_path' => '/product/specs',
+ 52:         '_auth' => true,
+ 53:     ]);
+ 54: 
+ 55:     //产品规则模板
+ 56:     Route::group('store/attr/template', function () {
+ 57:         Route::get('lst', '/lst')->name('merchantStoreAttrTemplateLst')->option([
+ 58:             '_alias' => '列表',
+ 59:         ]);
+ 60:         Route::get('list', '/getlist')->option([
+ 61:             '_alias' => '筛选',
+ 62:             '_auth'  => false,
+ 63:         ]);
+ 64:         Route::post('create', '/create')->name('merchantStoreAttrTemplateCreate')->option([
+ 65:             '_alias' => '添加 ',
+ 66:         ]);
+ 67:         Route::delete(':id', '/delete')->name('merchantStoreAttrTemplateDelete')->option([
+ 68:             '_alias' => '删除',
+ 69:         ]);
+ 70:         Route::post(':id', '/update')->name('merchantStoreAttrTemplateUpdate')->option([
+ 71:             '_alias' => '文件类型',
+ 72:         ]);
+ 73:     })->prefix('merchant.store.StoreAttrTemplate')->option([
+ 74:         '_path' => '/product/attr',
+ 75:         '_auth' => true,
+ 76:     ]);
+ 77: 
+ 78:     //商品分类
+ 79:     Route::group('store/category', function () {
+ 80:         Route::get('create/form', '/createForm')->name('merchantStoreCategoryCreateForm')->option([
+ 81:             '_alias' => '添加表单',
+ 82:             '_auth' => false,
+ 83:             '_form' => 'merchantStoreCategoryCreate',
+ 84:         ]);
+ 85:         Route::get('update/form/:id', '/updateForm')->name('merchantStoreCategoryUpdateForm')->option([
+ 86:             '_alias' => '编辑表单',
+ 87:             '_auth' => false,
+ 88:             '_form' => 'merchantStoreCategoryUpdate',
+ 89:         ]);
+ 90:         Route::post('update/:id', '/update')->name('merchantStoreCategoryUpdate')->option([
+ 91:             '_alias' => '编辑',
+ 92:         ]);
+ 93:         Route::get('lst', '/lst')->name('merchantStoreCategoryLst')->option([
+ 94:             '_alias' => '列表',
+ 95:         ]);
+ 96:         Route::get('detail/:id', '/detail')->name('merchantStoreCategoryDtailt')->option([
+ 97:             '_alias' => '详情',
+ 98:         ]);
+ 99:         Route::post('create', '/create')->name('merchantStoreCategoryCreate')->option([
+100:             '_alias' => '添加',
+101:         ]);
+102:         Route::delete('delete/:id', '/delete')->name('merchantStoreCategoryDelete')->option([
+103:             '_alias' => '删除',
+104:         ]);
+105:         Route::post('status/:id', '/switchStatus')->name('merchantStoreCategorySwitchStatus')->option([
+106:             '_alias' => '修改状态',
+107:         ]);
+108:         Route::get('list', '/getList')->option([
+109:             '_alias' => '筛选',
+110:             '_auth'  => false,
+111:         ])->append(['type' => 1]);
+112:         Route::get('select', '/getTreeList')->option([
+113:             '_alias' => '树形',
+114:             '_auth'  => false,
+115:         ]);
+116:         Route::get('brandlist', '/BrandList')->option([
+117:             '_alias' => '品牌列表',
+118:             '_auth'  => false,
+119:         ]);
+120:     })->prefix('admin.store.StoreCategory')->option([
+121:         '_path' => '/product/classify',
+122:         '_auth' => true,
+123:         '_append'=> [
+124:             [
+125:                 '_name'  =>'merchantUploadImage',
+126:                 '_path'  =>'/product/classify',
+127:                 '_alias' => '上传图片',
+128:                 '_auth'  => true,
+129:             ],
+130:             [
+131:                 '_name'  =>'merchantAttachmentLst',
+132:                 '_path'  =>'/product/classify',
+133:                 '_alias' => '图片列表',
+134:                 '_auth'  => true,
+135:             ],
+136:         ]
+137:     ]);
+138: 
+139:     //商品
+140:     Route::group('store/product', function () {
+141:         Route::get('config', '/config')->option([
+142:             '_alias' => '配置',
+143:             '_auth'  => false,
+144:         ]);
+145:         Route::get('get_edit/:id', '/getEdit')->name('merchantStoreProductGetEdit')->option([
+146:             '_alias' => '编辑商品获取信息',
+147:         ]);
+148:         Route::get('lst_filter', '/getStatusFilter')->name('merchantStoreProductLstFilter')->option([
+149:             '_alias' => '头部统计',
+150:         ]);
+151:         Route::get('lst', '/lst')->name('merchantStoreProductLst')->option([
+152:             '_alias' => '列表',
+153:         ]);
+154:         Route::get('list', '/lst')->option([
+155:             '_alias' => '列表',
+156:             '_auth'  => false,
+157:         ]);
+158:         Route::post('create', '/create')->name('merchantStoreProductCreate')->option([
+159:             '_alias' => '添加',
+160:         ]);
+161:         Route::get('detail/:id', '/detail')->name('merchantStoreProductDetail')->option([
+162:             '_alias' => '详情',
+163:         ]);
+164:         Route::get('temp_key', '/temp_key')->name('merchantStoreProductTempKey')->option([
+165:             '_alias' => '上传视频配置',
+166:         ]);
+167:         Route::post('update/:id', '/update')->name('merchantStoreProductUpdate')->option([
+168:             '_alias' => '编辑',
+169:         ]);
+170:         Route::post('free_trial/:id', '/freeTrial')->name('merchantStoreProductFreeTrial')->option([
+171:             '_alias' => '免审编辑',
+172:         ]);
+173:         Route::delete('delete/:id', '/delete')->name('merchantStoreProductDelete')->option([
+174:             '_alias' => '加入回收站',
+175:         ]);
+176:         Route::delete('destory/:id', '/destory')->name('merchantStoreProductDestory')->option([
+177:             '_alias' => '彻底删除',
+178:         ]);
+179:         Route::post('restore/:id', '/restore')->name('merchantStoreProductRestore')->option([
+180:             '_alias' => '恢复',
+181:         ]);
+182:         Route::post('status/:id', '/switchStatus')->name('merchantStoreProductSwitchStatus')->option([
+183:             '_alias' => '上下架',
+184:         ]);
+185:         Route::post('batch_status', '/batchShow')->name('merchantStoreProductSwitchBatchStatus')->option([
+186:             '_alias' => '批量上下架',
+187:         ]);
+188:         Route::post('batch_temp', '/batchTemplate')->name('merchantStoreProductSwitchBatchTemplate')->option([
+189:             '_alias' => '批量设置运费模板',
+190:         ]);
+191:         Route::post('batch_labels', '/batchLabels')->name('merchantStoreProductSwitchBatchLabels')->option([
+192:             '_alias' => '批量设置标签',
+193:         ]);
+194:         Route::post('batch_hot', '/batchHot')->name('merchantStoreProductSwitchBatchHot')->option([
+195:             '_alias' => '批量设置推荐',
+196:         ]);
+197:         Route::post('batch_ext', '/batchExtension')->name('merchantStoreProductSwitchBatchExtension')->option([
+198:             '_alias' => '批量设置推荐',
+199:         ]);
+200:         Route::post('batch_svip', '/batchSvipType')->name('merchantStoreProductSwitchBatchSvipType')->option([
+201:             '_alias' => '批量设置会员价',
+202:         ]);
+203:         Route::post('sort/:id', '/updateSort')->name('merchantStoreProductUpdateSort')->option([
+204:             '_alias' => '排序',
+205:         ]);
+206:         Route::post('preview', '/preview')->name('merchantStoreProductPreview')->option([
+207:             '_alias' => '预览',
+208:         ]);
+209:         Route::post('labels/:id', '/setLabels')->name('merchantStoreProductLabels')->option([
+210:             '_alias' => '标签',
+211:         ]);
+212:         Route::get('attr_value/:id', '/getAttrValue')->name('merchantStoreProductAttrValue')->option([
+213:             '_alias' => '获取规格',
+214:         ]);
+215:         Route::post('get_attr_value/:id', '/isFormatAttr')->name('merchantStoreProductFormatAttr')->option([
+216:             '_alias' => '获取规格',
+217:         ]);
+218:         Route::get('get_batch_list', '/getBatchList')->name('merchantStoreProductGetBatchList')->option([
+219:             '_alias' => '获取批量修改列表',
+220:         ]);
+221:         Route::post('batch_process', '/batchProcess')->name('merchantStoreProductSwitchBatchProcess')->option([
+222:             '_alias' => '批量修改商品属性',
+223:         ]);
+224:         Route::get('get_operate_list/:product_id', '/getOperateList')->name('merchantStoreProductGetOperateList')->option([
+225:             '_alias' => '操作记录',
+226:         ]);
+227:         Route::post('unbind', '/unbind')->name('merchantStoreProductUnbind')->option([
+228:             '_alias' => '操作记录',
+229:         ]);
+230:     })->prefix('merchant.store.product.Product')->option([
+231:         '_path' => '/product/list',
+232:         '_auth' => true,
+233:         '_append'=> [
+234:             [
+235:                 '_name'  =>'merchantUploadImage',
+236:                 '_path'  =>'/product/list',
+237:                 '_alias' => '上传图片',
+238:                 '_auth'  => true,
+239:             ],
+240:             [
+241:                 '_name'  =>'merchantAttachmentLst',
+242:                 '_path'  =>'/product/list',
+243:                 '_alias' => '图片列表',
+244:                 '_auth'  => true,
+245:             ],
+246: 
+247:         ]
+248:     ]);
+249: 
+250: 
+251:     //复制商品
+252:     Route::group('store/productcopy', function () {
+253:         Route::get('lst', '/lst')->name('merchantStoreProductCopyLst')->option([
+254:             '_alias' => '列表',
+255:         ]);
+256:         Route::get('get', '/get')->name('merchantStoreProductCopyGet')->option([
+257:             '_alias' => '获取信息',
+258:         ]);
+259:         Route::get('count', '/count')->name('merchantStoreProductCopyCount')->option([
+260:             '_alias' => '统计',
+261:         ]);
+262:         Route::post('save', '/save')->name('merchantStoreProductCopySave')->option([
+263:             '_alias' => '保存',
+264:         ]);
+265:     })->prefix('merchant.store.product.ProductCopy')->option([
+266:         '_path' => '/product/list',
+267:         '_auth' => true,
+268:     ]);
+269: 
+270: 
+271:     //商品评价管理
+272:     Route::group('store/reply', function () {
+273:         Route::get('lst', '/lst')->name('merchantProductReplyLst')->option([
+274:             '_alias' => '列表',
+275:         ]);
+276:         Route::get('form/:id', '/replyForm')->name('merchantProductReplyForm')->option([
+277:             '_alias' => '回复表单',
+278:         ]);
+279:         Route::post('reply/:id', '/reply')->name('merchantProductReplyReply')->option([
+280:             '_alias' => '回复',
+281:         ]);
+282:     })->prefix('admin.store.StoreProductReply')->option([
+283:         '_path' => '/product/reviews',
+284:         '_auth' => true,
+285:         '_append'=> [
+286:             [
+287:                 '_name'  =>'merchantUploadImage',
+288:                 '_path'  =>'/product/reviews',
+289:                 '_alias' => '上传图片',
+290:                 '_auth'  => true,
+291:             ],
+292:             [
+293:                 '_name'  =>'merchantAttachmentLst',
+294:                 '_path'  =>'/product/reviews',
+295:                 '_alias' => '图片列表',
+296:                 '_auth'  => true,
+297:             ],
+298:         ]
+299:     ]);
+300: 
+301:     Route::group('store/reply', function () {
+302:         Route::post('sort/:id', '/changeSort')->name('merchantProductReplySort')->option([
+303:             '_alias' => '排序',
+304:         ]);
+305:     })->prefix('merchant.store.StoreProductReply')->option([
+306:         '_path' => '/product/reviews',
+307:         '_auth' => true,
+308:     ]);;
+309: 
+310: 
+311:     //商品标签
+312:     Route::group('product/label', function () {
+313:         Route::get('lst', '/lst')->name('merchantStoreProductLabelLst')->option([
+314:             '_alias' => '列表',
+315:         ]);
+316:         Route::get('create/form', '/createForm')->name('merchantStoreProductLabelCreateForm')->option([
+317:             '_alias' => '添加表单',
+318:             '_auth' => false,
+319:             '_form' => 'merchantStoreProductLabelCreate',
+320:         ]);
+321:         Route::post('create', '/create')->name('merchantStoreProductLabelCreate')->option([
+322:             '_alias' => '添加',
+323:         ]);
+324:         Route::get('update/:id/form', '/updateForm')->name('merchantStoreProductLabelUpdateForm')->option([
+325:             '_alias' => '编辑表单',
+326:             '_auth' => false,
+327:             '_form' => 'merchantStoreProductLabelUpdate',
+328:         ]);
+329:         Route::post('update/:id', '/update')->name('merchantStoreProductLabelUpdate')->option([
+330:             '_alias' => '编辑',
+331:         ]);
+332:         Route::get('detail/:id', '/detail')->name('merchantStoreProductLabelDetail')->option([
+333:             '_alias' => '详情',
+334:         ]);
+335:         Route::delete('delete/:id', '/delete')->name('merchantStoreProductLabelDelete')->option([
+336:             '_alias' => '删除',
+337:         ]);
+338:         Route::post('status/:id', '/switchWithStatus')->name('merchantStoreProductLabelStatus')->option([
+339:             '_alias' => '修改状态',
+340:         ]);
+341:         Route::get('option', '/getOptions')->option([
+342:             '_alias' => '筛选',
+343:             '_auth' => false,
+344:         ]);
+345: 
+346:     })->prefix('merchant.store.product.ProductLabel')->option([
+347:         '_path' => '/product/label',
+348:         '_auth' => true,
+349:     ]);
+350: 
+351: 
+352:     Route::group('discounts/', function () {
+353:         Route::post('create','/create')->name('merchantStoreDiscountsCreate')->option([
+354:             '_alias' => '添加',
+355:         ]);
+356:         Route::post('update/:id','/update')->name('merchantStoreDiscountsUpdate')->option([
+357:             '_alias' => '编辑',
+358:         ]);
+359:         Route::get('lst','/lst')->name('merchantStoreDiscountsLst')->option([
+360:             '_alias' => '列表',
+361:         ]);
+362:         Route::get('detail/:id','/detail')->name('merchantStoreDiscountsDetail')->option([
+363:             '_alias' => '详情',
+364:         ]);
+365:         Route::delete('delete/:id','/delete')->name('merchantStoreDiscountsDelete')->option([
+366:             '_alias' => '删除',
+367:         ]);
+368:         Route::post('status/:id','/switchStatus')->name('merchantStoreDiscountsStatus')->option([
+369:             '_alias' => '修改状态',
+370:         ]);
+371:     })->prefix('merchant.store.product.Discounts')->option([
+372:         '_path' => '/marketing/discounts/list',
+373:         '_auth' => true,
+374:         '_append'=> [
+375:             [
+376:                 '_name'  =>'merchantUploadImage',
+377:                 '_path'  =>'/marketing/discounts/list',
+378:                 '_alias' => '上传图片',
+379:                 '_auth'  => true,
+380:             ],
+381:             [
+382:                 '_name'  =>'merchantAttachmentLst',
+383:                 '_path'  =>'/marketing/discounts/list',
+384:                 '_alias' => '图片列表',
+385:                 '_auth'  => true,
+386:             ],
+387:         ]
+388:     ]);
+389: 
+390:     //保障服务
+391:     Route::group('guarantee',function(){
+392:         Route::get('list','/list')->option([
+393:             '_alias' => '列表',
+394:             '_auth' => false,
+395:         ]);
+396:         Route::get('select','/select')->option([
+397:             '_alias' => '筛选',
+398:             '_auth' => false,
+399:         ]);
+400:         Route::get('lst','/lst')->name('merchantGuaranteeLst')->option([
+401:             '_alias' => '列表',
+402:         ]);
+403:         Route::post('create','/create')->name('smerchantGuaranteeCreate')->option([
+404:             '_alias' => '添加',
+405:         ]);
+406:         Route::post('update/:id','/update')->name('merchantGuaranteeUpdate')->option([
+407:             '_alias' => '编辑',
+408:         ]);
+409:         Route::get('detail/:id','/detail')->name('merchantGuaranteeDetail')->option([
+410:             '_alias' => '详情',
+411:         ]);
+412:         Route::delete('delete/:id','/delete')->name('merchantGuaranteeDelete')->option([
+413:             '_alias' => '删除',
+414:         ]);
+415:         Route::post('sort/:id','/sort')->name('merchantGuaranteeSort')->option([
+416:             '_alias' => '排序',
+417:         ]);
+418:         Route::post('status/:id','/switchStatus')->name('merchantGuaranteeStatus')->option([
+419:             '_alias' => '修改状态',
+420:         ]);
+421:     })->prefix('merchant.store.guarantee.GuaranteeTemplate')->option([
+422:         '_path' => '/config/guarantee',
+423:         '_auth' => true,
+424:     ]);
+425: 
+426: 
+427:     //商品单位
+428:     Route::group('product/unit', function () {
+429:         Route::get('list', '/list')->name('merchantStoreProductUnitLst')->option([
+430:             '_alias' => '商品单位列表',
+431:         ]);
+432:         Route::get('create/form', '/createForm')->name('merchantStoreProductUnitCreateForm')->option([
+433:             '_alias' => '商品单位添加表单',
+434:             '_auth' => false,
+435:             '_form' => 'merchantStoreProductUnitCreate',
+436:         ]);
+437:         Route::post('create', '/create')->name('merchantStoreProductUnitCreate')->option([
+438:             '_alias' => '商品单位添加',
+439:         ]);
+440:         Route::get('update/:id/form', '/updateForm')->name('merchantStoreProductUnitUpdateForm')->option([
+441:             '_alias' => '商品单位编辑表单',
+442:             '_auth' => false,
+443:             '_form' => 'merchantStoreProductUnitUpdate',
+444:         ]);
+445:         Route::post('update/:id', '/update')->name('merchantStoreProductUnitUpdate')->option([
+446:             '_alias' => '商品单位编辑',
+447:         ]);
+448:         Route::delete('delete/:id', '/delete')->name('merchantStoreProductUnitDelete')->option([
+449:             '_alias' => '商品单位删除',
+450:         ]);
+451:         Route::get('option', '/getSelectList')->option([
+452:             '_alias' => '筛选',
+453:             '_auth' => false,
+454:         ]);
+455: 
+456:     })->prefix('merchant.store.product.ProductUnit')->option([
+457:         '_path' => '/product/unit',
+458:         '_auth' => true,
+459:     ]);
+460: 
+461:     Route::group('product/cdkey', function () {
+462:         Route::get('library/lst', 'CdkeyLibrary/lst')->name('merchantStoreProductCdkeyLibraryLst')->option([
+463:             '_alias' => '列表',
+464:             '_auth' => true,
+465:         ]);
+466:         Route::get('library/detail/:id', 'CdkeyLibrary/detail')->name('merchantStoreProductCdkeyLibraryDetail')
+467:             ->option([
+468:             '_alias' => '列表',
+469:             '_auth' => true,
+470:         ]);
+471:         Route::get('library/create/form', 'CdkeyLibrary/createForm')->name('merchantStoreProductCdkeyLibraryCreateForm')
+472:             ->option([
+473:             '_alias' => '添加表单',
+474:             '_auth' => false,
+475:             '_form' => 'merchantStoreProductCdkeyLibraryCreate',
+476:         ]);
+477:         Route::post('library/create', 'CdkeyLibrary/create')->name('merchantStoreProductCdkeyLibraryCreate')->option([
+478:             '_alias' => '添加',
+479:             '_auth' => true,
+480:         ]);
+481:         Route::get('library/update/:id/form', 'CdkeyLibrary/updateForm')->name('merchantStoreProductCdkeyLibraryUpdateForm')->option([
+482:             '_alias' => '编辑表单',
+483:             '_auth' => true,
+484:             '_form' => 'merchantStoreProductCdkeyLibraryUpdate',
+485:         ]);
+486:         Route::post('library/update/:id', 'CdkeyLibrary/update')->name('merchantStoreProductCdkeyLibraryUpdate')->option([
+487:             '_alias' => '编辑',
+488:             '_auth' => true,
+489:         ]);
+490:         Route::delete('library/delete/:id', 'CdkeyLibrary/delete')->name('merchantStoreProductCdkeyLibraryDelete')
+491:             ->option([
+492:                 '_alias' => '删除',
+493:                 '_auth' => true,
+494:             ]);
+495: 
+496:         Route::get('library/excel', 'CdkeyLibrary/excel')->name('merchantStoreProductCdkeyLibraryExcel')
+497:             ->option([
+498:                 '_alias' => '导出',
+499:                 '_auth' => true,
+500:             ]);
+501:         Route::get('library/options', 'CdkeyLibrary/options');
+502:     })->prefix('merchant.store.product.')->option([
+503:         '_path' => '/product/cdkey',
+504:         '_auth' => true,
+505:     ]);
+506: 
+507:     // 批量导入
+508:     Route::post('product/cdkey/library/import/:type', 'merchant.store.StoreImport/import')->name('merchantStoreProductCdkeyLibraryImport')
+509:         ->option([
+510:             '_alias' => '批量导入',
+511:             '_path' => '/product/cdkey',
+512:             '_auth' => true,
+513:         ]);
+514: 
+515: 
+516:     // 卡密信息
+517:     Route::group('product/cdkey', function () {
+518:         Route::get('lst', 'ProductCdkey/lst')->name('merchantStoreProductCdkeyLst')->option([
+519:             '_alias' => '卡密列表',
+520:             '_auth' => true,
+521:         ]);
+522:         Route::post('create', 'ProductCdkey/create')->name('merchantStoreProductCdkeyCreate')->option([
+523:             '_alias' => '添加卡密',
+524:             '_auth' => true,
+525:         ]);
+526:         Route::post('update/:id', 'ProductCdkey/update')->name('merchantStoreProductCdkeyUpdate')->option([
+527:             '_alias' => '编辑卡密',
+528:             '_auth' => true,
+529:         ]);
+530:         Route::delete('delete/:id', 'ProductCdkey/delete')->name('merchantStoreProductCdkeyDelete')->option([
+531:             '_alias' => '删除卡密',
+532:             '_auth' => true,
+533:         ]);
+534:         Route::delete('batch_delete', 'ProductCdkey/batchDelete')->name('merchantStoreProductCdkeyLibraryBatchDelete')
+535:             ->option([
+536:                 '_alias' => '批量删除',
+537:                 '_auth' => true,
+538:             ]);
+539:     })->prefix('merchant.store.product.')->option([
+540:         '_path' => '/product/cdkey',
+541:         '_auth' => true,
+542:     ]);
+543: 
+544:     //预约商品
+545:     Route::group('store/reservation/product', function () {
+546:         Route::post('create', '/create')->name('merchantStoreReservationProductCreate')->option([
+547:             '_alias' => '添加预约商品',
+548:             '_auth' => true,
+549:         ]);
+550:         Route::get('edit/:id', '/editInfo')->name('merchantStoreReservationProductEditInfo')->option([
+551:             '_alias' => '获取预约商品',
+552:             '_auth' => true,
+553:         ]);
+554:         Route::post('edit/:id', '/edit')->name('merchantStoreReservationProductEdit')->option([
+555:             '_alias' => '编辑预约商品',
+556:             '_auth' => true,
+557:         ]);
+558:         Route::get('detail/:id', '/detail')->name('merchantStoreReservationProductDetail')->option([
+559:             '_alias' => '预约商品详情',
+560:             '_auth' => true,
+561:         ]);
+562:         Route::post('setStock/:id', '/batchSetReservationProductStock')->name('merchantStoreReservationProductEditStock')->option([
+563:             '_alias' => '批量修改预约商品库存',
+564:             '_auth' => true,
+565:         ]);
+566:         Route::get('showMonth/:id', '/showMonth')->name('merchantStoreReservationProductShowMonth')->option([
+567:             '_alias' => '商品日历month',
+568:             '_auth' => false,
+569:         ]);
+570:         Route::get('showDay/:id', '/showDay')->name('merchantStoreReservationProductShowDay')->option([
+571:             '_alias' => '商品日历day',
+572:             '_auth' => false,
+573:         ]);
+574:     })->prefix('merchant.store.product.ReservationProduct')->option([
+575:         '_path' => '/product/list',
+576:         '_auth' => true,
+577:         '_append'=> [
+578:             [
+579:                 '_name'  =>'merchantUploadImage',
+580:                 '_path'  =>'/product/list',
+581:                 '_alias' => '上传图片',
+582:                 '_auth'  => true,
+583:             ],
+584:             [
+585:                 '_name'  =>'merchantAttachmentLst',
+586:                 '_path'  =>'/product/list',
+587:                 '_alias' => '图片列表',
+588:                 '_auth'  => true,
+589:             ],
+590: 
+591:         ]
+592:     ]);
+593: 
+594: })->middleware(AllowOriginMiddleware::class)
+595:     ->middleware(MerchantTokenMiddleware::class, true)
+596:     ->middleware(MerchantAuthMiddleware::class)
+597:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+598:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="role.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: use app\common\middleware\AllowOriginMiddleware;
+ 12: use app\common\middleware\LogMiddleware;
+ 13: use app\common\middleware\MerchantAuthMiddleware;
+ 14: use app\common\middleware\MerchantTokenMiddleware;
+ 15: use think\facade\Route;
+ 16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+ 17: 
+ 18: Route::group(function () {
+ 19:     //身份规则
+ 20:     Route::group('system/role', function () {
+ 21:         Route::get('lst', '/getList')->name('merchantRoleGetList')->option([
+ 22:             '_alias' => '列表',
+ 23:             '_auth'  => false,
+ 24:         ]);
+ 25:         Route::post('create', '/create')->name('merchantRoleCreate')->option([
+ 26:             '_alias' => '添加',
+ 27:             '_auth'  => false,
+ 28:         ]);
+ 29:         Route::get('create/form', '/createForm')->name('merchantRoleCreateForm')->option([
+ 30:             '_alias' => '添加表单',
+ 31:             '_auth' => false,
+ 32:             '_form' => 'merchantRoleCreate',
+ 33:         ]);
+ 34:         Route::post('update/:id', '/update')->name('merchantRoleUpdate')->option([
+ 35:             '_alias' => '编辑',
+ 36:             '_auth'  => false,
+ 37:         ]);
+ 38:         Route::get('update/form/:id', '/updateForm')->name('merchantRoleUpdateForm')->option([
+ 39:             '_alias' => '编辑表单',
+ 40:             '_auth' => false,
+ 41:             '_form' => 'merchantRoleUpdate',
+ 42:         ]);
+ 43:         Route::post('status/:id', '/switchStatus')->name('merchantRoleStatus')->option([
+ 44:             '_alias' => '修改状态',
+ 45:             '_auth'  => false,
+ 46:         ]);
+ 47:         Route::delete('delete/:id', '/delete')->name('merchantRoleDelete')->option([
+ 48:             '_alias' => '删除',
+ 49:             '_auth'  => false,
+ 50:         ]);
+ 51:     })->prefix('merchant.system.auth.Role')->option([
+ 52:         '_path' => '/setting/systemRole',
+ 53:         '_auth' => true,
+ 54:     ]);
+ 55: 
+ 56:     //Admin管理
+ 57:     Route::group('system/admin', function () {
+ 58:         Route::get('lst', '/getList')->name('merchantAdminLst')->option([
+ 59:             '_alias' => '列表',
+ 60:             ]);
+ 61:         Route::post('status/:id', '/switchStatus')->name('merchantAdminStatus')->option([
+ 62:             '_alias' => '修改状态',
+ 63:             ]);
+ 64:         Route::post('create', '/create')->name('merchantAdminCreate')->option([
+ 65:             '_alias' => '添加',
+ 66:             ]);
+ 67:         Route::get('create/form', '/createForm')->name('merchantAdminCreateForm')->option([
+ 68:             '_alias' => '添加表单',
+ 69:             '_auth' => false,
+ 70:             '_form' => 'merchantAdminCreate',
+ 71:         ]);
+ 72:         Route::post('update/:id', '/update')->name('merchantAdminUpdate')->option([
+ 73:             '_alias' => '编辑',
+ 74:         ]);
+ 75:         Route::get('update/form/:id', '/updateForm')->name('merchantAdminUpdateForm')->option([
+ 76:             '_alias' => '编辑表单',
+ 77:             '_auth' => false,
+ 78:             '_form' => 'merchantAdminUpdate',
+ 79:         ]);
+ 80:         Route::post('password/:id', '/password')->name('merchantAdminPassword')->option([
+ 81:             '_alias' => '修改密码',
+ 82:             ]);
+ 83:         Route::get('password/form/:id', '/passwordForm')->name('merchantAdminPasswordForm')->option([
+ 84:             '_alias' => '修改密码表单',
+ 85:             '_auth' => false,
+ 86:             '_form' => 'merchantAdminPassword',
+ 87:         ]);
+ 88:         Route::delete('delete/:id', '/delete')->name('merchantAdminDelete')->option([
+ 89:             '_alias' => '删除',
+ 90:             ]);
+ 91:     })->prefix('merchant.system.admin.MerchantAdmin')->option([
+ 92:         '_path' => '/setting/systemAdmin',
+ 93:         '_auth' => true,
+ 94:     ]);
+ 95: 
+ 96:     Route::get('system/admin/log', 'admin.system.admin.AdminLog/lst')->name('merchantAdminLog')->option([
+ 97:         '_alias' => '操作日志',
+ 98:         '_path' => '/setting/systemLog',
+ 99: 
+100:     ]);
+101: 
+102:     Route::group('system/admin', function () {
+103:         Route::get('edit/form', '/editForm')->name('merchantAdminEditForm')->option([
+104:             '_alias' => '修改信息表单',
+105:             '_auth' => false,
+106:             '_form' => 'merchantAdminEdit',
+107:         ]);
+108:         Route::post('edit', '/edit')->name('merchantAdminEdit')->option([
+109:             '_alias' => '修改信息',
+110:         ]);
+111:         Route::get('edit/password/form', '/editPasswordForm')->name('merchantAdminEditPasswordForm')->option([
+112:             '_alias' => '修改密码表单',
+113:             '_auth' => false,
+114:             '_form' => 'merchantAdminEditPassword',
+115:         ]);
+116:         Route::post('edit/password', '/editPassword')->name('merchantAdminEditPassword')->option([
+117:             '_alias' => '修改密码',
+118:         ]);
+119:     })->prefix('merchant.system.admin.MerchantAdmin')->option([
+120:         '_path' => 'self',
+121:         '_auth' => true,
+122:     ]);
+123: 
+124: 
+125: })->middleware(AllowOriginMiddleware::class)
+126:     ->middleware(MerchantTokenMiddleware::class, true)
+127:     ->middleware(MerchantAuthMiddleware::class)
+128:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+129:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="service.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: use app\common\middleware\AllowOriginMiddleware;
+12: use app\common\middleware\LogMiddleware;
+13: use app\common\middleware\MerchantAuthMiddleware;
+14: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+15: use app\common\middleware\MerchantTokenMiddleware;
+16: use think\facade\Route;
+17: 
+18: Route::group(function () {
+19: 
+20:     //客服
+21:     Route::group('service', function () {
+22:         Route::get('list', 'StoreService/lst')->name('merchantServiceLst')->option([
+23:             '_alias' => '列表',
+24:         ]);
+25:         Route::post('login/:id', 'StoreService/login')->name('merchantServiceLogin')->option([
+26:             '_alias' => '登录',
+27:             ]);
+28:         Route::post('create', 'StoreService/create')->name('merchantServiceCreate')->option([
+29:             '_alias' => '添加',
+30:         ]);
+31:         Route::get('create/form', 'StoreService/createForm')->name('merchantServiceCreateForm')->option([
+32:             '_alias' => '添加表单',
+33:             '_auth' => false,
+34:             '_form' => 'merchantServiceCreate',
+35:         ]);
+36:         Route::post('update/:id', 'StoreService/update')->name('merchantServiceUpdate')->option([
+37:             '_alias' => '编辑',
+38:         ]);
+39:         Route::get('update/form/:id', 'StoreService/updateForm')->name('merchantServiceUpdateForm')->option([
+40:             '_alias' => '编辑表单',
+41:             '_auth' => false,
+42:             '_form' => 'merchantServiceUpdate',
+43:         ]);
+44:         Route::post('status/:id', 'StoreService/changeStatus')->name('merchantServiceSwitchStatus')->option([
+45:             '_alias' => '修改状态',
+46:         ]);
+47:         Route::delete('delete/:id', 'StoreService/delete')->name('merchantServiceDelete')->option([
+48:             '_alias' => '删除',
+49:         ]);
+50:         Route::get('/:id/user', 'StoreService/serviceUserList')->name('merchantServiceServiceUserList')->option([
+51:             '_alias' => '客服的全部用户 ',
+52:             ]);
+53:         Route::get('/:id/:uid/lst', 'StoreService/getUserMsnByService')->name('merchantServiceServiceUserLogLst')->option([
+54:             '_alias' => '用户与客服聊天记录',
+55:             ]);
+56:         Route::get('mer/:id/user', 'StoreService/merchantUserList')->name('merchantServiceServiceMerchantUserList')->option([
+57:             '_alias' => '客服的聊天用户列表',
+58:             ]);
+59:         Route::get('/:id/lst', 'StoreService/getUserMsnByMerchant')->name('merchantServiceMerchantUserLogLst')->option([
+60:             '_alias' => '用户与商户聊天记录',
+61:             ]);
+62:     })->prefix('merchant.store.service.')->option([
+63:         '_path' => '/config/service',
+64:         '_auth' => true,
+65:     ]);
+66:     //客服自动回复
+67:     Route::group('service/reply', function () {
+68:         Route::get('list', 'StoreServiceReply/lst')->name('merchantServiceReplyLst')->option([
+69:             '_alias' => '列表',
+70:         ]);
+71:         Route::post('create', 'StoreServiceReply/create')->name('merchantServiceReplyCreate')->option([
+72:             '_alias' => '添加',
+73:         ]);
+74:         Route::post('update/:id', 'StoreServiceReply/update')->name('merchantServiceReplyUpdate')->option([
+75:             '_alias' => '编辑',
+76:         ]);
+77:         Route::post('status/:id', 'StoreServiceReply/changeStatus')->name('merchantServiceReplyStatus')->option([
+78:             '_alias' => '切换状态',
+79:         ]);
+80:         Route::delete('delete/:id', 'StoreServiceReply/delete')->name('merchantServiceReplyDelete')->option([
+81:             '_alias' => '删除',
+82:         ]);
+83:     })->prefix('merchant.store.service.')->option([
+84:         '_path' => '/systemForm/customer_keyword',
+85:         '_auth' => true,
+86:     ]);
+87: 
+88: 
+89: })->middleware(AllowOriginMiddleware::class)
+90:     ->middleware(MerchantTokenMiddleware::class, true)
+91:     ->middleware(MerchantAuthMiddleware::class)
+92:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+93:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="staffs.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: use app\common\middleware\AllowOriginMiddleware;
+12: use app\common\middleware\LogMiddleware;
+13: use app\common\middleware\MerchantAuthMiddleware;
+14: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+15: use app\common\middleware\MerchantTokenMiddleware;
+16: use think\facade\Route;
+17: 
+18: Route::group(function () {
+19: 
+20:     //客服
+21:     Route::group('staffs', function () {
+22:         Route::get('list', 'Staffs/lst')->name('merchantStaffsLst')->option([
+23:             '_alias' => '列表',
+24:         ]);
+25:         Route::post('create', 'Staffs/create')->name('merchantStaffsCreate')->option([
+26:             '_alias' => '添加',
+27:         ]);
+28:         Route::get('create/form', 'Staffs/createForm')->name('merchantStaffsCreateForm')->option([
+29:             '_alias' => '添加表单',
+30:             '_auth' => false,
+31:             '_form' => 'merchantStaffsCreate',
+32:         ]);
+33:         Route::post('update/:id', 'Staffs/update')->name('merchantStaffsUpdate')->option([
+34:             '_alias' => '编辑',
+35:         ]);
+36:         Route::get('update/form/:id', 'Staffs/updateForm')->name('merchantStaffsUpdateForm')->option([
+37:             '_alias' => '编辑表单',
+38:             '_auth' => false,
+39:             '_form' => 'merchantStaffsUpdate',
+40:         ]);
+41:         Route::post('status/:id', 'Staffs/changeStatus')->name('merchantStaffsSwitchStatus')->option([
+42:             '_alias' => '修改状态',
+43:         ]);
+44:         Route::delete('delete/:id', 'Staffs/delete')->name('merchantStaffsDelete')->option([
+45:             '_alias' => '删除',
+46:         ]);
+47:         Route::get('statisticsList', 'Staffs/statisticsList')->name('merchantStaffsStatisticsList')->option([
+48:             '_alias' => '列表',
+49:         ]);
+50:         Route::get('statisticsDetail/:id', 'Staffs/statisticsDetail')->name('merchantStaffsStatisticsDetail')->option([
+51:             '_alias' => '详情',
+52:         ]);
+53:     })->prefix('merchant.store.')->option([
+54:         '_path' => '/config/service_staff',
+55:         '_auth' => true,
+56:     ]);
+57: })->middleware(AllowOriginMiddleware::class)
+58:     ->middleware(MerchantTokenMiddleware::class, true)
+59:     ->middleware(MerchantAuthMiddleware::class)
+60:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+61:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="system.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: use app\common\middleware\AllowOriginMiddleware;
+ 12: use app\common\middleware\LogMiddleware;
+ 13: use app\common\middleware\MerchantAuthMiddleware;
+ 14: use app\common\middleware\MerchantTokenMiddleware;
+ 15: use think\facade\Route;
+ 16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+ 17: 
+ 18: Route::group(function () {
+ 19: 
+ 20:     Route::get('excel/download/:type', 'merchant.store.Excel/downloadExpress');
+ 21:     //打印机
+ 22:     Route::group('store/printer', function () {
+ 23:         //lst
+ 24:         Route::get('lst','/lst')->name('merchantStorePrinterLst')->option([
+ 25:                 '_alias' => '列表',
+ 26:             ]);
+ 27:         //添加
+ 28:         Route::get('create/form','/createForm')
+ 29:             ->name('merchantStorePrinterCreateForm')->option([
+ 30:                 '_alias' => '添加表单',
+ 31:                 '_auth' => false,
+ 32:                 '_form' => 'merchantStorePrinterCreate',
+ 33:             ]);
+ 34:         Route::post('create','/create')
+ 35:             ->name('merchantStorePrinterCreate')->option([
+ 36:                 '_alias' => '添加',
+ 37:             ]);
+ 38:         //编辑
+ 39:         Route::get('update/:id/form','/updateForm')
+ 40:             ->name('merchantStorePrinterCreate')->option([
+ 41:                 '_alias' => '编辑表单',
+ 42:                 '_auth' => false,
+ 43:                 '_form' => 'merchantStorePrinterUpdate',
+ 44:             ]);
+ 45:         Route::post('update/:id','/update')
+ 46:             ->name('merchantStorePrinterUpdate')->option([
+ 47:                 '_alias' => '编辑',
+ 48:             ]);
+ 49: 
+ 50:         //取消
+ 51:         Route::post('status/:id','/switchWithStatus')
+ 52:             ->name('merchantStorePrinterStatus')->option([
+ 53:                 '_alias' => '取消',
+ 54:             ]);
+ 55: 
+ 56:         Route::delete('delete/:id','/delete')
+ 57:             ->name('merchantStorePrinterDelete')->option([
+ 58:                 '_alias' => '删除',
+ 59:             ]);
+ 60: 
+ 61:         Route::get('get_content/:id','/getContent')
+ 62:             ->name('merchantStorePrinterGetContent')->option([
+ 63:                 '_alias' => '获取配置内容',
+ 64:             ]);
+ 65:         Route::post('set_content/:id','/setContent')
+ 66:             ->name('merchantStorePrinterSetContent')->option([
+ 67:                 '_alias' => '保存打印机内容',
+ 68:             ]);
+ 69: 
+ 70:     })->prefix('merchant.store.StorePrinter')->option([
+ 71:         '_path' => '/setting/printer/list',
+ 72:         '_auth'  => true,
+ 73:     ]);
+ 74: 
+ 75:     Route::group('store/printer', function () {
+ 76:         Route::get('get_content/:id','/getContent')
+ 77:             ->name('merchantStorePrinterGetContent')->option([
+ 78:                 '_alias' => '获取配置内容',
+ 79:             ]);
+ 80:         Route::post('set_content/:id','/setContent')
+ 81:             ->name('merchantStorePrinterSetContent')->option([
+ 82:                 '_alias' => '保存打印机内容',
+ 83:             ]);
+ 84:     })->prefix('merchant.store.StorePrinter')->option([
+ 85:         '_path' => '/setting/printer/content',
+ 86:         '_auth'  => true,
+ 87:     ]);
+ 88: 
+ 89:     Route::group('statistics', function () {
+ 90:         Route::get('main', '/main')->name('merchantStatisticsMain')->option([
+ 91:             '_alias' => '所有数据',
+ 92:         ]);
+ 93:         Route::get('order', '/order')->name('merchantStatisticsOrder')->option([
+ 94:             '_alias' => '支付订单',
+ 95:         ]);
+ 96:         Route::get('user', '/user')->name('merchantStatisticsUser')->option([
+ 97:             '_alias' => '成交客户',
+ 98:         ]);
+ 99:         Route::get('user_rate', '/userRate')->name('merchantStatisticsUserRate')->option([
+100:             '_alias' => '成交客户比',
+101:         ]);
+102:         Route::get('product', '/product')->name('merchantStatisticsProduct')->option([
+103:             '_alias' => '商品支付排行',
+104:         ]);
+105:         Route::get('product_visit', '/productVisit')->name('merchantStatisticsProductVisit')->option([
+106:             '_alias' => '商品访问排行',
+107:         ]);
+108:         Route::get('product_cart', '/productCart')->name('merchantStatisticsProductCart')->option([
+109:             '_alias' => '商品加购排行',
+110:         ]);
+111:         Route::get('get_merchant_count', '/getMerchantCount')->name('merchantStatisticsMerchantCount')->option([
+112:             '_alias' => '首页未处理业务统计',
+113:         ]);
+114:         Route::get('get_merchant_todo', '/getMerchantTodo')->name('merchantStatisticsMerchantTodo')->option([
+115:             '_alias' => '待办事项',
+116:         ]);
+117:         Route::get('get_product_sales_price_top', '/getProductSalesPriceTop')->name('merchantStatisticsProductSalesPriceTop')->option([
+118:             '_alias' => '获取商户代办统计',
+119:         ]);
+120:     })->prefix('merchant.Common')->option([
+121:         '_path' => '/dashboard',
+122:         '_auth'  => true,
+123:     ]);
+124: 
+125:     //系统公告
+126:     Route::group('notice', function () {
+127:         Route::get('lst', '/lst')->name('systemNoticeLogList')->option([
+128:             '_alias' => '列表',
+129:         ]);
+130:         Route::post('read/:id', '/read')->name('systemNoticeLogRead')->option([
+131:             '_alias' => '已读',
+132:         ]);
+133:         Route::delete('del/:id', '/del')->name('systemNoticeLogDel')->option([
+134:             '_alias' => '删除',
+135:         ]);
+136:         Route::get('detail/:id', '/detail')->name('systemNoticeLogDetail')->option([
+137:             '_alias' => '详情',
+138:         ]);
+139:         Route::get('unread_count', '/unreadCount')->name('systemNoticeLogUnreadCount')->option([
+140:             '_alias' => '未读统计',
+141:         ]);
+142:     })->prefix('merchant.system.notice.SystemNoticeLog')->option([
+143:         '_path' => '/station/notice',
+144:         '_auth'  => true,
+145:     ]);
+146: 
+147:     //配置
+148:     Route::group( function () {
+149:         Route::get('config', 'merchant.Common/config');
+150:         Route::post('config/:type', 'merchant.Common/saveConfig');
+151:         Route::get('menus', 'admin.system.auth.Menu/merchantMenus')->append(['merchant' => 1]);
+152:         Route::post('getMerchantMenusList', 'admin.system.auth.Menu/getMenusList')->append(['is_mer' => 1]);;
+153:         Route::post('menus', 'admin.system.auth.Menu/merchantMenus')->append(['merchant' => 1]);
+154:         Route::get('logout', 'merchant.system.admin.Login/logout');
+155:         //获取版本号
+156:         Route::get('version', 'admin.Common/version');
+157:         Route::get('info', 'merchant.system.Merchant/info');
+158:         Route::get('margin/code', 'merchant.system.Merchant/getMarginQrCode')->append(['type' => 10]);
+159:         Route::get('margin/make_code', 'merchant.system.Merchant/getMarginQrCode')->append(['type' => 11]);
+160:         Route::get('margin/lst', 'merchant.system.Merchant/getMarginLst');
+161:         Route::post('upload/certificate', 'merchant.Common/uploadCertificate');
+162:         Route::post('upload/video', 'merchant.Common/uploadVideo');
+163:     })->option([
+164:         '_path' => '',
+165:         '_auth'  => false,
+166:     ]);
+167: 
+168:     Route::group( function () {
+169:         Route::get('update/form', 'merchant.system.Merchant/updateForm')->name('merchantUpdateForm')->option([
+170:             '_alias' => '编辑',
+171:             '_auth'  => false,
+172:         ]);
+173: 
+174:         Route::post('info/update', 'merchant.system.Merchant/update')->name('merchantUpdate')->option([
+175:             '_alias' => '资料更新',
+176:         ]);
+177:     })->option([
+178:         '_path' => '/systemForm/Basics/mer_base',
+179:         '_auth'  => true,
+180:     ]);
+181: 
+182:     Route::group( function () {
+183:         Route::get('take/info', 'merchant.system.Merchant/takeInfo')->name('merchantTakeInfo')->option([
+184:             '_alias' => '到店自提信息',
+185:             '_auth'  => false,
+186:         ]);
+187:         Route::post('take/update', 'merchant.system.Merchant/take')->name('merchantTakeUpdate')->option([
+188:             '_alias' => '保存到店自提信息',
+189:         ]);
+190:     })->option([
+191:         '_path' => '/systemForm/modifyStoreInfo',
+192:         '_auth'  => true,
+193:     ]);
+194: })->middleware(AllowOriginMiddleware::class)
+195:     ->middleware(MerchantTokenMiddleware::class, true)
+196:     ->middleware(MerchantAuthMiddleware::class)
+197:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+198:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="users.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: use app\common\middleware\AllowOriginMiddleware;
+ 12: use app\common\middleware\LogMiddleware;
+ 13: use app\common\middleware\MerchantAuthMiddleware;
+ 14: use app\common\middleware\MerchantTokenMiddleware;
+ 15: use think\facade\Route;
+ 16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+ 17: 
+ 18: Route::group(function () {
+ 19: 
+ 20:     //商户员工对应的用户列表
+ 21:     Route::get('manager/user/lst', 'merchant.user.UserMerchant/managerUserLst');
+ 22: 
+ 23:     //搜索记录
+ 24:     Route::get('user/search_log', 'admin.user.User/SearchLog')->name('merchantUserSearchLog')->option([
+ 25:         '_alias' => '搜索记录',
+ 26:         '_path' => '/user/searchRecord',
+ 27:         '_auth' => true,
+ 28:     ]);
+ 29:     Route::get('user/search_log/export', 'admin.user.User/exportSearchLog')->name('merchantUserExportSearchLog')
+ 30:         ->option([
+ 31:         '_alias' => '用户搜索记录导出',
+ 32:         '_path' => '/user/searchRecord',
+ 33:     ]);
+ 34:     //清除搜索记录
+ 35:     Route::get('user/clear_search_log', 'admin.user.User/clearSearchLog')->name('merchantUserClearSearchLog')->option([
+ 36:         '_alias' => '清除用户搜索记录',
+ 37:     ]);
+ 38: 
+ 39:     //商户用户列表
+ 40:     Route::group('user', function () {
+ 41:         Route::get('lst', '/getList')->name('merchantUserLst')->option([
+ 42:             '_alias' => '列表',
+ 43:         ]);
+ 44:         //修改用户标签
+ 45:         Route::get('change_label/form/:id', '/changeLabelForm')->name('merchantUserChangeLabelForm')->option([
+ 46:             '_alias' => '修改标签表单',
+ 47:             '_auth' => false,
+ 48:             '_form' => 'merchantUserChangeLabel',
+ 49:         ]);
+ 50:         Route::post('change_label/:id', '/changeLabel')->name('merchantUserChangeLabel')->option([
+ 51:             '_alias' => '修改标签',
+ 52:         ]);
+ 53:         Route::get('order/:uid', '/order')->name('merchantUserOrder')->option([
+ 54:             '_alias' => '订单列表',
+ 55:         ]);
+ 56:         Route::get('coupon/:uid', '/coupon')->name('merchantUserCoupon')->option([
+ 57:             '_alias' => '优惠券',
+ 58:         ]);
+ 59:     })->prefix('merchant.user.UserMerchant')->option([
+ 60:         '_path' => '/user/list',
+ 61:         '_auth' => true,
+ 62:     ]);
+ 63: 
+ 64:     //用户自动标签
+ 65:     Route::group('auto_label', function () {
+ 66:         Route::get('lst', '/getList')->name('merchantLabelRuleLst')->option([
+ 67:             '_alias' => '列表',
+ 68:         ]);
+ 69:         Route::post('create', '/create')->name('merchantLabelRuleCreate')->option([
+ 70:             '_alias' => '添加',
+ 71:         ]);
+ 72:         Route::post('update/:id', '/update')->name('merchantLabelRuleUpdate')->option([
+ 73:             '_alias' => '编辑',
+ 74:         ]);
+ 75:         Route::delete('delete/:id', '/delete')->name('merchantLabelRuleDelete')->option([
+ 76:             '_alias' => '删除',
+ 77:         ]);
+ 78:         Route::post('sync/:id', '/sync')->name('merchantLabelRuleSync')->option([
+ 79:             '_alias' => '自动同步',
+ 80:         ]);
+ 81:     })->prefix('merchant.user.LabelRule')->option([
+ 82:         '_path' => '/user/maticlabel',
+ 83:         '_auth' => true,
+ 84:     ]);
+ 85: 
+ 86:     //手动标签
+ 87:     Route::group('user/label', function () {
+ 88:         Route::get('lst', '/lst')->name('merchantUserLabelLst')->option([
+ 89:             '_alias' => '列表',
+ 90:         ]);
+ 91:         Route::post('user/label', '/create')->name('merchantUserLabelCreate')->option([
+ 92:             '_alias' => '添加',
+ 93:         ]);
+ 94:         Route::get('form', '/createForm')->name('merchantUserLabelCreateForm')->option([
+ 95:             '_alias' => '添加表单',
+ 96:             '_auth' => false,
+ 97:             '_form' => 'merchantUserLabelCreate',
+ 98:         ]);
+ 99:         Route::delete(':id', '/delete')->name('merchantUserLabelDelete')->option([
+100:             '_alias' => '删除',
+101:         ]);
+102:         Route::post(':id', '/update')->name('merchantUserLabelUpdate')->option([
+103:             '_alias' => '编辑',
+104:         ]);
+105:         Route::get('form/:id', '/updateForm')->name('merchantUserLabelUpdateForm')->option([
+106:             '_alias' => '编辑表单',
+107:             '_auth' => false,
+108:             '_form' => 'merchantUserLabelUpdate',
+109:         ]);
+110:     })->prefix('admin.user.UserLabel')->option([
+111:         '_path' => '/user/label',
+112:         '_auth' => true,
+113:     ]);
+114: 
+115: 
+116: 
+117: 
+118: })->middleware(AllowOriginMiddleware::class)
+119:     ->middleware(MerchantTokenMiddleware::class, true)
+120:     ->middleware(MerchantAuthMiddleware::class)
+121:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+122:     ->middleware(LogMiddleware::class);
+</file>
+
+<file path="yihaotong.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: use app\common\middleware\AllowOriginMiddleware;
+12: use app\common\middleware\LogMiddleware;
+13: use app\common\middleware\MerchantAuthMiddleware;
+14: use app\common\middleware\MerchantTokenMiddleware;
+15: use think\facade\Route;
+16: use app\common\middleware\MerchantCheckBaseInfoMiddleware;
+17: 
+18: Route::group(function () {
+19: 
+20:     //一号通
+21:     Route::group('serve',function(){
+22:         Route::get('meal','Serve/meal')->name('merchantServeMeal')->option([
+23:             '_alias' => '套餐列表',
+24:         ]);
+25:         Route::get('code','Serve/getQrCode')->name('merchantServeCode')->option([
+26:             '_alias' => '支付二维码',
+27:         ]);
+28:         Route::get('paylst','Serve/lst')->name('merchantServeLst')->option([
+29:             '_alias' => '购买记录',
+30:         ]);
+31:         Route::get('detail/:id','Serve/detail')->name('merchantServeDetail')->option([
+32:             '_alias' => '详情',
+33:         ]);
+34:         Route::get('info','Config/info');
+35:     })->prefix('merchant.system.serve.')->option([
+36:         '_path' => '/setting/sms/sms_config/index',
+37:         '_auth' => true,
+38:     ]);
+39: 
+40:     Route::group('serve',function(){
+41:         Route::get('config','Config/getConfig');
+42:         Route::post('config','Config/setConfig');
+43:     })->prefix('merchant.system.serve.')->option([
+44:         '_path' => '/setting/sms/dumpConfig',
+45:         '_auth' => true,
+46:     ]);
+47: 
+48:     Route::get('/dump_lst','admin.system.serve.Export/dumpLst')->name('merchantServeExportDumpLst')->option([
+49:         '_alias' => '使用记录',
+50:         '_path' => '/setting/sms/sms_config/index',
+51:     ]);
+52: 
+53: 
+54: })->middleware(AllowOriginMiddleware::class)
+55:     ->middleware(MerchantTokenMiddleware::class, true)
+56:     ->middleware(MerchantAuthMiddleware::class)
+57:     ->middleware(MerchantCheckBaseInfoMiddleware::class)
+58:     ->middleware(LogMiddleware::class);
+</file>
+
+</files>

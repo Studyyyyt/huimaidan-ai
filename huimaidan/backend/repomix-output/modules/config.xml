@@ -1,0 +1,1438 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: **/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+admin.php
+ajcaptcha.php
+app.php
+cache.php
+console.php
+cookie.php
+crmeb.php
+database.php
+delivery.php
+filesystem.php
+lang.php
+log.php
+middleware.php
+notice.php
+printer.php
+qrcode.php
+queue.php
+route.php
+session.php
+sms.php
+swoole.php
+template.php
+trace.php
+upload.php
+view.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="admin.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: return [
+15:     //token 有效期
+16:     'token_exp' => 6, //6小时
+17:     //token超时多久可自动续期(后台)
+18:     'token_valid_exp' => 30, //30分钟
+19:     //token超时多久可自动续期(用户)
+20:     'user_token_valid_exp' => 365, //7天
+21:     'openapi_token_valid_exp' => 1, //小时
+22:     //登录验证码有效期
+23:     'captcha_exp' => 30, //30分钟
+24:     'admin_prefix' => 'admin',
+25:     'merchant_prefix' => 'merchant',
+26:     'service_prefix' => 'kefu',
+27:     'api_admin_prefix' => 'sys',
+28:     'api_merchant_prefix' => 'mer',
+29:     'api_service_prefix' => 'ser',
+30:     'api_openapi_prefix' => 'openapi',
+31:     'vic_word_status' => 0,
+32: ];
+</file>
+
+<file path="ajcaptcha.php">
+ 1: <?php
+ 2: declare(strict_types=1);
+ 3: 
+ 4: return [
+ 5:     'font_file' => '', //自定义字体包路径， 不填使用默认值
+ 6:     //文字验证码
+ 7:     'click_world' => [
+ 8:         'backgrounds' => [
+ 9:             //文字验证码背景图
+10:             public_path().'static/ajcaptcha/check1.jpg',
+11:             public_path().'static/ajcaptcha/check2.jpg',
+12:             public_path().'static/ajcaptcha/check3.jpg',
+13:             public_path().'static/ajcaptcha/check4.jpg',
+14:         ],
+15:         'word_num' => 3, //写入多少字文字（2-5）
+16:     ],
+17:     //滑动验证码
+18:     'block_puzzle' => [
+19:         /*背景图片路径， 不填使用默认值， 支持string与array两种数据结构。string为默认图片的目录，array索引数组则为具体图片的地址*/
+20:         'backgrounds' => [
+21:             //滑块验证背景图
+22:             public_path().'static/ajcaptcha/1.jpg',
+23:             public_path().'static/ajcaptcha/2.jpg',
+24:             public_path().'static/ajcaptcha/3.jpg',
+25:             public_path().'static/ajcaptcha/4.jpg',
+26:             public_path().'static/ajcaptcha/5.jpg',
+27:             public_path().'static/ajcaptcha/6.jpg',
+28:         ],
+29: 
+30:         /*模板图,格式同上支持string与array*/
+31:         'templates' => [],
+32: 
+33:         'offset' => 10, //容错偏移量
+34: 
+35:         'is_cache_pixel' => true, //是否开启缓存图片像素值，开启后能提升服务端响应性能（但要注意更换图片时，需要清除缓存）
+36: 
+37:         'is_interfere' => true, //开启干扰图
+38:     ],
+39:     //水印
+40:     'watermark' => [
+41:         'fontsize' => 12,
+42:         'color' => '#000000',
+43:         'text' => ''
+44:     ],
+45:     'cache' => [
+46:         //若您使用了框架，并且想使用类似于redis这样的缓存驱动，则应换成框架的中的缓存驱动
+47:         'constructor' => \Fastknife\Utils\CacheUtils::class,
+48:         'method' => [
+49:             //遵守PSR-16规范不需要设置此项（tp6, laravel,hyperf）。如tp5就不支持（tp5缓存方法是rm,所以要配置为"delete" => "rm"）
+50:             /**
+51:             'get' => 'get', //获取
+52:             'set' => 'set', //设置
+53:             'delete' => 'delete',//删除
+54:             'has' => 'has' //key是否存在
+55:              */
+56:         ],
+57:         'options' => [
+58:             //如果您依然使用\Fastknife\Utils\CacheUtils做为您的缓存驱动，那么您可以自定义缓存配置。
+59:             'expire'        => 300,//缓存有效期 （默认为0 表示永久缓存）
+60:             'prefix'        => '', //缓存前缀
+61:             'path'          => '', //缓存目录
+62:             'serialize'     => [], //缓存序列化和反序列化方法
+63:         ]
+64:     ]
+65: ];
+</file>
+
+<file path="app.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // +----------------------------------------------------------------------
+13: // | 应用设置
+14: // +----------------------------------------------------------------------
+15: 
+16: return [
+17:     'app_key'         => env('app_key', 'VliwSuvne'),
+18:     // 应用地址
+19:     'app_host'         => env('app.host', ''),
+20:     // 应用的命名空间
+21:     'app_namespace'    => '',
+22:     // 是否启用路由
+23:     'with_route'       => true,
+24:     // 是否启用事件
+25:     'with_event'       => true,
+26:     // 默认应用
+27:     'default_app'      => 'index',
+28:     // 默认时区
+29:     'default_timezone' => 'Asia/Shanghai',
+30: 
+31:     // 应用映射（自动多应用模式有效）
+32:     'app_map'          => [],
+33:     // 域名绑定（自动多应用模式有效）
+34:     'domain_bind'      => [],
+35:     // 禁止URL访问的应用列表（自动多应用模式有效）
+36:     'deny_app_list'    => [
+37:         'common', 'websocket'
+38:     ],
+39: 
+40:     // 异常页面的模板文件
+41:     'exception_tmpl'   => app()->getThinkPath() . 'tpl/think_exception.tpl',
+42: 
+43:     // 错误显示信息,非调试模式有效
+44:     'error_message'    => '页面错误！请稍后再试～',
+45:     // 显示错误信息
+46:     'show_error_msg'   => false,
+47: ];
+</file>
+
+<file path="cache.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: // +----------------------------------------------------------------------
+14: // | 缓存设置
+15: // +----------------------------------------------------------------------
+16: 
+17: return [
+18:     // 默认缓存驱动
+19:     'default' => env('INSTALLED', false) ? env('cache.driver', 'redis') : 'file',
+20: 
+21:     // 缓存连接方式配置
+22:     'stores'  => [
+23:         'file' => [
+24:             // 驱动方式
+25:             'type'       => 'File',
+26:             // 缓存保存目录
+27:             'path'       => '',
+28:             // 缓存前缀
+29:             'prefix'     => env('cache.prefix', 'merchant'),
+30:             // 缓存有效期 0表示永久缓存
+31:             'expire'     => 0,
+32:             // 缓存标签前缀
+33:             'tag_prefix' => 'tag:',
+34:             // 序列化机制 例如 ['serialize', 'unserialize']
+35:             'serialize'  => [],
+36:         ],
+37:         'redis' => [
+38:             // 驱动方式
+39:             'type'       => 'Redis',
+40:             // 服务器地址
+41:             'host'       => env('redis.redis_hostname', '127.0.0.1'),
+42:             // 端口
+43:             'port'       => env('redis.port', '6379'),
+44:             // 密码
+45:             'password'   => env('redis.redis_password', ''),
+46:             // 数据库 0号数据库
+47:             'select'     => (int)env('redis.select', 0),
+48:             // 缓存前缀
+49:             'prefix'     => env('cache_prefix', 'merchant'),
+50:         ],
+51:         // 更多的缓存连接
+52:     ],
+53: 
+54:     //缓存key名前缀
+55:     'crmeb_key' => [
+56:         'category'   => 'category_',
+57:         'product'    => 'product_',
+58:         'brand'      => 'brand_',
+59:         'community'  => 'community_',
+60:         'topic'      => 'topic_',
+61:         'system'     => 'system_',
+62:         'group_data' => 'group_data_',
+63:     ],
+64: ];
+</file>
+
+<file path="console.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // +----------------------------------------------------------------------
+13: // | 控制台配置
+14: // +----------------------------------------------------------------------
+15: return [
+16:     // 指令定义
+17:     'commands' => [
+18:         //自动同步路由权限
+19:         'menu' => 'app\command\updateAuth',
+20:         //将所有商品加入到spu表
+21:         'spu' => 'app\command\updateSpu',
+22:         //整理路由权限
+23:         'menu:format' => 'app\command\FormatMenuPath',
+24:         //清除缓存素材
+25:         'clear:attachment' => 'app\command\ClearCacheAttachment',
+26:         //版本更新
+27:         'version:update' => 'app\command\VersionUpdate',
+28:         //清除所有 除配置相关之外的数据
+29:         'clear:merchant' => 'app\command\ClearMerchantData',
+30:         //清除所有已删除的商户的商品相关数据
+31:         'clear:redundancy' => 'app\command\ClearRedundancy',
+32:         //重制平台管理员的密码
+33:         'reset:password' => 'app\command\resetPassword',
+34:         //修改图片地址前缀
+35:         'reset:imagePath' => 'app\command\resetImagePath',
+36:         //清除登录限制
+37:         'clear:cache' => 'app\command\clearCache',
+38:         //更新热卖榜单
+39:         'change:hotTop' => 'app\command\changeHotTop',
+40:         //更新城市数据，导入/更新子集
+41:         'update:city' => 'app\command\updateCityArea',
+42:         //简易脚手架
+43:         'createTool' => 'app\command\createTool',
+44:         //更新城市数据，导入/更新子集
+45:         'cm_cli' => 'app\command\crmebCommand',
+46:     ],
+47: ];
+</file>
+
+<file path="cookie.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // +----------------------------------------------------------------------
+13: // | Cookie设置
+14: // +----------------------------------------------------------------------
+15: return [
+16:     // cookie 保存时间
+17:     'expire'    => 0,
+18:     // cookie 保存路径
+19:     'path'      => '/',
+20:     // cookie 有效域名
+21:     'domain'    => '',
+22:     //  cookie 启用安全传输
+23:     'secure'    => false,
+24:     // httponly设置
+25:     'httponly'  => false,
+26:     // 是否使用 setcookie
+27:     'setcookie' => true,
+28: ];
+</file>
+
+<file path="database.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: return [
+14:     // 默认使用的数据库连接配置
+15:     'default'         => env('database.driver', 'mysql'),
+16: 
+17:     // 自定义时间查询规则
+18:     'time_query_rule' => [],
+19: 
+20:     // 自动写入时间戳字段
+21:     // true为自动识别类型 false关闭
+22:     // 字符串则明确指定时间字段类型 支持 int timestamp datetime date
+23:     'auto_timestamp'  => true,
+24: 
+25:     // 时间字段取出后的默认时间格式
+26:     'datetime_format' => 'Y-m-d H:i:s',
+27: 
+28:     // 数据库连接配置信息
+29:     'connections'     => [
+30:         'mysql' => [
+31:             // 数据库类型
+32:             'type'              => env('database.type', 'mysql'),
+33:             // 服务器地址
+34:             'hostname'          => env('database.hostname', '127.0.0.1'),
+35:             // 数据库名
+36:             'database'          => env('database.database', ''),
+37:             // 用户名
+38:             'username'          => env('database.username', 'root'),
+39:             // 密码
+40:             'password'          => env('database.password', ''),
+41:             // 端口
+42:             'hostport'          => env('database.hostport', '3306'),
+43:             // 数据库连接参数
+44:             'params'            => [],
+45:             // 数据库编码默认采用utf8
+46: //            'charset'           => env('database.charset', 'utf8'),
+47:             'charset'           => 'utf8mb4',
+48:             // 数据库表前缀
+49:             'prefix'            => env('database.prefix', ''),
+50: 
+51:             // 数据库部署方式:0 集中式(单一服务器),1 分布式(主从服务器)
+52:             'deploy'            => 0,
+53:             // 数据库读写是否分离 主从式有效
+54:             'rw_separate'       => false,
+55:             // 读写分离后 主服务器数量
+56:             'master_num'        => 1,
+57:             // 指定从服务器序号
+58:             'slave_no'          => '',
+59:             // 是否严格检查字段是否存在
+60:             'fields_strict'     => true,
+61:             // 是否需要断线重连
+62:             'break_reconnect'   => true,
+63:             // 监听SQL
+64:             'trigger_sql'       => env('app_debug', false),
+65:             // 开启字段缓存
+66:             'fields_cache'      => false,
+67:             // 字段缓存路径
+68:             'schema_cache_path' => app()->getRuntimePath() . 'schema' . DIRECTORY_SEPARATOR,
+69:         ],
+70: 
+71:         // 更多的数据库配置信息
+72:     ],
+73: ];
+</file>
+
+<file path="delivery.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // +----------------------------------------------------------------------
+13: // | 同城配送
+14: // +----------------------------------------------------------------------
+15: 
+16: return [
+17:     'default' => 'uupt',
+18:     'stores' => [
+19:         //达达
+20:         'dada' => [],
+21:         //uu跑腿
+22:         'uupt' => [],
+23:     ]
+24: ];
+</file>
+
+<file path="filesystem.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: return [
+14:     // 默认磁盘
+15:     'default' => env('filesystem.driver', 'public'),
+16:     // 磁盘列表
+17:     'disks'   => [
+18:         'local'  => [
+19:             'type' => 'local',
+20:             'root' => app()->getRuntimePath() . 'storage',
+21:         ],
+22:         'public' => [
+23:             // 磁盘类型
+24:             'type'       => 'local',
+25:             // 磁盘路径
+26:             'root'       => app()->getRootPath() . 'public/uploads',
+27:             // 磁盘路径对应的外部URL路径
+28:             'url'        => '/uploads',
+29:             // 可见性
+30:             'visibility' => 'public',
+31:         ],
+32:         // 更多的磁盘配置信息
+33:     ],
+34: ];
+</file>
+
+<file path="lang.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // +----------------------------------------------------------------------
+13: // | 多语言设置
+14: // +----------------------------------------------------------------------
+15: 
+16: return [
+17:     // 默认语言
+18:     'default_lang'    => env('lang.default_lang', 'zh-cn'),
+19:     // 允许的语言列表
+20:     'allow_lang_list' => [],
+21:     // 多语言自动侦测变量名
+22:     'detect_var'      => 'lang',
+23:     // 是否使用Cookie记录
+24:     'use_cookie'      => true,
+25:     // 多语言cookie变量
+26:     'cookie_var'      => 'think_lang',
+27:     // 扩展语言包
+28:     'extend_list'     => [],
+29:     // Accept-Language转义为对应语言包名称
+30:     'accept_language' => [
+31:         'zh-hans-cn' => 'zh-cn',
+32:     ],
+33:     // 是否支持语言分组
+34:     'allow_group'     => false,
+35: ];
+</file>
+
+<file path="log.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: // +----------------------------------------------------------------------
+14: // | 日志设置
+15: // +----------------------------------------------------------------------
+16: return [
+17:     // 默认日志记录通道
+18:     'default'      => env('log.channel', 'file'),
+19:     // 日志记录级别
+20:     'level'        => ['error', 'warning', 'info', 'fail', 'success'],
+21:     // 日志类型记录的通道 ['error'=>'email',...]
+22:     'type_channel' => [],
+23:     // 关闭全局日志写入
+24:     'close'        => false,
+25:     // 全局日志处理 支持闭包
+26:     'processor'    => null,
+27: 
+28:     // 日志通道列表
+29:     'channels'     => [
+30:         'file' => [
+31:             // 日志记录方式
+32:             'type'           => 'File',
+33:             // 日志保存目录
+34:             'path'           => '',
+35:             // 单文件日志写入
+36:             'single'         => false,
+37:             // 独立日志级别
+38:             'apart_level' => ['error','warning','info', 'fail', 'success','sql'],
+39:             // 最大日志文件数量
+40:             'max_files'      => 30,
+41:             // 使用JSON格式记录
+42:             'json'           => false,
+43:             // 日志处理
+44:             'processor'      => null,
+45:             // 关闭通道日志写入
+46:             'close'          => false,
+47:             // 日志输出格式化
+48:             'format'         => '[%s][%s] %s',
+49:             // 是否实时写入
+50:             'realtime_write' => true,
+51:             'file_size'   	=> 	1024*1024*10,
+52:         ],
+53:         // 其它日志通道配置
+54:     ],
+55: 
+56: ];
+</file>
+
+<file path="middleware.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // 中间件配置
+13: return [
+14:     // 别名或分组
+15:     'alias'    => [],
+16:     // 优先级设置，此数组中的中间件会按照数组中的顺序优先执行
+17:     'priority' => [],
+18: ];
+</file>
+
+<file path="notice.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: 
+ 12: // +----------------------------------------------------------------------
+ 13: // | 模板消息配置
+ 14: // +----------------------------------------------------------------------
+ 15: 
+ 16: return [
+ 17:     //短信模板id
+ 18:     'sms' => [
+ 19:         //验证码
+ 20:         'VERIFICATION_CODE' => 538393,
+ 21:         //发货提醒
+ 22:         'DELIVER_GOODS_CODE' => 520269,
+ 23:         //确认收货提醒
+ 24:         'TAKE_DELIVERY_CODE' => 520271,
+ 25:         //支付成功
+ 26:         'PAY_SUCCESS_CODE' => 520268,
+ 27:         //改价提醒
+ 28:         'PRICE_REVISION_CODE' => 528288,
+ 29:         //订单未支付
+ 30:         'ORDER_PAY_FALSE' => 528116,
+ 31:         //商家同意退款提醒
+ 32:         'REFUND_SUCCESS_CODE' => 536113,
+ 33:         //商家拒绝退款提醒
+ 34:         'REFUND_FAIL_CODE' => 536112,
+ 35:         //退款确认提醒
+ 36:         'REFUND_CONFORM_CODE' => 536111,
+ 37:         //管理员支付成功提醒
+ 38:         'ADMIN_PAY_SUCCESS_CODE' => 520273,
+ 39:         //管理员退货提醒
+ 40:         'ADMIN_RETURN_GOODS_CODE' => 520274,
+ 41:         //管理员确认收货
+ 42:         'ADMIN_TAKE_DELIVERY_CODE' => 520422,
+ 43:         //退货信息提醒
+ 44:         'ADMIN_DELIVERY_CODE' => 536114,
+ 45:         //直播通过通知
+ 46:         'BROADCAST_ROOM_CODE' => 549311,
+ 47:         //直播未通过通知
+ 48:         'BROADCAST_ROOM_FAIL' => 549038,
+ 49:         //预售订单尾款支付
+ 50:         'PAY_PRESELL_CODE' => 543128,
+ 51:         //商户申请入驻通过
+ 52:         'APPLY_MER_SUCCESS' => 544837,
+ 53:         //商户申请入驻未通过
+ 54:         'APPLY_MER_FAIL' => 544838,
+ 55:         //到货通知
+ 56:         'PRODUCT_INCREASE' => 549146,
+ 57:         //积分即将到期提醒
+ 58:         'INTEGRAL_INVALID' => 550529,
+ 59:         //商户申请分账通过
+ 60:         'APPLYMENTS_SUCCESS' => 550526,
+ 61:         //商户申请分账未通过
+ 62:         'APPLYMENTS_FAIL' => 550523,
+ 63:         //商户申请分账待验证
+ 64:         'APPLYMENTS_SIGN' => 550525,
+ 65:         //商户申请退回保证金通过
+ 66:         'REFUND_MARGIN_SUCCESS' => 710327,
+ 67:         //商户申请退回保证金未通过
+ 68:         'REFUND_MARGIN_FAIL' => 710328,
+ 69:         //管理员id
+ 70:         'ADMIN_ORDER_UID' => 139633
+ 71:     ],
+ 72:     //微信
+ 73:     'wechat' => [
+ 74:         //订单生成通知
+ 75:         'ORDER_CREATE' => 'OPENTM205213550',
+ 76:         //支付成功
+ 77:         'ORDER_PAY_SUCCESS' => 'OPENTM207791277',
+ 78:         //订单发货提醒(快递)
+ 79:         'ORDER_POSTAGE_SUCCESS' => 'OPENTM200565259',
+ 80:         //订单发货提醒(送货)
+ 81:         'ORDER_DELIVER_SUCCESS' => 'OPENTM207707249',
+ 82:         //提现结果
+ 83:         'EXTRACT_NOTICE' => 'OPENTM207601150',
+ 84:         //订单收货通知
+ 85:         'ORDER_TAKE_SUCCESS' => 'OPENTM413386489',
+ 86:         //帐户资金变动提醒
+ 87:         'USER_BALANCE_CHANGE' => 'OPENTM405847076',
+ 88:         //退款申请通知
+ 89:         'ORDER_REFUND_STATUS' => 'OPENTM407277862',
+ 90:         //退款进度提醒
+ 91:         'ORDER_REFUND_NOTICE' => 'OPENTM401479948',
+ 92:         //退货确认提醒
+ 93:         'ORDER_REFUND_END' => 'OPENTM406292353',
+ 94:         //拼团成功
+ 95:         'GROUP_BUYING_SUCCESS'=>'OPENTM417762951',
+ 96:         //预订商品到货通知
+ 97:         'PRODUCT_INCREASE' => 'OPENTM200443061',
+ 98:         //访客消息通知
+ 99:         'SERVER_NOTICE' => 'OPENTM417984821',
+100:     ],
+101:     //订阅消息
+102:     'subscribe' => [
+103:         //订单发货提醒(快递)
+104:         'ORDER_POSTAGE_SUCCESS' => 1458,
+105:         //提现成功通知
+106:         'USER_EXTRACT' => 1470,
+107:         //订单发货提醒(配送)
+108:         'ORDER_DELIVER_SUCCESS' => 1128,
+109:         //退款通知
+110:         'ORDER_REFUND_NOTICE' => 1451,
+111:         //充值成功
+112:         'RECHARGE_SUCCESS' => 755,
+113:         //订单支付成功
+114:         'ORDER_PAY_SUCCESS' => 1927,
+115:         //商品到货通知
+116:         'PRODUCT_INCREASE' => 5019
+117:     ],
+118: 
+119: ];
+</file>
+
+<file path="printer.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // +----------------------------------------------------------------------
+13: // | 打印机配置
+14: // +----------------------------------------------------------------------
+15: 
+16: return [
+17:     //默认打印机模式
+18:     'default' => 'yi_lian_yun',
+19:     //驱动模式
+20:     'stores' => [
+21:         //易联云
+22:         'yi_lian_yun' => [],
+23:         //飞鹅云
+24:         'fei_e_yun' => [],
+25:     ],
+26:     'name'  => [
+27:         'yi_lian_yun',
+28:         'fei_e_yun'
+29:     ]
+30: ];
+</file>
+
+<file path="qrcode.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: return [
+13:     'cache_dir' => 'uploads/qrcode', //本地缓存地址
+14:     'background'=> 'statics/qrcode/background.png' //背景图
+15: ];
+</file>
+
+<file path="queue.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: return [
+13:     'default'     => 'redis',
+14:     'connections' => [
+15:         'sync'     => [
+16:             'type' => 'sync',
+17:         ],
+18:         'database' => [
+19:             'type'  => 'database',
+20:             'queue' => env('queue_name', 'default'),
+21:             'table' => 'jobs',
+22:         ],
+23:         'redis'    => [
+24:             'type'       => 'redis',
+25:             'queue'      => env('queue_name', 'default'),
+26:             'host'       => env('redis.redis_hostname','127.0.0.1'),
+27:             'port'       => env('redis.port', '6379'),
+28:             'password'   => env('redis.redis_password', ''),
+29:             'select'     => (int)env('redis.select', 0),
+30:             'timeout'    => 0,
+31:             'persistent' => false,
+32:         ],
+33:     ],
+34:     'failed'      => [
+35:         'type'  => 'none',
+36:         'table' => 'failed_jobs',
+37:     ],
+38: ];
+</file>
+
+<file path="route.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // +----------------------------------------------------------------------
+13: // | 路由设置
+14: // +----------------------------------------------------------------------
+15: 
+16: return [
+17:     // pathinfo分隔符
+18:     'pathinfo_depr'         => '/',
+19:     // URL伪静态后缀
+20:     'url_html_suffix'       => 'html',
+21:     // URL普通方式参数 用于自动生成
+22:     'url_common_param'      => true,
+23:     // 是否开启路由延迟解析
+24:     'url_lazy_route'        => false,
+25:     // 是否强制使用路由
+26:     'url_route_must'        => true,
+27:     // 合并路由规则
+28:     'route_rule_merge'      => false,
+29:     // 路由是否完全匹配
+30:     'route_complete_match'  => true,
+31:     // 访问控制器层名称
+32:     'controller_layer'      => 'controller',
+33:     // 空控制器名
+34:     'empty_controller'      => 'Error',
+35:     // 是否使用控制器后缀
+36:     'controller_suffix'     => false,
+37:     // 默认的路由变量规则
+38:     'default_route_pattern' => '[\w\.]+',
+39:     // 是否开启请求缓存 true自动缓存 支持设置请求缓存规则
+40:     'request_cache'         => false,
+41:     // 请求缓存有效期
+42:     'request_cache_expire'  => null,
+43:     // 全局请求缓存排除规则
+44:     'request_cache_except'  => [],
+45:     // 默认控制器名
+46:     'default_controller'    => 'Index',
+47:     // 默认操作名
+48:     'default_action'        => 'index',
+49:     // 操作方法后缀
+50:     'action_suffix'         => '',
+51:     // 默认JSONP格式返回的处理方法
+52:     'default_jsonp_handler' => 'jsonpReturn',
+53:     // 默认JSONP处理方法
+54:     'var_jsonp_handler'     => 'callback',
+55: ];
+</file>
+
+<file path="session.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // +----------------------------------------------------------------------
+13: // | 会话设置
+14: // +----------------------------------------------------------------------
+15: 
+16: return [
+17:     // session name
+18:     'name'           => 'PHPSESSID',
+19:     // SESSION_ID的提交变量,解决flash上传跨域
+20:     'var_session_id' => '',
+21:     // 驱动方式 支持file cache
+22:     'type'           => 'file',
+23:     // 存储连接标识 当type使用cache的时候有效
+24:     'store'          => null,
+25:     // 过期时间
+26:     'expire'         => 10440,
+27:     // 前缀
+28:     'prefix'         => '',
+29: ];
+</file>
+
+<file path="sms.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: 
+ 12: // +----------------------------------------------------------------------
+ 13: // | 短信配置
+ 14: // +----------------------------------------------------------------------
+ 15: 
+ 16: return [
+ 17:     //默认支付模式
+ 18:     'default' => 'yunxin',
+ 19:     //单个手机每日发送上限
+ 20:     'maxPhoneCount' => 10,
+ 21:     //验证码每分钟发送上线
+ 22:     'maxMinuteCount' => 20,
+ 23:     //单个IP每日发送上限
+ 24:     'maxIpCount' => 50,
+ 25:     'stores' => [
+ 26:         'yunxin' => [
+ 27:             //短信模板id
+ 28:             'template_id' => [
+ 29:                 //验证码
+ 30:                 'VERIFICATION_CODE' => 538393,
+ 31:                 //发货提醒 2.1
+ 32:                 'DELIVER_GOODS_CODE' => 520269,
+ 33:                 //确认收货提醒 2.1
+ 34:                 'ORDER_TAKE_SUCCESS' => 520271,
+ 35:                 //支付成功 2.1
+ 36:                 'ORDER_PAY_SUCCESS' => 520268,
+ 37:                 //改价提醒 2.1
+ 38:                 'PRICE_REVISION_CODE' => 528288,
+ 39:                 //提醒付款通知 -2.1
+ 40:                 'ORDER_PAY_FALSE' => 528116,
+ 41:                 //商家同意退款提醒 2.1
+ 42:                 'REFUND_SUCCESS_CODE' => 536113,
+ 43:                 //商家拒绝退款提醒 2.1
+ 44:                 'REFUND_FAIL_CODE' => 536112,
+ 45:                 //退款确认提醒 2.1
+ 46:                 'REFUND_CONFORM_CODE' => 536111,
+ 47:                 //管理员支付成功提醒 2.1
+ 48:                 'ADMIN_PAY_SUCCESS_CODE' => 520273,
+ 49:                 //管理员退款单提醒 -2.1
+ 50:                 'ADMIN_RETURN_GOODS_CODE' => 520274,
+ 51:                 //管理员确认收货 2.1
+ 52:                 'ADMIN_TAKE_DELIVERY_CODE' => 520422,
+ 53:                 //退货信息提醒 2.1
+ 54:                 'ADMIN_DELIVERY_CODE' => 440415,
+ 55:                 //直播通过通知 2.1
+ 56:                 'BROADCAST_ROOM_CODE' => 549311,
+ 57:                 //直播未通过通知 2.1
+ 58:                 'BROADCAST_ROOM_FAIL' => 549038,
+ 59:                 //预售订单尾款支付 2.1
+ 60:                 'PAY_PRESELL_CODE' => 543128,
+ 61:                 //商户申请入驻通过 2.1
+ 62:                 'APPLY_MER_SUCCESS' => 544837,
+ 63:                 //商户申请入驻未通过 2.1
+ 64:                 'APPLY_MER_FAIL' => 544838,
+ 65:                 //到货通知 2.1
+ 66:                 'PRODUCT_INCREASE' => 549146,
+ 67:                 //积分即将到期提醒 2.1
+ 68:                 'INTEGRAL_INVALID' => 550529,
+ 69:                 //商户申请分账通过 2.1
+ 70:                 'APPLYMENTS_SUCCESS' => 550526,
+ 71:                 //商户申请分账待验证 2.1
+ 72:                 'APPLYMENTS_SIGN' => 550525,
+ 73:                 //商户申请分账未通过 2.1
+ 74:                 'APPLYMENTS_FAIL' => 550523,
+ 75:                 //商户申请退回保证金通过 2.1
+ 76:                 'REFUND_MARGIN_SUCCESS' => 710327,
+ 77:                 //商户申请退回保证金未通过 2.1
+ 78:                 'REFUND_MARGIN_FAIL' => 710328,
+ 79:                 //付费会员充值成功提醒 2.1
+ 80:                 'SVIP_PAY_SUCCESS' => 856046
+ 81:             ],
+ 82:         ],
+ 83:         //阿里云
+ 84:         'aliyun' => [
+ 85:             //短信模板id
+ 86:             'template_id' => [
+ 87:                 //验证码
+ 88:                 'VERIFICATION_CODE' => '',
+ 89:                 //发货提醒
+ 90:                 'DELIVER_GOODS_CODE' => '',
+ 91:                 //确认收货提醒
+ 92:                 'TAKE_DELIVERY_CODE' => '',
+ 93:                 //支付成功
+ 94:                 'PAY_SUCCESS_CODE' => '',
+ 95:                 //改价提醒
+ 96:                 'PRICE_REVISION_CODE' => '',
+ 97:                 //订单未支付
+ 98:                 'ORDER_PAY_FALSE' => '',
+ 99:                 //商家同意退款提醒
+100:                 'REFUND_SUCCESS_CODE' => '',
+101:                 //商家拒绝退款提醒
+102:                 'REFUND_FAIL_CODE' => '',
+103:                 //退款确认提醒
+104:                 'REFUND_CONFORM_CODE' => '',
+105:                 //管理员支付成功提醒
+106:                 'ADMIN_PAY_SUCCESS_CODE' => '',
+107:                 //管理员退货提醒
+108:                 'ADMIN_RETURN_GOODS_CODE' => '',
+109:                 //管理员确认收货
+110:                 'ADMIN_TAKE_DELIVERY_CODE' => '',
+111:                 //退货信息提醒
+112:                 'ADMIN_DELIVERY_CODE' => '',
+113:                 //直播通过通知
+114:                 'BROADCAST_ROOM_CODE' => '',
+115:                 //直播未通过通知
+116:                 'BROADCAST_ROOM_FAIL' => '',
+117:                 //预售订单尾款支付
+118:                 'PAY_PRESELL_CODE' => '',
+119:                 //商户申请入驻通过
+120:                 'APPLY_MER_SUCCESS' => '',
+121:                 //商户申请入驻未通过
+122:                 'APPLY_MER_FAIL' => '',
+123:                 //到货通知
+124:                 'ARRIVAL_CODE' => '',
+125:                 //积分即将到期提醒
+126:                 'INTEGRAL_INVALID' => '',
+127:                 //商户申请分账通过
+128:                 'APPLYMENTS_SUCCESS' => '',
+129:                 //商户申请分账未通过
+130:                 'APPLYMENTS_FAIL' => '',
+131:                 //商户申请分账待验证
+132:                 'APPLYMENTS_SIGN' => '',
+133:                 //商户申请退回保证金通过
+134:                 'REFUND_MARGIN_SUCCESS' => '',
+135:                 //商户申请退回保证金未通过
+136:                 'REFUND_MARGIN_FAIL' => '',
+137:             ],
+138:         ]
+139:     ],
+140: 
+141: 
+142: 
+143: 
+144: ];
+</file>
+
+<file path="swoole.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: 
+ 12: 
+ 13: use app\webscoket\Manager;
+ 14: use Swoole\Table;
+ 15: use think\swoole\websocket\socketio\Parser;
+ 16: 
+ 17: if (strtolower(substr(PHP_OS, 0, 3)) === 'win') {
+ 18:     return [];
+ 19: } else {
+ 20:     return [
+ 21:         'server'     => [
+ 22:             'host'      => env('SWOOLE_HOST', '0.0.0.0'), // 监听地址
+ 23:             'port'      => env('SWOOLE_PORT', 8324), // 监听端口
+ 24:             'mode'      => SWOOLE_PROCESS, // 运行模式 默认为SWOOLE_PROCESS
+ 25:             'sock_type' => SWOOLE_SOCK_TCP, // sock type 默认为SWOOLE_SOCK_TCP
+ 26:             'options'   => [
+ 27:                 'pid_file'              => runtime_path() . 'swoole.pid',
+ 28:                 'log_file'              => runtime_path() . 'swoole.log',
+ 29:                 'daemonize'             => false,
+ 30:                 // Normally this value should be 1~4 times larger according to your cpu cores.
+ 31:                 'reactor_num'           => swoole_cpu_num(),
+ 32:                 'worker_num'            => swoole_cpu_num(),
+ 33:                 'task_worker_num'       => swoole_cpu_num(),
+ 34:                 'task_enable_coroutine' => false,
+ 35:                 'task_max_request'      => 2000,
+ 36:                 'enable_static_handler' => true,
+ 37:                 'document_root'         => root_path('public'),
+ 38:                 'package_max_length'    => 50 * 1024 * 1024,
+ 39:                 'buffer_output_size'    => 10 * 1024 * 1024,
+ 40:                 'socket_buffer_size'    => 128 * 1024 * 1024,
+ 41:                 'max_request'           => 3000,
+ 42:                 'send_yield'            => true,
+ 43:                 'reload_async'          => true,
+ 44:             ],
+ 45:         ],
+ 46:         'websocket'  => [
+ 47:             'enable'        => true,
+ 48:             'handler'       => Manager::class,
+ 49:             'parser'        => Parser::class,
+ 50:             'ping_interval' => 25000, //1000 = 1秒
+ 51:             'ping_timeout'  => 60000, //1000 = 1秒
+ 52:             'room'          => [
+ 53:                 'type'  => 'table',
+ 54:                 'table' => [
+ 55:                     'room_rows'   => 4096,
+ 56:                     'room_size'   => 2048 * 10,
+ 57:                     'client_rows' => 8192,
+ 58:                     'client_size' => 2048,
+ 59:                 ],
+ 60:                 'redis' => [
+ 61: 
+ 62:                 ],
+ 63:             ],
+ 64:             'listen'        => [],
+ 65:             'subscribe'     => [],
+ 66:         ],
+ 67:         'rpc'        => [
+ 68:             'server' => [
+ 69:                 'enable'   => false,
+ 70:                 'port'     => 9000,
+ 71:                 'services' => [
+ 72:                 ],
+ 73:             ],
+ 74:             'client' => [
+ 75:             ],
+ 76:         ],
+ 77:         'hot_update' => [
+ 78:             'enable'  => env('APP_DEBUG', false),
+ 79:             'name'    => ['*.php'],
+ 80:             'include' => [app_path(), root_path() . 'crmeb'],
+ 81:             'exclude' => [],
+ 82:         ],
+ 83:         //连接池
+ 84:         'pool'       => [
+ 85:             'db'    => [
+ 86:                 'enable'        => true,
+ 87:                 'max_active'    => swoole_cpu_num() * 2,
+ 88:                 'max_wait_time' => 5,
+ 89:             ],
+ 90:             'cache' => [
+ 91:                 'enable'        => true,
+ 92:                 'max_active'    => 3,
+ 93:                 'max_wait_time' => 5,
+ 94:             ],
+ 95:         ],
+ 96:         'coroutine'  => [
+ 97:             'enable' => false,
+ 98:             'flags'  => SWOOLE_HOOK_ALL,
+ 99:         ],
+100:         'tables'     => [
+101:             'user' => [
+102:                 'size'    => 204800,
+103:                 'columns' => [
+104:                     ['name' => 'fd', 'type' => Table::TYPE_INT],
+105:                     ['name' => 'type', 'type' => Table::TYPE_INT],
+106:                     ['name' => 'uid', 'type' => Table::TYPE_INT]
+107:                 ]
+108:             ]
+109:         ],
+110:         //每个worker里需要预加载以共用的实例
+111:         'concretes'  => [],
+112:         //重置器
+113:         'resetters'  => [],
+114:         //每次请求前需要清空的实例
+115:         'instances'  => [],
+116:         //每次请求前需要重新执行的服务
+117:         'services'   => [],
+118:         'locks'      => ['group_buying'],
+119:     ];
+120: }
+</file>
+
+<file path="template.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // +----------------------------------------------------------------------
+13: // | 模板消息配置
+14: // +----------------------------------------------------------------------
+15: 
+16: return [
+17:     //默认驱动模式
+18:     'default' => 'wechat',
+19:     //记录发送日志
+20:     'isLog' => true,
+21:     //驱动模式
+22:     'stores' => [
+23: //        //微信
+24: //        'wechat' => [
+25: //            //短信模板id
+26: //            'template_id' => [
+27: //                //订单生成通知
+28: //                'ORDER_CREATE' => 'OPENTM205213550',
+29: //                //支付成功
+30: //                'ORDER_PAY_SUCCESS' => 'OPENTM207791277',
+31: //                //订单发货提醒(快递)
+32: //                'ORDER_POSTAGE_SUCCESS' => 'OPENTM200565259',
+33: //                //订单发货提醒(送货)
+34: //                'ORDER_DELIVER_SUCCESS' => 'OPENTM207707249',
+35: //                //提现结果
+36: //                'EXTRACT_NOTICE' => 'OPENTM207601150',
+37: //                //订单收货通知
+38: //                'ORDER_TAKE_SUCCESS' => 'OPENTM413386489',
+39: //                //帐户资金变动提醒
+40: //                'USER_BALANCE_CHANGE' => 'OPENTM405847076',
+41: //                //退款申请通知
+42: //                'ORDER_REFUND_STATUS' => 'OPENTM407277862',
+43: //                //退款进度提醒
+44: //                'ORDER_REFUND_NOTICE' => 'OPENTM401479948',
+45: //                //退货确认提醒
+46: //                'ORDER_REFUND_END' => 'OPENTM406292353',
+47: //                //拼团成功
+48: //                'GROUP_BUYING_SUCCESS'=>'OPENTM417762951',
+49: //                //预订商品到货通知
+50: //                'PRODUCT_INCREASE' => 'OPENTM200443061',
+51: //                //访客消息通知
+52: //                'SERVER_NOTICE' => 'OPENTM417984821',
+53: //            ],
+54: //        ],
+55: //        //订阅消息
+56: //        'subscribe' => [
+57: //            'template_id' => [
+58: //                //订单发货提醒(快递)
+59: //                'ORDER_POSTAGE_SUCCESS' => 1458,
+60: //                //提现成功通知
+61: //                'USER_EXTRACT' => 1470,
+62: //                //订单发货提醒(配送)
+63: //                'ORDER_DELIVER_SUCCESS' => 1128,
+64: //                //退款通知
+65: //                'ORDER_REFUND_NOTICE' => 1451,
+66: //                //充值成功
+67: //                'RECHARGE_SUCCESS' => 755,
+68: //                //订单支付成功
+69: //                'ORDER_PAY_SUCCESS' => 1927,
+70: //                //商品到货通知
+71: //                'PRODUCT_INCREASE' => 5019
+72: //            ],
+73: //        ],
+74:     ]
+75: ];
+</file>
+
+<file path="trace.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // +----------------------------------------------------------------------
+13: // | Trace设置 开启调试模式后有效
+14: // +----------------------------------------------------------------------
+15: return [
+16:     // 内置Html和Console两种方式 支持扩展
+17:     'type'    => 'html',
+18:     // 读取的日志通道名
+19:     'channel' => '',
+20: ];
+</file>
+
+<file path="upload.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // +----------------------------------------------------------------------
+13: // | 上传配置
+14: // +----------------------------------------------------------------------
+15: 
+16: return [
+17:     //默认上传模式
+18:     'default' => 'local',
+19:     //上传文件大小
+20:     'filesize' => 52428800,
+21:     //上传文件后缀类型
+22:     'fileExt' => [
+23:         'jpg',
+24:         'jpeg',
+25:         'png',
+26:         'gif',
+27:         'webp',
+28:         'pem',
+29:         'mp3',
+30:         'wma',
+31:         'wav',
+32:         'amr',
+33:         'mp4',
+34:         'key',
+35:         'xlsx',
+36:         'xls',
+37:         'ico',
+38:         'avif',
+39:         'txt'
+40:     ],
+41:     //上传文件类型
+42:     'fileMime' => [
+43:         'image/jpg',
+44:         'image/jpeg',
+45:         'image/gif',
+46:         'image/png',
+47:         'image/avif',
+48:         'text/plain',
+49:         'audio/mpeg',
+50:         'video/mp4',
+51:         'application/octet-stream',
+52:         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+53:         'application/vnd.ms-works',
+54:         'application/vnd.ms-excel',
+55:         'application/zip',
+56:         'application/vnd.ms-excel',
+57:         'application/vnd.ms-excel',
+58:         'text/xml',
+59:         'image/x-icon',
+60:         'image/vnd.microsoft.icon',
+61:         'application/x-x509-ca-cert',
+62:     ],
+63:     //驱动模式
+64:     'stores' => [
+65:         //本地上传配置
+66:         'local' => [],
+67:         //七牛云上传配置
+68:         'qiniu' => [],
+69:         //oss上传配置
+70:         'oss' => [],
+71:         //cos上传配置
+72:         'cos' => [],
+73:         //obs华为储存
+74:         'obs' => [],
+75:         //ucloud存储
+76:         'us3' => [],
+77:         //jd
+78:         'jdoss' => [],
+79:         //天翼云
+80:         'ctoss' => [],
+81:     ],
+82:     'iamge_fileExt' => ['jpg', 'jpeg', 'png', 'gif','webp','avif'],
+83:     //上传文件类型
+84:     'image_fileMime' => ['image/jpeg', 'image/gif', 'image/png','image/webp', 'image/avif'],
+85: ];
+</file>
+
+<file path="view.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // +----------------------------------------------------------------------
+13: // | 模板设置
+14: // +----------------------------------------------------------------------
+15: 
+16: return [
+17:     // 模板引擎类型使用Think
+18:     'type'          => 'php',
+19:     // 默认模板渲染规则 1 解析为小写+下划线 2 全部转换小写 3 保持操作方法
+20:     'auto_rule'     => 1,
+21:     // 模板目录名
+22:     'view_dir_name' => 'view',
+23:     // 模板后缀
+24:     'view_suffix'   => 'html',
+25:     // 模板文件名分隔符
+26:     'view_depr'     => DIRECTORY_SEPARATOR,
+27:     // 模板引擎普通标签开始标记
+28:     'tpl_begin'     => '{',
+29:     // 模板引擎普通标签结束标记
+30:     'tpl_end'       => '}',
+31:     // 标签库标签开始标记
+32:     'taglib_begin'  => '{',
+33:     // 标签库标签结束标记
+34:     'taglib_end'    => '}',
+35: ];
+</file>
+
+</files>

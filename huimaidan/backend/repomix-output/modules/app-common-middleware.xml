@@ -1,0 +1,1409 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: **/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+AdminAuthMiddleware.php
+AdminTokenMiddleware.php
+AllowOriginMiddleware.php
+BaseMiddleware.php
+BlockerMiddleware.php
+CheckSiteOpenMiddleware.php
+InstallMiddleware.php
+LogMiddleware.php
+MerchantAuthMiddleware.php
+MerchantCheckBaseInfoMiddleware.php
+MerchantServerMiddleware.php
+MerchantTokenMiddleware.php
+OpenApiAuthMiddleware.php
+RequestLockMiddleware.php
+ServiceTokenMiddleware.php
+UserTokenMiddleware.php
+VisitProductMiddleware.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="AdminAuthMiddleware.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\common\middleware;
+ 15: 
+ 16: use app\common\repositories\system\auth\MenuRepository;
+ 17: use app\common\repositories\system\auth\RoleRepository;
+ 18: use app\Request;
+ 19: use think\exception\ValidateException;
+ 20: use think\Response;
+ 21: 
+ 22: class AdminAuthMiddleware extends BaseMiddleware
+ 23: {
+ 24: 
+ 25:     public function before(Request $request)
+ 26:     {
+ 27:         $admin = $request->adminInfo();
+ 28: 
+ 29:         /** @var RoleRepository $role */
+ 30:         $role = app()->make(RoleRepository::class);
+ 31: 
+ 32:         /** @var MenuRepository $menu */
+ 33:         $menu = app()->make(MenuRepository::class);
+ 34: 
+ 35:         $rules = [];
+ 36:         $menus = [];
+ 37:         if ($admin->level) {
+ 38:             if ($admin->is_agent) {
+ 39:                 $admin->append(['region_name']);
+ 40:                 $regions = $admin->region_name;
+ 41:                 foreach ($regions as $region) {
+ 42:                     $rules[$region['circle_id']] = $role->idsByRules(0, [$region['role_id']]);
+ 43:                 }
+ 44:                 foreach($rules as $key => $role) {
+ 45:                     $menus[$key] = $menu->idsByRoutes($role);
+ 46:                 }
+ 47:             } else {
+ 48:                 $rules = $role->idsByRules(0, $admin->roles);
+ 49:                 $menus = $menu->idsByRoutes($rules);
+ 50:             }
+ 51:         }
+ 52: 
+ 53:         $request->macro('adminAuth', function () use (&$menus) {
+ 54:             return $menus;
+ 55:         });
+ 56: 
+ 57:         $request->macro('adminRule', function () use (&$rules) {
+ 58:             return $rules;
+ 59:         });
+ 60: 
+ 61:         $request->macro('checkAuth', function ($name, $vars) use (&$admin, &$menus, &$menu, $request) {
+ 62:             if (!$name || !$admin->level || $admin->is_agent) return true;
+ 63:             $isset = false;
+ 64:             foreach ($menus as $_menu) {
+ 65:                 $keys = $menu->tidyParams($_menu['params']);
+ 66:                 if ($_menu['route'] != $name) continue;
+ 67:                 $isset = true;
+ 68:                 if (!count($keys)) return true;
+ 69:                 if ($menu->checkParams($keys, $vars))
+ 70:                     return true;
+ 71:             }
+ 72:             if ($isset || $menu->routeExists($name))
+ 73:                 return false;
+ 74:             return true;
+ 75:         });
+ 76: 
+ 77:         $rule = $request->rule();
+ 78:         if (!$rule) {
+ 79:             return true;
+ 80:         }
+ 81:         $options = $rule->getOption();
+ 82:         if (!($options['_auth'] ?? true) && !isset($options['_form'])) {
+ 83:             return true;
+ 84:         }
+ 85:         if (isset($options['_form'])) {
+ 86:             $name = $options['_form'];
+ 87:             $var = $options['_form_val'] ?? [];
+ 88:         } else {
+ 89:             $name = $rule->getName();
+ 90:             $var = $rule->getVars();
+ 91:         }
+ 92:         if (!$request->checkAuth($name, $var))
+ 93:             throw new ValidateException('没有权限访问');
+ 94:     }
+ 95: 
+ 96:     public function after(Response $response)
+ 97:     {
+ 98:         // TODO: Implement after() method.
+ 99:     }
+100: }
+</file>
+
+<file path="AdminTokenMiddleware.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: namespace app\common\middleware;
+ 13: 
+ 14: use Throwable;
+ 15: use app\Request;
+ 16: use think\Response;
+ 17: use Firebase\JWT\ExpiredException;
+ 18: use crmeb\exceptions\AuthException;
+ 19: use crmeb\services\JwtTokenService;
+ 20: use think\exception\ValidateException;
+ 21: use app\common\repositories\system\admin\AdminRepository;
+ 22: use app\common\repositories\system\merchant\MerchantRepository;
+ 23: 
+ 24: class AdminTokenMiddleware extends BaseMiddleware
+ 25: {
+ 26: 
+ 27:     /**
+ 28:      * @param Request $request
+ 29:      * @throws Throwable
+ 30:      * @author xaboy
+ 31:      * @day 2020-04-10
+ 32:      */
+ 33:     public function before(Request $request)
+ 34:     {
+ 35:         $force = $this->getArg(0, true);
+ 36:         try {
+ 37:             $token = trim($request->header('X-Token'));
+ 38:             if(!$token) $token = trim($request->param('token/s',''));
+ 39:             if (strpos($token, 'Bearer') === 0)
+ 40:                 $token = trim(substr($token, 6));
+ 41:             if (!$token)
+ 42:                 throw new ValidateException('请登录');
+ 43: 
+ 44:             /**
+ 45:              * @var AdminRepository $repository
+ 46:              */
+ 47:             $repository = app()->make(AdminRepository::class);
+ 48:             $service = new JwtTokenService();
+ 49:             try {
+ 50:                 $payload = $service->parseToken($token);
+ 51:             } catch (ExpiredException $e) {
+ 52:                 $repository->checkToken($token);
+ 53:                 $payload = $service->decode($token);
+ 54:             } catch (Throwable $e) {//Token 过期
+ 55:                 throw new AuthException('token 已过期，请重新登录');
+ 56:             }
+ 57:             if ('admin' != $payload->jti[1])
+ 58:                 throw new AuthException('无效的 token');
+ 59: 
+ 60:             $admin = $repository->get($payload->jti[0]);
+ 61:             if (!$admin)
+ 62:                 throw new AuthException('账号不存在');
+ 63:             if (!$admin['status'])
+ 64:                 throw new AuthException('账号已被禁用');
+ 65: 
+ 66:         } catch (Throwable $e) {
+ 67:             if ($force)
+ 68:                 throw  $e;
+ 69:             $request->macro('isLogin', function () {
+ 70:                 return false;
+ 71:             });
+ 72:             $request->macros(['tokenInfo', 'adminId', 'adminInfo', 'token'], function () {
+ 73:                 throw new AuthException('请登录');
+ 74:             });
+ 75:             return;
+ 76:         }
+ 77:         $repository->updateToken($token);
+ 78:         $regionMerId = [];
+ 79:         if ($admin->region_ids) {
+ 80:             if($admin->is_agent == 1) {
+ 81:                 $where['region_id'] = $admin->region_ids;
+ 82:             }
+ 83:             if($admin->is_agent == 2) {
+ 84:                 $where['business_id'] = $admin->region_ids;
+ 85:             }
+ 86:             $regionMerId = app()->make(MerchantRepository::class)->search($where)->column('mer_id');
+ 87:         }
+ 88:         $request->macro('isLogin', function () {
+ 89:             return true;
+ 90:         });
+ 91:         $request->macro('tokenInfo', function () use (&$payload) {
+ 92:             return $payload;
+ 93:         });
+ 94:         $request->macro('token', function () use (&$token) {
+ 95:             return $token;
+ 96:         });
+ 97:         $request->macro('adminId', function () use (&$admin) {
+ 98:             return $admin->admin_id;
+ 99:         });
+100:         $request->macro('adminInfo', function () use (&$admin) {
+101:             return $admin;
+102:         });
+103:         $request->macro('userType', function () {
+104:             return 2;
+105:         });
+106:         $request->macro('isAgent', function () use (&$admin) {
+107:             return $admin->is_agent;
+108:         });
+109: 
+110:         $request->macro('regionIds', function () use($admin){
+111:            return is_array($admin->region_ids) ? $admin->region_ids : [];
+112:         });
+113: 
+114:         $request->macro('regionAuthority', function () use($admin, $regionMerId){
+115:             if ($admin->region_ids) {
+116:                 return empty($regionMerId) ? [0] : $regionMerId;
+117:             }
+118:             return [];
+119:         });
+120:     }
+121: 
+122:     public function after(Response $response)
+123:     {
+124:         // TODO: Implement after() method.
+125:     }
+126: }
+</file>
+
+<file path="AllowOriginMiddleware.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: 
+14: namespace app\common\middleware;
+15: 
+16: 
+17: use app\Request;
+18: use think\exception\HttpResponseException;
+19: use think\facade\Config;
+20: use think\Response;
+21: 
+22: /**
+23:  * 跨域中间件
+24:  * Class AllowOriginMiddleware
+25:  * @package app\http\middleware
+26:  */
+27: class AllowOriginMiddleware extends BaseMiddleware
+28: {
+29:     /**
+30:      * header头
+31:      * @var array
+32:      */
+33:     protected $header = [
+34:         'Access-Control-Allow-Origin' => '*',
+35:         'Access-Control-Allow-Headers' => 'X-Token, Content-Type, If-Match, If-Modified-Since, If-None-Match, If-Unmodified-Since, X-Requested-With,Form-type,Referer,Connection,Content-Length,Host,Origin,Authorization,Authori-zation,Accept,Accept-Encoding,Uuid,X-Source',
+36:         //,Host,Origin,Authorization,Authori-zation,Accept,Accept-Encoding
+37:         //'Access-Control-Allow-Headers' => '*',
+38:         'Access-Control-Allow-Methods' => 'GET,POST,PATCH,PUT,DELETE,OPTIONS',
+39:         'Access-Control-Max-Age' => '1728000'
+40:     ];
+41: 
+42:     public function before(Request $request)
+43:     {
+44:         $cookieDomain = Config::get('cookie.domain', '');
+45:         $origin = $request->header('origin');
+46: 
+47:         if ($origin && $cookieDomain && strpos($origin, $cookieDomain))
+48:             $this->header['Access-Control-Allow-Origin'] = $origin;
+49:         if ($request->method(true) == 'OPTIONS') {
+50:             throw new HttpResponseException(Response::create()->code(200)->header($this->header));
+51:         }
+52:     }
+53: 
+54:     public function after(Response $response)
+55:     {
+56:         $response->header($this->header);
+57:     }
+58: }
+</file>
+
+<file path="BaseMiddleware.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\middleware;
+15: 
+16: 
+17: use app\Request;
+18: use crmeb\interfaces\MiddlewareInterface;
+19: use think\Response;
+20: 
+21: abstract class BaseMiddleware implements MiddlewareInterface
+22: {
+23: 
+24:     /**
+25:      * @var Request
+26:      */
+27:     protected $request;
+28: 
+29:     protected $args = [];
+30: 
+31:     abstract public function before(Request $request);
+32: 
+33:     /**
+34:      * @param int $num
+35:      * @param mixed $default
+36:      * @return mixed
+37:      * @author xaboy
+38:      * @day 2020-04-10
+39:      */
+40:     public function getArg($num, $default = null)
+41:     {
+42:         return isset($this->args[$num]) ? $this->args[$num] : $default;
+43:     }
+44: 
+45:     final public function handle(Request $request, \Closure $next, ...$args): Response
+46:     {
+47:         $this->args = $args;
+48:         $this->request = $request;
+49:         $this->before($request);
+50:         $response = $next($request);
+51:         $this->after($response);
+52:         return $response;
+53:     }
+54: 
+55:     abstract public function after(Response $response);
+56: }
+</file>
+
+<file path="BlockerMiddleware.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\middleware;
+15: 
+16: use app\common\repositories\system\auth\MenuRepository;
+17: use app\common\repositories\system\auth\RoleRepository;
+18: use app\Request;
+19: use Doctrine\Common\Cache\RedisCache;
+20: use http\Exception\InvalidArgumentException;
+21: use think\facade\Cache;
+22: use think\Response;
+23: 
+24: class BlockerMiddleware extends BaseMiddleware
+25: {
+26:     protected  $key;
+27: 
+28:     public function before(Request $request)
+29:     {
+30:         $uid = request()->uid();
+31:         $this->key = md5(request()->rule()->getRule() . $uid);
+32:         if (!$this->setMutex($this->key)) {
+33:             throw new InvalidArgumentException('请求太过频繁，请稍后再试');
+34:         }
+35:     }
+36: 
+37:     public function setMutex(string $key, int $timeout = 10)
+38:     {
+39:         $curTime = time();
+40:         $readMutexKey = "redis:mutex:{$key}";
+41:         $mutexRes = Cache::store('redis')->handler()->setnx($readMutexKey, $curTime + $timeout);
+42:         if ($mutexRes) {
+43:             return true;
+44:         }
+45:         //就算意外退出，下次进来也会检查key，防止死锁
+46:         $time = Cache::store('redis')->handler()->get($readMutexKey);
+47:         if ($curTime > $time) {
+48:             Cache::store('redis')->handler()->del($readMutexKey);
+49:             return Cache::store('redis')->handler()->setnx($readMutexKey, $curTime + $timeout);
+50:         }
+51:         return false;
+52:     }
+53: 
+54:     public function after(Response $response)
+55:     {
+56:         Cache::store('redis')->handler()->del("redis:mutex:{$this->key}");
+57:         // TODO: Implement after() method.
+58:     }
+59: }
+</file>
+
+<file path="CheckSiteOpenMiddleware.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\middleware;
+15: 
+16: 
+17: use app\Request;
+18: use crmeb\interfaces\MiddlewareInterface;
+19: use think\Response;
+20: 
+21: class CheckSiteOpenMiddleware implements MiddlewareInterface
+22: {
+23: 
+24:     public function handle(Request $request, \Closure $next): Response
+25:     {
+26:         if (systemConfig('site_open') === '0') {
+27:             return app('json')->make(501, '站点已关闭');
+28:         }
+29:         return $next($request);
+30:     }
+31: }
+</file>
+
+<file path="InstallMiddleware.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\middleware;
+15: 
+16: 
+17: use app\Request;
+18: use think\exception\HttpResponseException;
+19: use think\facade\Route;
+20: use think\Response;
+21: 
+22: class InstallMiddleware extends BaseMiddleware
+23: {
+24: 
+25:     public function before(Request $request)
+26:     {
+27:         if(!file_exists(__DIR__.'/../../../install/install.lock')){
+28:             throw new HttpResponseException( Response::create('/install.html', 'redirect')->code(302));
+29:         }
+30:     }
+31: 
+32:     public function after(Response $response)
+33:     {
+34:     }
+35: }
+</file>
+
+<file path="LogMiddleware.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\middleware;
+15: 
+16: 
+17: use app\common\repositories\system\admin\AdminLogRepository;
+18: use app\Request;
+19: use crmeb\services\SwooleTaskService;
+20: use think\Response;
+21: 
+22: class LogMiddleware extends BaseMiddleware
+23: {
+24: 
+25:     public function before(Request $request)
+26:     {
+27:         // TODO: Implement before() method.
+28:     }
+29: 
+30: 
+31:     public function after(Response $response)
+32:     {
+33:         if ($this->request->method() == 'GET') return;
+34:         SwooleTaskService::log($this->request->merId(), AdminLogRepository::parse($this->request));
+35:     }
+36: }
+</file>
+
+<file path="MerchantAuthMiddleware.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\middleware;
+15: 
+16: 
+17: use app\common\repositories\system\auth\MenuRepository;
+18: use app\common\repositories\system\auth\RoleRepository;
+19: use app\Request;
+20: use think\exception\ValidateException;
+21: use think\Response;
+22: 
+23: class MerchantAuthMiddleware extends BaseMiddleware
+24: {
+25: 
+26:     public function before(Request $request)
+27:     {
+28:         $admin = $request->adminInfo();
+29: 
+30:         $merchant = $request->merchant();
+31: 
+32:         /** @var RoleRepository $role */
+33:         $role = app()->make(RoleRepository::class);
+34: 
+35:         /** @var MenuRepository $menu */
+36:         $menu = app()->make(MenuRepository::class);
+37: 
+38:         if ($admin->level) {
+39:             $rules = $role->idsByRules($request->merId(), $admin->roles);
+40:             $menus = count($rules) ? ($merchant->type_id ? $menu->typesByRoutes($merchant->type_id, $rules) : $menu->idsByRoutes($rules)) : [];
+41:             $msg = '没有权限访问';
+42:         } else {
+43:             $rules = [];
+44:             $menus = $merchant->type_id ? $menu->merchantTypeByRoutes($merchant->type_id) : [];
+45:             $msg = '请前往平台后台-商户 - 店铺管理 - 店铺类型-编辑店铺权限';
+46:         }
+47: 
+48:         $request->macro('adminAuth', function () use (&$menus) {
+49:             return $menus;
+50:         });
+51: 
+52:         $request->macro('adminRule', function () use (&$rules) {
+53:             return $rules;
+54:         });
+55: 
+56:         $request->macro('checkAuth', function ($name, $vars) use (&$merchant, &$admin, &$menus, &$menu) {
+57:             if (!$name || (!$admin->level && !$merchant->type_id)) return true;
+58:             $isset = false;
+59:             foreach ($menus as $_menu) {
+60:                 $keys = $menu->tidyParams($_menu['params']);
+61:                 if ($_menu['route'] != $name) continue;
+62:                 $isset = true;
+63:                 if (!count($keys)) return true;
+64:                 if ($menu->checkParams($keys, $vars))
+65:                     return true;
+66:             }
+67:             if ($isset || $menu->routeExists($name, 1))
+68:                 return false;
+69:             return true;
+70:         });
+71: 
+72:         $rule = $request->rule();
+73:         if (!$rule) {
+74:             return true;
+75:         }
+76:         $options = $rule->getOption();
+77:         if (!($options['_auth'] ?? true) && !isset($options['_form'])) {
+78:             return true;
+79:         }
+80:         if (isset($options['_form'])) {
+81:             $name = $options['_form'];
+82:             $var = $options['_form_val'] ?? [];
+83:         } else {
+84:             $name = $rule->getName();
+85:             $var = $rule->getVars();
+86:         }
+87:         if (!$request->checkAuth($name, $var)){
+88:             $menu_name = $menu->getSearch(['route' => $name])->value('menu_name');
+89:             throw new ValidateException($msg.' ['.$menu_name.']');
+90:         }
+91: 
+92:     }
+93: 
+94:     public function after(Response $response)
+95:     {
+96:         // TODO: Implement after() method.
+97:     }
+98: }
+</file>
+
+<file path="MerchantCheckBaseInfoMiddleware.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace app\common\middleware;
+14: 
+15: 
+16: use app\Request;
+17: use think\exception\ValidateException;
+18: use think\facade\Cache;
+19: use think\Response;
+20: 
+21: class MerchantCheckBaseInfoMiddleware extends BaseMiddleware
+22: {
+23: 
+24:     protected $rules = [
+25:         'merchantAttachmentCategoryCreate',
+26:         'merchantUpdate',
+27:         'merchantUploadImage',
+28:         'merchant.Common/uploadCertificate',
+29:         'merchantAttachmentCategoryUpdate',
+30:         'merchantAttachmentCategoryDelete',
+31:         'merchantAttachmentUpdate',
+32:         'merchantAttachmentDelete'
+33:     ];
+34: 
+35:     public function before(Request $request)
+36:     {
+37:         $name = $this->request->rule()->getName();
+38:         if ($this->request->method() == 'GET' || in_array($name, $this->rules)) return;
+39:         $cache = Cache::store('file');
+40:         $merchant = $request->merchant();
+41: 
+42:         $key = 'mer_valid_' . $merchant->mer_id;
+43:         if ($cache->has($key)) return;
+44: 
+45: 
+46:         if (!$merchant->mer_avatar || !$merchant->mer_banner || !$merchant->mer_info ||  !$merchant->mer_address) {
+47:             throw new ValidateException('您好，请前往左侧菜单【设置】-【商户基本信息】完善商户基本信息。');
+48:         }
+49:         Cache::store('file')->set('mer_valid_' . $merchant->mer_id, 1, 3600 * 8);
+50:     }
+51: 
+52:     public function after(Response $response)
+53:     {
+54:         // TODO: Implement after() method.
+55:     }
+56: }
+</file>
+
+<file path="MerchantServerMiddleware.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\common\middleware;
+ 15: 
+ 16: use app\common\repositories\delivery\DeliveryServiceRepository;
+ 17: use app\common\repositories\store\service\StoreServiceRepository;
+ 18: use app\common\repositories\store\staff\StaffsRepository;
+ 19: use think\exception\HttpResponseException;
+ 20: use think\Response;
+ 21: use app\Request;
+ 22: 
+ 23: class MerchantServerMiddleware extends BaseMiddleware
+ 24: {
+ 25:     protected $merId;
+ 26: 
+ 27:     public function before(Request $request)
+ 28:     {
+ 29:         $userInfo = $this->request->userInfo();
+ 30:         $this->merId = $this->request->route('merId');
+ 31: 
+ 32:         /**
+ 33:          *  [reqire => true,auth => []], [reqire => true]
+ 34:          */
+ 35:         $serverParams = $this->getArg(0);//0 客服
+ 36:         $staffsParams = $this->getArg(1);//1 员工
+ 37:         $deliveryParams = $this->getArg(2);//2 配送员
+ 38: 
+ 39:         if (empty($serverParams) && empty($staffsParams) && empty($deliveryParams))
+ 40:             throw new HttpResponseException(app('json')->fail('缺少角色标识'));
+ 41: 
+ 42:         if (!empty($serverParams)) {
+ 43:             $service = $this->getServers($userInfo, $serverParams);
+ 44:             if ($serverParams['reqire']){
+ 45:                 if (!$service) {
+ 46:                     throw new HttpResponseException(app('json')->fail('[1]您没有权限操作'));
+ 47:                 }
+ 48: 
+ 49:                 $field = $serverParams['auth'] ? 'is_goods' : 'customer';
+ 50:                 if (!$service->{$field}) {
+ 51:                     throw new HttpResponseException(app('json')->fail('[2]您没有权限操作'));
+ 52:                 }
+ 53:             }
+ 54:             $request->macro('isServer', function () use (&$service) {
+ 55:                 return $service ? true : false;
+ 56:             });
+ 57:             $request->macro('serviceInfo', function () use (&$service) {
+ 58:                 return $service;
+ 59:             });
+ 60:         }
+ 61: 
+ 62:         if (!empty($staffsParams)) {
+ 63:             $staffs = $this->getStaffs($userInfo);
+ 64:             if ($staffsParams['reqire'] && !$staffs) {
+ 65:                 throw new HttpResponseException(app('json')->fail('[3]您没有权限操作'));
+ 66:             }
+ 67:             $request->macro('isStaffs', function () use (&$staffs) {
+ 68:                 return $staffs ? true : false;
+ 69:             });
+ 70:             $request->macro('staffsList', function () use (&$staffs) {
+ 71:                 return $staffs;
+ 72:             });
+ 73:             $request->macro('staffsIds', function () use (&$staffs) {
+ 74:                 $staffs_id = array_column($staffs,'staffs_id');
+ 75:                 return $staffs_id;
+ 76:             });
+ 77:             $request->macro('staffsMerIds', function () use (&$staffs) {
+ 78:                 return array_keys($staffs);
+ 79:             });
+ 80:         }
+ 81: 
+ 82:         if (!empty($deliveryParams)) {
+ 83:             $delivery = $this->getDelivery($userInfo);
+ 84:             if ($deliveryParams['reqire'] && !$delivery) {
+ 85:                 throw new HttpResponseException(app('json')->fail('[3]您没有权限操作'));
+ 86:             }
+ 87:             $request->macro('isDelivery', function () use (&$delivery) {
+ 88:                 return $delivery ? true : false;
+ 89:             });
+ 90:             $request->macro('deliveryList', function () use (&$delivery) {
+ 91:                 return $delivery;
+ 92:             });
+ 93:             $request->macro('deliveryIds', function () use (&$delivery) {
+ 94:                 $delivery_id = array_column($delivery,'service_id');
+ 95:                 return $delivery_id;
+ 96:             });
+ 97:             $request->macro('deliveryMerIds', function () use (&$delivery) {
+ 98:                 return array_keys($delivery);
+ 99:             });
+100:         }
+101:     }
+102: 
+103:     protected function getDelivery($userInfo)
+104:     {
+105:         $serviceRepository = app()->make(DeliveryServiceRepository::class);
+106:         $delivery = $serviceRepository->getSearch(['uid' => $userInfo->uid, 'status' => 1])
+107:             ->column('service_id,mer_id,uid,avatar,name,phone,status','mer_id');
+108:         return $delivery;
+109:     }
+110: 
+111:     protected function getStaffs($userInfo)
+112:     {
+113:         $staffsRepository = app()->make(StaffsRepository::class);
+114:         $staffs = $staffsRepository->getSearch(['uid' => $userInfo->uid, 'status' => 1])
+115:             ->column('staffs_id,mer_id,uid,photo,name,phone,status','mer_id');
+116:         return $staffs;
+117:     }
+118: 
+119:     protected function getServers($userInfo, $params)
+120:     {
+121:         $merId = $this->request->route('merId',0);
+122:         $storeServiceRepository = app()->make(StoreServiceRepository::class);
+123:         $service = $storeServiceRepository->getService($userInfo->uid, $merId);
+124:         if (!$service && $userInfo->main_uid) {
+125:             $service = $storeServiceRepository->getService($userInfo->main_uid, $merId);
+126:         }
+127:         return $service;
+128:     }
+129: 
+130:     public function after(Response $response)
+131:     {
+132:         // TODO: Implement after() method.
+133:     }
+134: }
+</file>
+
+<file path="MerchantTokenMiddleware.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\common\middleware;
+ 15: 
+ 16: use app\common\repositories\system\merchant\MerchantAdminRepository;
+ 17: use app\common\repositories\system\merchant\MerchantRepository;
+ 18: use app\Request;
+ 19: use crmeb\exceptions\AuthException;
+ 20: use crmeb\services\JwtTokenService;
+ 21: use Firebase\JWT\ExpiredException;
+ 22: use think\exception\ValidateException;
+ 23: use think\Response;
+ 24: use Throwable;
+ 25: 
+ 26: class MerchantTokenMiddleware extends BaseMiddleware
+ 27: {
+ 28: 
+ 29:     /**
+ 30:      * @param Request $request
+ 31:      * @throws Throwable
+ 32:      * @author xaboy
+ 33:      * @day 2020-04-10
+ 34:      */
+ 35:     public function before(Request $request)
+ 36:     {
+ 37:         $force = $this->getArg(0, true);
+ 38:         try {
+ 39:             $token = trim($request->header('X-Token'));
+ 40:             if(!$token) $token = trim($request->param('token/s',''));
+ 41:             if (strpos($token, 'Bearer') === 0)
+ 42:                 $token = trim(substr($token, 6));
+ 43:             if (!$token)
+ 44:                 throw new ValidateException('请登录');
+ 45: 
+ 46:             /**
+ 47:              * @var MerchantAdminRepository $repository
+ 48:              */
+ 49:             $repository = app()->make(MerchantAdminRepository::class);
+ 50:             $service = new JwtTokenService();
+ 51:             try {
+ 52:                 $payload = $service->parseToken($token);
+ 53:             } catch (ExpiredException $e) {
+ 54:                 $repository->checkToken($token);
+ 55:                 $payload = $service->decode($token);
+ 56:             } catch (Throwable $e) {//Token 过期
+ 57:                 throw new AuthException('token 已过期，请重新登录');
+ 58:             }
+ 59:             if ('mer' != $payload->jti[1])
+ 60:                 throw new AuthException('无效的 token');
+ 61: 
+ 62:             $admin = $repository->get($payload->jti[0]);
+ 63:             if (!$admin)
+ 64:                 throw new AuthException('账号不存在');
+ 65:             if (!$admin['status'])
+ 66:                 throw new AuthException('账号已被禁用');
+ 67: 
+ 68:             /**
+ 69:              * @var MerchantRepository $merchantRepository
+ 70:              */
+ 71:             $merchantRepository = app()->make(MerchantRepository::class);
+ 72: 
+ 73:             $merchant = $merchantRepository->get($admin->mer_id);
+ 74: 
+ 75:             if (!$merchant || !$merchant['status'])
+ 76:                 throw new AuthException('商户已被锁定');
+ 77: 
+ 78:         } catch (Throwable $e) {
+ 79:             if ($force)
+ 80:                 throw  $e;
+ 81:             $request->macro('isLogin', function () {
+ 82:                 return false;
+ 83:             });
+ 84:             $request->macros(['tokenInfo', 'adminId', 'adminInfo', 'token', 'merchant', 'merchantId'], function () {
+ 85:                 throw new AuthException('请登录');
+ 86:             });
+ 87:             return;
+ 88:         }
+ 89:         $repository->updateToken($token);
+ 90: 
+ 91:         $request->macro('isLogin', function () {
+ 92:             return true;
+ 93:         });
+ 94:         $request->macro('tokenInfo', function () use (&$payload) {
+ 95:             return $payload;
+ 96:         });
+ 97:         $request->macro('token', function () use (&$token) {
+ 98:             return $token;
+ 99:         });
+100:         $request->macro('adminId', function () use (&$admin) {
+101:             return $admin->merchant_admin_id;
+102:         });
+103:         $request->macro('adminInfo', function () use (&$admin) {
+104:             return $admin;
+105:         });
+106:         $request->macro('merchantId', function () use (&$admin) {
+107:             return $admin->mer_id;
+108:         });
+109:         $request->macro('merchant', function () use (&$merchant) {
+110:             return $merchant;
+111:         });
+112:         $request->macro('userType', function () use (&$merchant) {
+113:             return 3;
+114:         });
+115:     }
+116: 
+117:     public function after(Response $response)
+118:     {
+119:         // TODO: Implement after() method.
+120:     }
+121: }
+</file>
+
+<file path="OpenApiAuthMiddleware.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\common\middleware;
+14: 
+15: use app\common\repositories\openapi\OpenAuthRepository;
+16: use app\common\repositories\system\merchant\MerchantRepository;
+17: use app\Request;
+18: use crmeb\exceptions\AuthException;
+19: use crmeb\services\JwtTokenService;
+20: use Firebase\JWT\ExpiredException;
+21: use think\exception\ValidateException;
+22: use think\Response;
+23: use Throwable;
+24: 
+25: class OpenApiAuthMiddleware extends BaseMiddleware
+26: {
+27: 
+28:     public function before(Request $request)
+29:     {
+30:         $unique     = $request->param('unique');
+31:         $expiration = $request->param('expiration');
+32:         $access_key = $request->param('access_key');
+33:         $signature  = $request->param('signature');
+34:         if (!$unique || !$expiration || !$access_key || !$signature) throw new AuthException('验证失败,请完善参数');
+35:         if ((time() - $expiration) > 300) throw new AuthException('验证已过期');
+36: 
+37:         $openAuthRepository = app()->make(OpenAuthRepository::class);
+38:         $auth = $openAuthRepository->getSearch(['access_key' => $access_key])->find();
+39:         $secret_key = $auth->secret_key;
+40: 
+41:         $credential = ['mer','openapi'];
+42:         $policy = [
+43:             'access_key' => $access_key,
+44:             'conditions' => $access_key.'/'.implode('/', $credential),
+45:             'expiration' =>  date('YmdHis',$expiration),
+46:             'unique' => $unique
+47:         ];
+48:         ksort($policy);
+49:         $policy = json_encode($policy);
+50:         $jsonPolicy64 = base64_encode($policy);
+51:         $_signature = bin2hex(hash_hmac('sha256', $jsonPolicy64, $secret_key, true));
+52: 
+53:         if ($signature !== $_signature)  throw new AuthException('验证失败');
+54:         if ($auth->status != 1 || $auth->is_del) throw new AuthException('账号已被禁用');
+55:         $request->macro('openAuthInfo', function () use($auth) {
+56:             unset($auth['secret_key']);
+57:             return $auth;
+58:         });
+59:         $request->macro('isAuth', function () {
+60:             return true;
+61:         });
+62:         $request->macro('openMerId', function () use($auth) {
+63:             return $auth->mer_id;
+64:         });
+65:         $request->macro('openRoule', function () use($auth) {
+66:             return $auth->auth;
+67:         });
+68:         $auth->last_time = date('Y-m-d H:i:s', time());
+69:         $auth->last_ip = request()->ip();
+70:         $auth->save();
+71:     }
+72: 
+73:     public function after(Response $response)
+74:     {
+75:         // TODO: Implement after() method.
+76:     }
+77: }
+</file>
+
+<file path="RequestLockMiddleware.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\middleware;
+15: 
+16: use app\Request;
+17: use crmeb\interfaces\MiddlewareInterface;
+18: use crmeb\services\LockService;
+19: use think\Response;
+20: 
+21: class RequestLockMiddleware implements MiddlewareInterface
+22: {
+23:     final public function handle(Request $request, \Closure $next, ...$args): Response
+24:     {
+25:         $params = $request->route();
+26:         if (!count($params) || in_array(strtolower($request->method()), ['get', 'options']) || $request->rule()->getOption('_lock', true) === false) {
+27:             return $next($request);
+28:         }
+29:         ksort($params);
+30:         $key = 're:' . $request->rule()->getName() . ':' . implode('-', $params);
+31:         return app()->make(LockService::class)->exec($key, function () use ($next, $request) {
+32:             return $next($request);
+33:         }, 8);
+34:     }
+35: }
+</file>
+
+<file path="ServiceTokenMiddleware.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\common\middleware;
+ 15: 
+ 16: use app\common\model\store\service\StoreService;
+ 17: use app\common\repositories\store\service\StoreServiceRepository;
+ 18: use app\Request;
+ 19: use crmeb\exceptions\AuthException;
+ 20: use crmeb\services\JwtTokenService;
+ 21: use Firebase\JWT\ExpiredException;
+ 22: use think\exception\ValidateException;
+ 23: use think\Response;
+ 24: use Throwable;
+ 25: 
+ 26: class ServiceTokenMiddleware extends BaseMiddleware
+ 27: {
+ 28: 
+ 29:     /**
+ 30:      * @param Request $request
+ 31:      * @throws Throwable
+ 32:      * @author xaboy
+ 33:      * @day 2020-04-10
+ 34:      */
+ 35:     public function before(Request $request)
+ 36:     {
+ 37:         $force = $this->getArg(0, true);
+ 38:         try {
+ 39:             $token = trim($request->header('X-Token'));
+ 40:             if (!$token) $token = trim($request->param('token', ''));
+ 41:             if (strpos($token, 'Bearer') === 0)
+ 42:                 $token = trim(substr($token, 6));
+ 43:             if (!$token)
+ 44:                 throw new ValidateException('请登录');
+ 45: 
+ 46:             $repository = app()->make(StoreServiceRepository::class);
+ 47:             $service = new JwtTokenService();
+ 48:             try {
+ 49:                 $payload = $service->parseToken($token);
+ 50:             } catch (ExpiredException $e) {
+ 51:                 $repository->checkToken($token);
+ 52:                 $payload = $service->decode($token);
+ 53:             } catch (Throwable $e) {//Token 过期
+ 54:                 throw new AuthException('token 已过期，请重新登录');
+ 55:             }
+ 56:             if ('service' != $payload->jti[1])
+ 57:                 throw new AuthException('无效的 token');
+ 58: 
+ 59:             $admin = $repository->get($payload->jti[0]);
+ 60:             if (!$admin)
+ 61:                 throw new AuthException('账号不存在');
+ 62:             if (!$admin['is_open'])
+ 63:                 throw new AuthException('账号未开启');
+ 64:             if($admin->mer_id){
+ 65:                 if (!$admin->merchant)
+ 66:                     throw new AuthException('商户不存在');
+ 67:                 if (!$admin->merchant['status'])
+ 68:                     throw new ValidateException('商户已被锁定');
+ 69:             }
+ 70:         } catch (Throwable $e) {
+ 71:             if ($force)
+ 72:                 throw  $e;
+ 73:             $request->macro('isLogin', function () {
+ 74:                 return false;
+ 75:             });
+ 76:             $request->macros(['tokenInfo', 'adminId', 'adminInfo', 'token'], function () {
+ 77:                 throw new AuthException('请登录');
+ 78:             });
+ 79:             return;
+ 80:         }
+ 81:         $repository->updateToken($token);
+ 82: 
+ 83:         $request->macro('isLogin', function () {
+ 84:             return true;
+ 85:         });
+ 86:         $request->macro('tokenInfo', function () use (&$payload) {
+ 87:             return $payload;
+ 88:         });
+ 89:         $request->macro('token', function () use (&$token) {
+ 90:             return $token;
+ 91:         });
+ 92:         $request->macro('adminId', function () use (&$admin) {
+ 93:             return $admin->service_id;
+ 94:         });
+ 95:         $request->macro('merchantId', function () use (&$admin) {
+ 96:             return $admin->mer_id;
+ 97:         });
+ 98:         $request->macro('adminInfo', function () use (&$admin) {
+ 99:             return $admin;
+100:         });
+101:         $request->macro('userType', function () use (&$merchant) {
+102:             return 4;
+103:         });
+104:     }
+105: 
+106:     public function after(Response $response)
+107:     {
+108:         // TODO: Implement after() method.
+109:     }
+110: }
+</file>
+
+<file path="UserTokenMiddleware.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\common\middleware;
+ 15: 
+ 16: use think\facade\Log;
+ 17: use app\common\repositories\user\UserRepository;
+ 18: use app\Request;
+ 19: use crmeb\exceptions\AuthException;
+ 20: use crmeb\services\JwtTokenService;
+ 21: use Firebase\JWT\ExpiredException;
+ 22: use think\exception\ValidateException;
+ 23: use think\facade\Cache;
+ 24: use think\Response;
+ 25: use Throwable;
+ 26: 
+ 27: class UserTokenMiddleware extends BaseMiddleware
+ 28: {
+ 29: 
+ 30:     /**
+ 31:      * @param Request $request
+ 32:      * @throws Throwable
+ 33:      * @author xaboy
+ 34:      * @day 2020-04-10
+ 35:      */
+ 36:     public function before(Request $request)
+ 37:     {
+ 38:         $force = $this->getArg(0, true);
+ 39:         try {
+ 40:             $token = trim($request->header('X-Token'));
+ 41:             if (strpos($token, 'Bearer') === 0)
+ 42:                 $token = trim(substr($token, 6));
+ 43:             if (!$token)
+ 44:                 throw new ValidateException('请登录');
+ 45:             $cache_token = Cache::get('user_' . $token);
+ 46:             if (!$cache_token)
+ 47:                 throw new AuthException('token 已过期，请重新登录');
+ 48:             /**
+ 49:              * @var UserRepository $repository
+ 50:              */
+ 51:             $repository = app()->make(UserRepository::class);
+ 52:             $service = new JwtTokenService();
+ 53:             try {
+ 54:                 $payload = $service->parseToken($token);
+ 55:             } catch (ExpiredException $e) {
+ 56:                 $repository->checkToken($token);
+ 57:                 $payload = $service->decode($token);
+ 58:             } catch (Throwable $e) {//Token 过期
+ 59:                 Log::info('token 已过期，请重新登录2'.$token);
+ 60:                 throw new AuthException('token 已过期，请重新登录');
+ 61:             }
+ 62:             if ('user' != $payload->jti[1]){
+ 63:                 throw new AuthException('无效的 token');
+ 64:                 Log::info('无效的 token'.$payload->jti[1]);
+ 65:             }
+ 66:             $user = $repository->get($payload->jti[0]);
+ 67:             if (!$user)
+ 68:                 throw new AuthException('用户不存在');
+ 69:             if (!$user['status'])
+ 70:                 throw new AuthException('用户已被禁用');
+ 71:             if ($user['cancel_time'])
+ 72:                 throw new AuthException('用户不存在');
+ 73: 
+ 74:         } catch (Throwable $e) {
+ 75:             if ($force)
+ 76:                 throw  $e;
+ 77:             $request->macro('isLogin', function () {
+ 78:                 return false;
+ 79:             });
+ 80:             $request->macros(['tokenInfo', 'uid', 'userInfo', 'token'], function () {
+ 81:                 throw new AuthException('请登录');
+ 82:             });
+ 83:             return;
+ 84:         }
+ 85:         $repository->updateToken($token);
+ 86: 
+ 87:         $request->macro('isLogin', function () {
+ 88:             return true;
+ 89:         });
+ 90:         $request->macro('userType', function () {
+ 91:             return 1;
+ 92:         });
+ 93:         $request->macro('tokenInfo', function () use (&$payload) {
+ 94:             return $payload;
+ 95:         });
+ 96:         $request->macro('token', function () use (&$token) {
+ 97:             return $token;
+ 98:         });
+ 99:         $request->macro('uid', function () use (&$user) {
+100:             return $user->uid;
+101:         });
+102:         $request->macro('userInfo', function () use (&$user) {
+103:             return $user;
+104:         });
+105:     }
+106: 
+107:     public function after(Response $response)
+108:     {
+109:         // TODO: Implement after() method.
+110:     }
+111: }
+</file>
+
+<file path="VisitProductMiddleware.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\middleware;
+15: 
+16: use app\common\repositories\user\UserHistoryRepository;
+17: use app\common\repositories\user\UserVisitRepository;
+18: use app\Request;
+19: use crmeb\jobs\VisitProductJob;
+20: use crmeb\services\SwooleTaskService;
+21: use think\facade\Queue;
+22: use think\Response;
+23: 
+24: class VisitProductMiddleware extends BaseMiddleware
+25: {
+26: 
+27:     public function before(Request $request)
+28:     {
+29:         // TODO: Implement before() method.
+30:     }
+31: 
+32:     public function after(Response $response)
+33:     {
+34:         $id = intval($this->request->param('id/d'));
+35:         $type = $this->getArg(0);
+36:         if ($this->request->isLogin() && $id) {
+37:             Queue::push(VisitProductJob::class, [
+38:                 'uid' => $this->request->uid(),
+39:                 'res_type' => 1,
+40:                 'id' => $id,
+41:                 'product_type' => $type
+42:             ]);
+43:         }
+44:     }
+45: }
+</file>
+
+</files>

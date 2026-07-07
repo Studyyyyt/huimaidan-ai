@@ -1,0 +1,477 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: **/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+Common.php
+Login.php
+Service.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="Common.php">
+ 1: <?php
+ 2: 
+ 3: namespace app\controller\service;
+ 4: 
+ 5: use app\common\repositories\system\merchant\MerchantRepository;
+ 6: use crmeb\basic\BaseController;
+ 7: 
+ 8: class Common extends BaseController
+ 9: {
+10:     /**
+11:      * 获取商家信息
+12:      * @return \think\response\Json
+13:      * @author wuhaotian
+14:      * @email 442384644@qq.com
+15:      * @date 2024/7/8
+16:      */
+17:     public function info()
+18:     {
+19:         $merId = $this->request->merId();
+20:         if ($merId) {
+21:             $merchant = app()->make(MerchantRepository::class)->get($merId);
+22:             $data = [
+23:                 'mer_id' => $merchant['mer_id'],
+24:                 'avatar' => $merchant['mer_avatar'],
+25:                 'name'  => $merchant['mer_name'],
+26:             ];
+27:         } else {
+28:             $config = systemConfig(['site_logo', 'site_name','login_logo']);
+29:             $data = [
+30:                 'mer_id' => 0,
+31:                 'avatar' => $config['site_logo'],
+32:                 'name' => $config['site_name'],
+33:             ];
+34:         }
+35:         return app('json')->success($data);
+36:     }
+37: 
+38:     /**
+39:      * 获取管理员信息
+40:      * @return \think\response\Json
+41:      * @author wuhaotian
+42:      * @email 442384644@qq.com
+43:      * @date 2024/7/8
+44:      */
+45:     public function user()
+46:     {
+47:         $admin = $this->request->adminInfo();
+48:         return app('json')->success($admin->hidden(['pwd', 'merchant'])->toArray());
+49:     }
+50: 
+51:     /**
+52:      * 获取站点配置
+53:      * @return \think\response\Json
+54:      * @author wuhaotian
+55:      * @email 442384644@qq.com
+56:      * @date 2024/7/8
+57:      */
+58:     public function config()
+59:     {
+60:         return app('json')->success(systemConfig(['site_name', 'site_logo', 'beian_sn']));
+61:     }
+62: }
+</file>
+
+<file path="Login.php">
+  1: <?php
+  2: 
+  3: namespace app\controller\service;
+  4: 
+  5: use app\common\repositories\store\service\StoreServiceRepository;
+  6: use crmeb\basic\BaseController;
+  7: use Gregwar\Captcha\CaptchaBuilder;
+  8: use Gregwar\Captcha\PhraseBuilder;
+  9: use think\facade\Cache;
+ 10: 
+ 11: class Login extends BaseController
+ 12: {
+ 13:     /**
+ 14:      * 扫码登录
+ 15:      * @return \think\response\Json
+ 16:      * @throws \Exception
+ 17:      * @author wuhaotian
+ 18:      * @email 442384644@qq.com
+ 19:      * @date 2024/7/8
+ 20:      */
+ 21:     public function scanLogin()
+ 22:     {
+ 23:         $uni = uniqid(true, false) . random_int(1, 100000000);
+ 24:         $key = 'S' . md5(time() . $uni);
+ 25:         $siteUrl = rtrim(systemConfig('site_url'), '/');
+ 26:         $timeout = 600;
+ 27:         Cache::set('_scan_ser_login' . $key, 0, $timeout);
+ 28:         return app('json')->success(['timeout' => $timeout, 'key' => $key, 'qrcode' => $siteUrl . '/pages/chat/customer_login/index?key=' . $key]);
+ 29:     }
+ 30: 
+ 31:     /**
+ 32:      * 验证扫码
+ 33:      * @return \think\response\Json
+ 34:      * @author wuhaotian
+ 35:      * @email 442384644@qq.com
+ 36:      * @date 2024/7/8
+ 37:      */
+ 38:     public function checkScanLogin()
+ 39:     {
+ 40:         $key = (string)$this->request->param('key');
+ 41:         if ($key) {
+ 42:             $uid = Cache::get('_scan_ser_login' . $key);
+ 43:             if ($uid) {
+ 44:                 Cache::delete('_scan_ser_login' . $key);
+ 45:                 $repository = app()->make(StoreServiceRepository::class);
+ 46:                 $user = $repository->get($uid);
+ 47:                 if (!$user) {
+ 48:                     return app('json')->status(400, '登录失败');
+ 49:                 }
+ 50:                 if (!$user['is_open'])
+ 51:                     return app('json')->status(400, '登录失败');
+ 52:                 if (!$user['status'])
+ 53:                     return app('json')->status(400, '登录失败');
+ 54: 
+ 55:                 $tokenInfo = $repository->createToken($user);
+ 56:                 $user = $user->toArray();
+ 57:                 unset($user['pwd']);
+ 58:                 $data = [
+ 59:                     'token' => $tokenInfo['token'],
+ 60:                     'exp' => $tokenInfo['out'],
+ 61:                     'admin' => $user
+ 62:                 ];
+ 63:                 return app('json')->status(200, $data);
+ 64:             }
+ 65:         }
+ 66:         return app('json')->status(201, '未登录');
+ 67:     }
+ 68: 
+ 69:     /**
+ 70:      * 登录
+ 71:      * @param StoreServiceRepository $repository
+ 72:      * @return \think\response\Json
+ 73:      * @author wuhaotian
+ 74:      * @email 442384644@qq.com
+ 75:      * @date 2024/7/8
+ 76:      */
+ 77:     public function login(StoreServiceRepository $repository)
+ 78:     {
+ 79:         $data = $this->request->params(['account', 'password', 'key', 'code']);
+ 80:         if (Cache::get('ser_login_freeze_' . $data['account']))
+ 81:             return app('json')->fail('账号或密码错误次数太多，请稍后在尝试');
+ 82:         $repository->checkCode($data['key'], $data['code']);
+ 83: 
+ 84:         $service = $repository->getWhere(['account' => $data['account'], 'is_del' => 0]);
+ 85: 
+ 86:         if (!$service) {
+ 87:             return app('json')->fail('账号不存在');
+ 88:         }
+ 89:         if (!$service['is_open'])
+ 90:             return app('json')->fail('账号未开启');
+ 91:         if (!$service['status'])
+ 92:             return app('json')->fail('账号已被禁用');
+ 93: 
+ 94:         if (!password_verify($data['password'], $service['pwd'])) {
+ 95:             return $this->loginFailure($data['account']);
+ 96:         }
+ 97:         $tokenInfo = $repository->createToken($service);
+ 98:         $admin = $service->toArray();
+ 99:         unset($admin['pwd']);
+100:         $data = [
+101:             'token' => $tokenInfo['token'],
+102:             'exp' => $tokenInfo['out'],
+103:             'admin' => $admin
+104:         ];
+105: 
+106:         return app('json')->success($data);
+107:     }
+108: 
+109:     /**
+110:      * 退出登录
+111:      * @param StoreServiceRepository $repository
+112:      * @return \think\response\Json
+113:      * @author wuhaotian
+114:      * @email 442384644@qq.com
+115:      * @date 2024/7/8
+116:      */
+117:     public function logout(StoreServiceRepository $repository)
+118:     {
+119:         if ($this->request->isLogin())
+120:             $repository->clearToken($this->request->token());
+121:         return app('json')->success('退出登录');
+122:     }
+123: 
+124:     /**
+125:      * 获取验证码
+126:      * @return mixed
+127:      * @author xaboy
+128:      * @day 2020-04-09
+129:      */
+130:     public function getCaptcha(StoreServiceRepository $repository)
+131:     {
+132:         $codeBuilder = new CaptchaBuilder(null, new PhraseBuilder(4));
+133:         $key = $repository->createLoginKey($codeBuilder->getPhrase());
+134:         $captcha = $codeBuilder->build()->inline();
+135:         return app('json')->success(compact('key', 'captcha'));
+136:     }
+137: 
+138:     /**
+139:      * 登录尝试次数限制
+140:      * @param $account
+141:      * @param int $number
+142:      * @param int $n
+143:      * @author Qinii
+144:      * @day 7/6/21
+145:      */
+146:     public function loginFailure($account, $number = 5, $n = 3)
+147:     {
+148:         $key = 'ser_login_failuree_' . $account;
+149:         $numb = Cache::get($key) ?? 0;
+150:         $numb++;
+151:         if ($numb >= $number) {
+152:             $fail_key = 'ser_login_freeze_' . $account;
+153:             Cache::set($fail_key, 1, 15 * 60);
+154:             return app('json')->fail('账号或密码错误次数太多，请稍后在尝试');
+155:         }
+156:         Cache::set($key, $numb, 5 * 60);
+157:         $msg = '账号或密码错误';
+158:         $_n = $number - $numb;
+159:         if ($_n <= $n) {
+160:             $msg .= ',还可尝试' . $_n . '次';
+161:         }
+162:         return app('json')->fail($msg);
+163:     }
+164: }
+</file>
+
+<file path="Service.php">
+  1: <?php
+  2: 
+  3: namespace app\controller\service;
+  4: 
+  5: use app\common\repositories\store\order\StoreOrderRepository;
+  6: use app\common\repositories\store\order\StoreOrderStatusRepository;
+  7: use app\common\repositories\store\order\StoreRefundOrderRepository;
+  8: use app\common\repositories\store\product\ProductRepository;
+  9: use app\common\repositories\store\service\StoreServiceLogRepository;
+ 10: use app\common\repositories\store\service\StoreServiceUserRepository;
+ 11: use app\common\repositories\system\ExtendRepository;
+ 12: use crmeb\basic\BaseController;
+ 13: use crmeb\services\UploadService;
+ 14: use think\App;
+ 15: 
+ 16: class Service extends BaseController
+ 17: {
+ 18:     protected $repository;
+ 19: 
+ 20:     public function __construct(App $app, StoreServiceUserRepository $repository)
+ 21:     {
+ 22:         parent::__construct($app);
+ 23:         $this->repository = $repository;
+ 24:     }
+ 25: 
+ 26:     /**
+ 27:      * 客服列表
+ 28:      * @return \think\response\Json
+ 29:      * @author wuhaotian
+ 30:      * @email 442384644@qq.com
+ 31:      * @date 2024/7/8
+ 32:      */
+ 33:     public function serviceUserList()
+ 34:     {
+ 35:         [$page, $limit] = $this->getPage();
+ 36:         $where = $this->request->params(['keyword']);
+ 37:         $admin = $this->request->adminInfo();
+ 38:         $where['service_id'] = $admin->service_id;
+ 39:         return app('json')->success($this->repository->serviceUserList($where, $admin->mer_id, $page, $limit));
+ 40:     }
+ 41: 
+ 42:     /**
+ 43:      * 用户备注
+ 44:      * @param $uid
+ 45:      * @param StoreServiceUserRepository $serviceUserRepository
+ 46:      * @param ExtendRepository $extendRepository
+ 47:      * @return \think\response\Json
+ 48:      * @author wuhaotian
+ 49:      * @email 442384644@qq.com
+ 50:      * @date 2024/7/8
+ 51:      */
+ 52:     public function mark($uid, StoreServiceUserRepository $serviceUserRepository, ExtendRepository $extendRepository)
+ 53:     {
+ 54:         $data = $this->request->params(['mark']);
+ 55:         $service = $this->request->adminInfo();
+ 56:         if ($service->mer_id && !$serviceUserRepository->existsWhere(['uid' => (int)$uid, 'mer_id' => $service->mer_id])) {
+ 57:             return app('json')->fail('用户不存在');
+ 58:         }
+ 59:         $extendRepository->updateInfo(ExtendRepository::TYPE_SERVICE_USER_MARK, (int)$uid, $service->mer_id, (string)$data['mark']);
+ 60:         return app('json')->success('备注成功');
+ 61:     }
+ 62: 
+ 63:     /**
+ 64:      * 聊天历史
+ 65:      * @param $uid
+ 66:      * @param StoreServiceLogRepository $logRepository
+ 67:      * @return \think\response\Json
+ 68:      * @author wuhaotian
+ 69:      * @email 442384644@qq.com
+ 70:      * @date 2024/7/8
+ 71:      */
+ 72:     public function history($uid, StoreServiceLogRepository $logRepository)
+ 73:     {
+ 74:         [$page, $limit] = $this->getPage();
+ 75:         $where = $this->request->params(['last_id']);
+ 76:         $service = $this->request->adminInfo();
+ 77:         return app('json')->success($logRepository->serviceList($service->mer_id, $service->service_id, (int)$uid, $page, $limit, $where['last_id']));
+ 78:     }
+ 79: 
+ 80:     /**
+ 81:      * 文件上传
+ 82:      * @param $field
+ 83:      * @return \think\response\Json
+ 84:      * @author wuhaotian
+ 85:      * @email 442384644@qq.com
+ 86:      * @date 2024/7/8
+ 87:      */
+ 88:     public function upload($field)
+ 89:     {
+ 90:         $file = $this->request->file($field);
+ 91:         if (!$file) return app('json')->fail('请上传图片');
+ 92:         $upload = UploadService::create();
+ 93:         $data = $upload->to('attach')->validate()->move($field);
+ 94:         if ($data === false) {
+ 95:             return app('json')->fail($upload->getError());
+ 96:         }
+ 97:         return app('json')->success(['src' => tidy_url($upload->getFileInfo()->filePath)]);
+ 98:     }
+ 99: 
+100:     /**
+101:      * 获取订单详情
+102:      * @param $id
+103:      * @return \think\response\Json
+104:      * @author wuhaotian
+105:      * @email 442384644@qq.com
+106:      * @date 2024/7/8
+107:      */
+108:     public function getOrderInfo($id)
+109:     {
+110:         return app('json')->success(app()->make(StoreOrderRepository::class)->getOne($id, null));
+111:     }
+112: 
+113:     /**
+114:      * 获取订单状态
+115:      * @param $id
+116:      * @return \think\response\Json
+117:      * @author wuhaotian
+118:      * @email 442384644@qq.com
+119:      * @date 2024/7/8
+120:      */
+121:     public function orderStatus($id)
+122:     {
+123:         [$page, $limit] = $this->getPage();
+124:         $where = $this->request->params(['date','user_type']);
+125:         $where['id'] = $id;
+126:         return app('json')->success(app()->make(StoreOrderRepository::class)->getOrderStatus($where, $page, $limit));
+127:     }
+128: 
+129:     /**
+130:      * 获取退款订单
+131:      * @param $id
+132:      * @return \think\response\Json
+133:      * @author wuhaotian
+134:      * @email 442384644@qq.com
+135:      * @date 2024/7/8
+136:      */
+137:     public function getRefundOder($id)
+138:     {
+139:         $data = app()->make(StoreRefundOrderRepository::class)->getOne($id);
+140:         if (!$data) return app('json')->fail("数据不存在");
+141:         return app('json')->success($data);
+142:     }
+143: 
+144:     /**
+145:      * 订单物流
+146:      * @param $id
+147:      * @return \think\response\Json
+148:      * @author wuhaotian
+149:      * @email 442384644@qq.com
+150:      * @date 2024/7/8
+151:      */
+152:     public function orderExpress($id)
+153:     {
+154:         $make = app()->make(StoreOrderRepository::class);
+155:         return app('json')->success($make->express($id, null));
+156:     }
+157: 
+158:     /**
+159:      * 退款订单物流
+160:      * @param $id
+161:      * @return \think\response\Json
+162:      * @author wuhaotian
+163:      * @email 442384644@qq.com
+164:      * @date 2024/7/8
+165:      */
+166:     public function refundOrderExpress($id)
+167:     {
+168:         $make = app()->make(StoreRefundOrderRepository::class);
+169:         return app('json')->success($make->express($id));
+170:     }
+171: 
+172:     /**
+173:      * 商品详情
+174:      * @param $id
+175:      * @return \think\response\Json
+176:      * @author wuhaotian
+177:      * @email 442384644@qq.com
+178:      * @date 2024/7/8
+179:      */
+180:     public function product($id)
+181:     {
+182:         $data = app()->make(ProductRepository::class)->getWhere(['product_id' => $id],'*',['content']);
+183:         return app('json')->success($data);
+184:     }
+185: 
+186: }
+</file>
+
+</files>

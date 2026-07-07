@@ -1,0 +1,1250 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: **/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+handler/AdminHandler.php
+handler/MerchantHandler.php
+handler/ServiceHandler.php
+handler/UserHandler.php
+Manager.php
+Ping.php
+SwooleWorkerStart.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="handler/AdminHandler.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\webscoket\handler;
+15: 
+16: 
+17: use app\common\repositories\system\admin\AdminRepository;
+18: use crmeb\services\JwtTokenService;
+19: use Firebase\JWT\ExpiredException;
+20: use Swoole\Server;
+21: use think\db\exception\DataNotFoundException;
+22: use think\db\exception\DbException;
+23: use think\db\exception\ModelNotFoundException;
+24: use Throwable;
+25: 
+26: /**
+27:  * Class Handler
+28:  * @package app\webscoket
+29:  * @author xaboy
+30:  * @day 2020-04-29
+31:  */
+32: class AdminHandler
+33: {
+34:     /**
+35:      * @var Server
+36:      */
+37:     protected $server;
+38: 
+39:     /**
+40:      * AdminHandler constructor.
+41:      * @param Server $server
+42:      */
+43:     public function __construct(Server $server)
+44:     {
+45:         $this->server = $server;
+46:     }
+47: 
+48:     /**
+49:      * @param array $data
+50:      * @return mixed
+51:      * @author xaboy
+52:      * @day 2020-05-06
+53:      */
+54:     public function test(array $data)
+55:     {
+56:         return app('json')->success($data);
+57:     }
+58: 
+59:     /**
+60:      * @param array $data
+61:      * @return mixed
+62:      * @throws DataNotFoundException
+63:      * @throws DbException
+64:      * @throws ModelNotFoundException
+65:      * @author xaboy
+66:      * @day 2020-05-06
+67:      */
+68:     public function login(array $data)
+69:     {
+70:         $token = $data['token'] ?? '';
+71:         if (!$token) return app('json')->fail('token 无效');
+72: 
+73:         /**
+74:          * @var AdminRepository $repository
+75:          */
+76:         $repository = app()->make(AdminRepository::class);
+77:         $service = new JwtTokenService();
+78:         try {
+79:             $payload = $service->parseToken($token);
+80:         } catch (ExpiredException $e) {
+81:             $repository->checkToken($token);
+82:             $payload = $service->decode($token);
+83:         } catch (Throwable $e) {//Token 过期
+84:             return app('json')->fail('token 已过期，请重新登录');
+85:         }
+86:         if ('admin' != $payload->jti[1])
+87:             return app('json')->fail('无效的 token');
+88: 
+89:         $admin = $repository->get($payload->jti[0]);
+90:         if (!$admin)
+91:             return app('json')->fail('账号不存在');
+92: //        if (!$admin['status'])
+93: //            return app('json')->fail('账号已被禁用');
+94:         return app('json')->success(['uid' => $admin->admin_id, 'data' => $admin->toArray()]);
+95:     }
+96: 
+97: }
+</file>
+
+<file path="handler/MerchantHandler.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\webscoket\handler;
+ 15: 
+ 16: 
+ 17: use app\common\repositories\system\merchant\MerchantAdminRepository;
+ 18: use app\common\repositories\system\merchant\MerchantRepository;
+ 19: use crmeb\services\JwtTokenService;
+ 20: use Firebase\JWT\ExpiredException;
+ 21: use Swoole\Server;
+ 22: use think\db\exception\DataNotFoundException;
+ 23: use think\db\exception\DbException;
+ 24: use think\db\exception\ModelNotFoundException;
+ 25: use Throwable;
+ 26: 
+ 27: /**
+ 28:  * Class Handler
+ 29:  * @package app\webscoket
+ 30:  * @author xaboy
+ 31:  * @day 2020-04-29
+ 32:  */
+ 33: class MerchantHandler
+ 34: {
+ 35:     /**
+ 36:      * @var Server
+ 37:      */
+ 38:     protected $server;
+ 39: 
+ 40:     /**
+ 41:      * MerchantHandler constructor.
+ 42:      * @param Server $server
+ 43:      */
+ 44:     public function __construct(Server $server)
+ 45:     {
+ 46:         $this->server = $server;
+ 47:     }
+ 48: 
+ 49:     /**
+ 50:      * @param array $data
+ 51:      * @return mixed
+ 52:      * @author xaboy
+ 53:      * @day 2020-05-06
+ 54:      */
+ 55:     public function test(array $data)
+ 56:     {
+ 57:         return app('json')->success($data);
+ 58:     }
+ 59: 
+ 60:     /**
+ 61:      * @param array $data
+ 62:      * @return mixed
+ 63:      * @throws DataNotFoundException
+ 64:      * @throws DbException
+ 65:      * @throws ModelNotFoundException
+ 66:      * @author xaboy
+ 67:      * @day 2020-05-06
+ 68:      */
+ 69:     public function login(array $data)
+ 70:     {
+ 71:         $token = $data['token'] ?? '';
+ 72:         if (!$token) return app('json')->fail('token 无效');
+ 73:         /**
+ 74:          * @var MerchantAdminRepository $repository
+ 75:          */
+ 76:         $repository = app()->make(MerchantAdminRepository::class);
+ 77:         $service = new JwtTokenService();
+ 78:         try {
+ 79:             $payload = $service->parseToken($token);
+ 80:         } catch (ExpiredException $e) {
+ 81:             $repository->checkToken($token);
+ 82:             $payload = $service->decode($token);
+ 83:         } catch (Throwable $e) {//Token 过期
+ 84:             return app('json')->fail('token 已过期，请重新登录');
+ 85:         }
+ 86:         if ('mer' != $payload->jti[1])
+ 87:             return app('json')->fail('无效的 token');
+ 88: 
+ 89:         $admin = $repository->get($payload->jti[0]);
+ 90:         if (!$admin)
+ 91:             return app('json')->fail('账号不存在');
+ 92: //        if (!$admin['status'])
+ 93: //            return app('json')->fail('账号已被禁用');
+ 94: 
+ 95:         /**
+ 96:          * @var MerchantRepository $merchantRepository
+ 97:          */
+ 98:         $merchantRepository = app()->make(MerchantRepository::class);
+ 99: 
+100:         $merchant = $merchantRepository->get($admin['mer_id']);
+101: 
+102:         if (!$merchant || !$merchant['status'])
+103:             return app('json')->fail('商户已被锁定');
+104: 
+105:         return app('json')->success(['uid' => $admin->merchant_admin_id, 'mer_id' => $admin['mer_id'], 'data' => $admin->toArray()]);
+106:     }
+107: 
+108: }
+</file>
+
+<file path="handler/ServiceHandler.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\webscoket\handler;
+ 15: 
+ 16: 
+ 17: use app\common\repositories\store\service\StoreServiceLogRepository;
+ 18: use app\common\repositories\store\service\StoreServiceRepository;
+ 19: use app\common\repositories\store\service\StoreServiceUserRepository;
+ 20: use crmeb\services\JwtTokenService;
+ 21: use crmeb\services\SwooleTaskService;
+ 22: use Firebase\JWT\ExpiredException;
+ 23: use Swoole\Server;
+ 24: use think\db\exception\DataNotFoundException;
+ 25: use think\db\exception\DbException;
+ 26: use think\db\exception\ModelNotFoundException;
+ 27: use think\exception\ValidateException;
+ 28: use think\facade\Cache;
+ 29: use Throwable;
+ 30: 
+ 31: /**
+ 32:  * Class UserHandler
+ 33:  * @package app\webscoket\handler
+ 34:  * @author xaboy
+ 35:  * @day 2020-04-29
+ 36:  */
+ 37: class ServiceHandler
+ 38: {
+ 39:     /**
+ 40:      * @var Server
+ 41:      */
+ 42:     protected $server;
+ 43: 
+ 44:     /**
+ 45:      * UserHandler constructor.
+ 46:      * @param Server $server
+ 47:      */
+ 48:     public function __construct(Server $server)
+ 49:     {
+ 50:         $this->server = $server;
+ 51:     }
+ 52: 
+ 53:     /**
+ 54:      * @param array $data
+ 55:      * @return mixed
+ 56:      * @author xaboy
+ 57:      * @day 2020-05-06
+ 58:      */
+ 59:     public function test(array $data)
+ 60:     {
+ 61:         return app('json')->success($data);
+ 62:     }
+ 63: 
+ 64:     /**
+ 65:      * @param array $data
+ 66:      * @return mixed
+ 67:      * @throws DataNotFoundException
+ 68:      * @throws DbException
+ 69:      * @throws ModelNotFoundException
+ 70:      * @author xaboy
+ 71:      * @day 2020-05-06
+ 72:      */
+ 73:     public function login(array $data)
+ 74:     {
+ 75:         $token = $data['token'] ?? '';
+ 76:         if (!$token) return app('json')->message('err_tip', '登录过期');
+ 77: 
+ 78:         $repository = app()->make(StoreServiceRepository::class);
+ 79:         $service = new JwtTokenService();
+ 80:         try {
+ 81:             $payload = $service->parseToken($token);
+ 82:         } catch (ExpiredException $e) {
+ 83:             $repository->checkToken($token);
+ 84:             $payload = $service->decode($token);
+ 85:         } catch (Throwable $e) {//Token 过期
+ 86:             return app('json')->message('err_tip', '登录过期');
+ 87:         }
+ 88:         if ('service' != $payload->jti[1])
+ 89:             return app('json')->message('err_tip', '登录过期');
+ 90:         $service = $repository->get($payload->jti[0]);
+ 91: 
+ 92:         if (!$service)
+ 93:             return app('json')->message('err_tip', '账号不存在');
+ 94:         if (!$service['is_open'])
+ 95:             return app('json')->message('err_tip', '账号已被禁用');
+ 96:         $this->switchServiceChat($service->uid, $data['fd'], 0, 0);
+ 97:         return app('json')->success(['uid' => $service->uid, 'payload' => [$service->service_id], 'data' => $service->toArray()]);
+ 98:     }
+ 99: 
+100:     /**
+101:      * @param array $data
+102:      * @return mixed
+103:      * @author xaboy
+104:      * @day 2020-05-06
+105:      */
+106:     public function uid(array $data)
+107:     {
+108:         return app('json')->success(['uid' => $data['frame']->uid]);
+109:     }
+110: 
+111:     public function closeServiceChat($uid, $fd)
+112:     {
+113:         $lst = Cache::sMembers('m_chat' . $uid) ?: [];
+114:         foreach ($lst as $key) {
+115:             if (strpos($key, $fd . '/') === 0) {
+116:                 Cache::srem('m_chat' . $uid, $key);
+117:             }
+118:         }
+119:     }
+120: 
+121:     public function service_chat_end(array $result)
+122:     {
+123:         $this->closeServiceChat($result['frame']->uid, $result['frame']->fd);
+124:     }
+125: 
+126:     public function service_chat_start(array $result)
+127:     {
+128:         $this->switchServiceChat($result['frame']->uid, $result['frame']->fd, $result['data']['mer_id'] ?? 0, $result['data']['uid']);
+129:     }
+130: 
+131: 
+132:     public function switchServiceChat($uid, $fd, $merId, $toUid)
+133:     {
+134:         $this->closeServiceChat($uid, $fd);
+135:         Cache::sadd('m_chat' . $uid, $fd . '/' . $merId . '/' . $toUid);
+136:     }
+137: 
+138: 
+139:     /**
+140:      * 商户给用户发
+141:      * @param array $result
+142:      * @return \think\response\Json
+143:      */
+144:     public function service_chat(array $result)
+145:     {
+146:         $data = $result['data'];
+147:         $frame = $result['frame'];
+148:         if (!isset($data['msn_type']) || !isset($data['msn']) || !isset($data['uid']) || !isset($data['mer_id']))
+149:             return app('json')->message('err_tip', '数据格式错误');
+150:         if (!$data['msn']) return app('json')->message('err_tip', '请输入发送内容');
+151:         if (!in_array($data['msn_type'], [1, 2, 3, 4, 5, 6, 7, 8, 100]))
+152:             return app('json')->message('err_tip', '消息类型有误');
+153:         $service = app()->make(StoreServiceRepository::class)->get($frame->payload[0]);
+154:         if (!$service || !$service['status'] || !$service['is_open'])
+155:             return app('json')->message('err_tip', '没有权限');
+156:         $storeServiceLogRepository = app()->make(StoreServiceLogRepository::class);
+157:         if ($service->mer_id && !$storeServiceLogRepository->issetLog($data['uid'], $service->mer_id))
+158:             return app('json')->message('err_tip', '不能主动发送给用户');
+159: 
+160:         $this->switchServiceChat($frame->uid, $frame->fd, $service->mer_id, $data['uid']);
+161: 
+162:         $data['msn'] = trim(strip_tags(htmlspecialchars_decode($data['msn'])));
+163:         $data['mer_id'] = $service->mer_id;
+164:         $data['service_id'] = $service->service_id;
+165:         $data['send_type'] = 1;
+166:         try {
+167:             $storeServiceLogRepository->checkMsn($service->mer_id, $data['uid'], $data['msn_type'], $data['msn']);
+168:         } catch (ValidateException $e) {
+169:             return app('json')->message('err_tip', $e->getMessage());
+170:         }
+171:         if ($data['msn_type'] == 100) {
+172:             if (!$storeServiceLogRepository->query(['service_log_id' => $data['msn']])
+173:                 ->where('create_time', '>', date('Y-m-d H:i:s', strtotime('- 120 seconds')))->where('mer_id', $data['mer_id'])->where('send_type', 1)->count()) {
+174:                 return app('json')->message('err_tip', '消息不能撤回');
+175:             }
+176:         }
+177:         $log = $storeServiceLogRepository->create($data);
+178:         if ($data['msn_type'] == 100) {
+179:             $storeServiceLogRepository->query(['service_log_id' => $data['msn']])->delete();
+180:         }
+181:         app()->make(StoreServiceUserRepository::class)->updateInfo($log, false);
+182:         $storeServiceLogRepository->getSendData($log);
+183:         $log->set('service', $service->visible(['service_id', 'avatar', 'nickname'])->toArray());
+184:         $log = $log->toArray();
+185:         $log['send_time'] = strtotime($log['create_time']);
+186:         $log['send_date'] = date('H:i',strtotime($log['create_time']));
+187:         SwooleTaskService::chatToUser([
+188:             'uid' => $data['uid'],
+189:             'data' => $log,
+190:             'except' => [$frame->fd]
+191:         ]);
+192: 
+193:         return app('json')->message('chat', $log);
+194:     }
+195: 
+196:     public function close($result)
+197:     {
+198:         $this->closeServiceChat($result['uid'], $result['fd']);
+199:     }
+200: 
+201: }
+</file>
+
+<file path="handler/UserHandler.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\webscoket\handler;
+ 15: 
+ 16: 
+ 17: use app\common\repositories\store\service\StoreServiceLogRepository;
+ 18: use app\common\repositories\store\service\StoreServiceRepository;
+ 19: use app\common\repositories\store\service\StoreServiceUserRepository;
+ 20: use app\common\repositories\system\merchant\MerchantRepository;
+ 21: use app\common\repositories\user\UserRepository;
+ 22: use crmeb\services\JwtTokenService;
+ 23: use crmeb\services\SwooleTaskService;
+ 24: use Firebase\JWT\ExpiredException;
+ 25: use Swoole\Server;
+ 26: use think\db\exception\DataNotFoundException;
+ 27: use think\db\exception\DbException;
+ 28: use think\db\exception\ModelNotFoundException;
+ 29: use think\exception\ValidateException;
+ 30: use think\facade\Cache;
+ 31: use Throwable;
+ 32: 
+ 33: /**
+ 34:  * Class UserHandler
+ 35:  * @package app\webscoket\handler
+ 36:  * @author xaboy
+ 37:  * @day 2020-04-29
+ 38:  */
+ 39: class UserHandler
+ 40: {
+ 41:     /**
+ 42:      * @var Server
+ 43:      */
+ 44:     protected $server;
+ 45: 
+ 46:     /**
+ 47:      * UserHandler constructor.
+ 48:      * @param Server $server
+ 49:      */
+ 50:     public function __construct(Server $server)
+ 51:     {
+ 52:         $this->server = $server;
+ 53:     }
+ 54: 
+ 55:     /**
+ 56:      * @param array $data
+ 57:      * @return mixed
+ 58:      * @author xaboy
+ 59:      * @day 2020-05-06
+ 60:      */
+ 61:     public function test(array $data)
+ 62:     {
+ 63:         return app('json')->success($data);
+ 64:     }
+ 65: 
+ 66:     /**
+ 67:      * @param array $data
+ 68:      * @return mixed
+ 69:      * @throws DataNotFoundException
+ 70:      * @throws DbException
+ 71:      * @throws ModelNotFoundException
+ 72:      * @author xaboy
+ 73:      * @day 2020-05-06
+ 74:      */
+ 75:     public function login(array $data)
+ 76:     {
+ 77:         $token = $data['token'] ?? '';
+ 78:         if ($token && strpos($token, 'Bearer') === 0)
+ 79:             $token = trim(substr($token, 6));
+ 80:         if (!$token) return app('json')->message('err_tip', '登录过期');
+ 81: 
+ 82:         /**
+ 83:          * @var UserRepository $repository
+ 84:          */
+ 85:         $repository = app()->make(UserRepository::class);
+ 86:         $service = new JwtTokenService();
+ 87:         try {
+ 88:             $payload = $service->parseToken($token);
+ 89:         } catch (ExpiredException $e) {
+ 90:             $repository->checkToken($token);
+ 91:             $payload = $service->decode($token);
+ 92:         } catch (Throwable $e) {//Token 过期
+ 93:             return app('json')->message('err_tip', '登录过期');
+ 94:         }
+ 95:         if ('user' != $payload->jti[1])
+ 96:             return app('json')->message('err_tip', '登录过期');
+ 97: 
+ 98:         $user = $repository->get($payload->jti[0]);
+ 99:         if (!$user)
+100:             return app('json')->message('err_tip', '账号不存在');
+101:         if (!$user['status'])
+102:             return app('json')->message('err_tip', '账号状态已关闭');
+103: 
+104:         return app('json')->success(['uid' => $user->uid, 'data' => $user->toArray()]);
+105:     }
+106: 
+107:     /**
+108:      * @param array $data
+109:      * @return mixed
+110:      * @author xaboy
+111:      * @day 2020-05-06
+112:      */
+113:     public function uid(array $data)
+114:     {
+115:         return app('json')->success(['uid' => $data['frame']->uid]);
+116:     }
+117: 
+118:     public static function serviceOnline($uid, $toUid)
+119:     {
+120:         $lst = Cache::sMembers('m_chat' . $uid) ?: [];
+121:         foreach ($lst as $key) {
+122:             if (strpos($key, '/' . $toUid) !== false) {
+123:                 return true;
+124:             }
+125:         }
+126:         return false;
+127:     }
+128: 
+129:     public static function userOnline($uid, $merId)
+130:     {
+131:         $lst = Cache::sMembers('u_chat' . $uid) ?: [];
+132:         foreach ($lst as $key) {
+133:             if (strpos($key, '/' . $merId) !== false) {
+134:                 return true;
+135:             }
+136:         }
+137:         return false;
+138:     }
+139: 
+140:     public function closeServiceChat($uid, $fd)
+141:     {
+142:         $lst = Cache::sMembers('m_chat' . $uid) ?: [];
+143:         foreach ($lst as $key) {
+144:             if (strpos($key, $fd . '/') === 0) {
+145:                 Cache::srem('m_chat' . $uid, $key);
+146:             }
+147:         }
+148:     }
+149: 
+150:     public function service_chat_end(array $result)
+151:     {
+152:         $this->closeServiceChat($result['frame']->uid, $result['frame']->fd);
+153:     }
+154: 
+155:     public function closeChat($uid, $fd)
+156:     {
+157:         $lst = Cache::sMembers('u_chat' . $uid) ?: [];
+158:         foreach ($lst as $key) {
+159:             if (strpos($key, $fd . '/') === 0) {
+160:                 Cache::srem('u_chat' . $uid, $key);
+161:             }
+162:         }
+163:     }
+164: 
+165:     public function chat_end(array $result)
+166:     {
+167:         app()->make(StoreServiceUserRepository::class)->online($result['frame']->uid, 0);
+168:         $this->closeChat($result['frame']->uid, $result['frame']->fd);
+169:     }
+170: 
+171:     public function service_chat_start(array $result)
+172:     {
+173:         $this->switchServiceChat($result['frame']->uid, $result['frame']->fd, $result['data']['mer_id'] ?? 0, $result['data']['uid']);
+174:     }
+175: 
+176:     public function chat_start(array $result)
+177:     {
+178:         app()->make(StoreServiceUserRepository::class)->online($result['frame']->uid, 1);
+179:         $this->switchChat($result['frame']->uid, $result['frame']->fd, $result['data']['mer_id'] ?? 0);
+180:     }
+181: 
+182: 
+183:     public function switchServiceChat($uid, $fd, $merId, $toUid)
+184:     {
+185:         $this->closeServiceChat($uid, $fd);
+186:         Cache::sadd('m_chat' . $uid, $fd . '/' . $merId . '/' . $toUid);
+187:     }
+188: 
+189:     public function switchChat($uid, $fd, $merId)
+190:     {
+191:         $this->closeChat($uid, $fd);
+192:         Cache::sadd('u_chat' . $uid, $fd . '/' . $merId);
+193:     }
+194: 
+195:     /**
+196:      * 商户给用户发
+197:      * @param array $result
+198:      * @return \think\response\Json
+199:      */
+200:     public function service_chat(array $result)
+201:     {
+202:         $data = $result['data'];
+203:         $frame = $result['frame'];
+204:         if (!isset($data['msn_type']) || !isset($data['msn']) || !isset($data['uid']) || !isset($data['mer_id']))
+205:             return app('json')->message('err_tip', '数据格式错误');
+206:         if (!$data['msn']) return app('json')->message('err_tip', '请输入发送内容');
+207:         if (!in_array($data['msn_type'], [1, 2, 3, 4, 5, 6, 7, 8, 100]))
+208:             return app('json')->message('err_tip', '消息类型有误');
+209:         $service = app()->make(StoreServiceRepository::class)->getService($frame->uid, (int)$data['mer_id']);
+210:         if (!$service || !$service['status'])
+211:             return app('json')->message('err_tip', '没有权限');
+212:         $storeServiceLogRepository = app()->make(StoreServiceLogRepository::class);
+213:         if ($service->mer_id && !$storeServiceLogRepository->issetLog($data['uid'], $service->mer_id))
+214:             return app('json')->message('err_tip', '不能主动发送给用户');
+215: 
+216:         $this->switchServiceChat($frame->uid, $frame->fd, $service->mer_id, $data['uid']);
+217: 
+218:         $data['msn'] = trim(strip_tags(htmlspecialchars_decode($data['msn'])));
+219:         $data['mer_id'] = $service->mer_id;
+220:         $data['service_id'] = $service->service_id;
+221:         $data['send_type'] = 1;
+222:         try {
+223:             $storeServiceLogRepository->checkMsn($service->mer_id, $data['uid'], $data['msn_type'], $data['msn']);
+224:         } catch (ValidateException $e) {
+225:             return app('json')->message('err_tip', $e->getMessage());
+226:         }
+227:         if ($data['msn_type'] == 100) {
+228:             if (!$storeServiceLogRepository->query(['service_log_id' => $data['msn']])
+229:                 ->where('create_time', '>', date('Y-m-d H:i:s', strtotime('- 120 seconds')))->where('mer_id', $data['mer_id'])->where('send_type', 1)->count()) {
+230:                 return app('json')->message('err_tip', '消息不能撤回');
+231:             }
+232:         }
+233:         $log = $storeServiceLogRepository->create($data);
+234:         if ($data['msn_type'] == 100) {
+235:             $storeServiceLogRepository->query(['service_log_id' => $data['msn']])->delete();
+236:         }
+237:         app()->make(StoreServiceUserRepository::class)->updateInfo($log, false);
+238:         $storeServiceLogRepository->getSendData($log);
+239:         $log->set('service', $service->visible(['service_id', 'avatar', 'nickname'])->toArray());
+240:         $log = $log->toArray();
+241:         $log['send_time'] = strtotime($log['create_time']);
+242:         $log['send_date'] = date('H:i', strtotime($log['create_time']));
+243:         SwooleTaskService::chatToUser([
+244:             'uid' => $data['uid'],
+245:             'data' => $log,
+246:             'except' => [$frame->fd]
+247:         ]);
+248: 
+249:         return app('json')->message('chat', $log);
+250:     }
+251: 
+252:     /**
+253:      * 用户给商户发
+254:      * @param array $result
+255:      * @return \think\response\Json
+256:      * @throws DataNotFoundException
+257:      * @throws DbException
+258:      * @throws ModelNotFoundException
+259:      */
+260:     public function send_chat(array $result)
+261:     {
+262:         $data = $result['data'];
+263:         $frame = $result['frame'];
+264:         if (!isset($data['msn_type']) || !isset($data['msn']) || !isset($data['mer_id']))
+265:             return app('json')->message('err_tip', '数据格式错误');
+266:         if (!$data['msn']) return app('json')->message('err_tip', '请输入发送内容');
+267:         if (!in_array($data['msn_type'], [1, 2, 3, 4, 5, 6, 7, 8, 100]))
+268:             return app('json')->message('err_tip', '消息类型有误');
+269:         if ($data['mer_id'] && !app()->make(MerchantRepository::class)->exists(intval($data['mer_id'])))
+270:             return app('json')->message('err_tip', '商户不存在');
+271:         if (!$data['mer_id'] && systemConfig('is_open_service') != 1)
+272:             return app('json')->message('err_tip', '功能未开启');
+273:         $service = app()->make(StoreServiceRepository::class)->getChatService($data['mer_id'], $frame->uid);
+274:         if (!$service)
+275:             return app('json')->message('err_tip', '该商户暂无有效客服');
+276:         $data['msn'] = trim(strip_tags(htmlspecialchars_decode($data['msn'])));
+277:         if (!$data['msn'])
+278:             return app('json')->message('err_tip', '内容字符无效');
+279:         $this->switchChat($frame->uid, $frame->fd, $data['mer_id']);
+280:         $data['uid'] = $frame->uid;
+281:         $data['service_id'] = $service->service_id;
+282:         $data['send_type'] = 0;
+283:         $storeServiceLogRepository = app()->make(StoreServiceLogRepository::class);
+284:         try {
+285:             $storeServiceLogRepository->checkMsn($data['mer_id'], $frame->uid, $data['msn_type'], $data['msn']);
+286:         } catch (ValidateException $e) {
+287:             return app('json')->message('err_tip', $e->getMessage());
+288:         }
+289:         if ($data['msn_type'] == 100) {
+290:             if (!$storeServiceLogRepository->query(['service_log_id' => $data['msn']])
+291:                 ->where('create_time', '>', date('Y-m-d H:i:s', strtotime('- 120 seconds')))->where('uid', $data['uid'])->where('send_type', 0)->count()) {
+292:                 return app('json')->message('err_tip', '消息不能撤回');
+293:             }
+294:         }
+295:         $log = $storeServiceLogRepository->create($data);
+296:         if ($data['msn_type'] == 100) {
+297:             $storeServiceLogRepository->query(['service_log_id' => $data['msn']])->delete();
+298:         }
+299:         app()->make(StoreServiceUserRepository::class)->updateInfo($log, true);
+300:         $storeServiceLogRepository->getSendData($log);
+301:         $log->user;
+302:         $log = $log->toArray();
+303:         $log['send_time'] = strtotime($log['create_time']);
+304:         $log['send_date'] = date('H:i',strtotime($log['create_time']));
+305:         //TODO 发送给客服,是否在线,发送提醒
+306:         SwooleTaskService::chatToService([
+307:             'uid' => $service->uid,
+308:             'data' => $log,
+309:             'except' => [$frame->fd]
+310:         ]);
+311: 
+312:         return app('json')->message('chat', $log);
+313:     }
+314: 
+315:     public function close($result)
+316:     {
+317:         if ($result['type'] === 'user') {
+318:             app()->make(StoreServiceUserRepository::class)->online($result['uid'], 0);
+319:             $this->closeChat($result['uid'], $result['fd']);
+320:         } else {
+321:             $this->closeServiceChat($result['uid'], $result['fd']);
+322:         }
+323:     }
+324: 
+325: }
+</file>
+
+<file path="Manager.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\webscoket;
+ 15: 
+ 16: use app\common\repositories\system\DataScreenRepository;
+ 17: use app\webscoket\handler\AdminHandler;
+ 18: use app\webscoket\handler\MerchantHandler;
+ 19: use app\webscoket\handler\ServiceHandler;
+ 20: use app\webscoket\handler\UserHandler;
+ 21: use Swoole\Server;
+ 22: use Swoole\Websocket\Frame;
+ 23: use think\Config;
+ 24: use think\Event;
+ 25: use think\facade\Cache;
+ 26: use think\Request;
+ 27: use think\response\Json;
+ 28: use think\swoole\Websocket;
+ 29: use think\swoole\websocket\Room;
+ 30: 
+ 31: /**
+ 32:  * Class Manager
+ 33:  * @package app\webscoket
+ 34:  * @author xaboy
+ 35:  * @day 2020-04-29
+ 36:  */
+ 37: class Manager extends Websocket
+ 38: {
+ 39: 
+ 40:     /**
+ 41:      * @var \Swoole\WebSocket\Server
+ 42:      */
+ 43:     protected $server;
+ 44: 
+ 45:     /**
+ 46:      * @var Ping
+ 47:      */
+ 48:     protected $pingService;
+ 49: 
+ 50:     /**
+ 51:      * @var int
+ 52:      */
+ 53:     protected $cache_timeout;
+ 54: 
+ 55:     const USER_TYPE = ['admin', 'user', 'mer', 'ser'];
+ 56: 
+ 57:     /**
+ 58:      * Manager constructor.
+ 59:      * @param Server $server
+ 60:      * @param Room $room
+ 61:      * @param Event $event
+ 62:      * @param Ping $ping
+ 63:      * @param Config $config
+ 64:      */
+ 65:     public function __construct(Server $server, Room $room, Event $event, Ping $ping, Config $config)
+ 66:     {
+ 67:         parent::__construct($server, $room, $event);
+ 68:         $this->pingService = $ping;
+ 69:         $this->cache_timeout = (int)($config->get('swoole.websocket.ping_timeout', 60000) / 1000) + 2;
+ 70:         app()->bind('websocket_handler_admin', AdminHandler::class);
+ 71:         app()->bind('websocket_handler_user', UserHandler::class);
+ 72:         app()->bind('websocket_handler_mer', MerchantHandler::class);
+ 73:         app()->bind('websocket_handler_ser', ServiceHandler::class);
+ 74:     }
+ 75: 
+ 76:     /**
+ 77:      * @param int $fd
+ 78:      * @param Request $request
+ 79:      * @return mixed
+ 80:      * @author xaboy
+ 81:      * @day 2020-05-06
+ 82:      */
+ 83:     public function onOpen($fd, Request $request)
+ 84:     {
+ 85:         $type = $request->get('type');
+ 86:         $token = $request->get('token');
+ 87:         if (!$token || !in_array($type, self::USER_TYPE)) {
+ 88:             return $this->server->close($fd);
+ 89:         }
+ 90:         try {
+ 91:             $data = $this->exec($type, 'login', compact('fd', 'request', 'token'))->getData();
+ 92:         } catch (\Exception $e) {
+ 93:             return $this->server->close($fd);
+ 94:         }
+ 95:         if (!isset($data['status']) || $data['status'] != 200 || !($data['data']['uid'] ?? null)) {
+ 96:             return $this->server->close($fd);
+ 97:         }
+ 98:         $type = array_search($type, self::USER_TYPE);
+ 99:         $this->login($type, $fd, $data['data']);
+100:         $this->pingService->createPing($fd, time(), $this->cache_timeout);
+101:         return $this->send($fd, app('json')->message('ping', ['now' => time()]));
+102:     }
+103: 
+104:     public function login($type, $fd, $data)
+105:     {
+106:         $key = '_ws_' . $type;
+107:         Cache::set('_ws_f_' . $fd, [
+108:             'type' => $type,
+109:             'uid' => $data['uid'],
+110:             'fd' => $fd,
+111:             'payload' => $data['payload'] ?? null,
+112:             'mer_id' => $data['mer_id'] ?? null
+113:         ], 3600);
+114: 
+115:         if (isset($data['mer_id'])) {
+116:             $groupKey = $key . '_group' . $data['mer_id'];
+117:             Cache::sadd($groupKey, $fd);
+118:             Cache::expire($groupKey, 3600);
+119:         } else {
+120:             Cache::sadd($key, $fd);
+121:         }
+122:         $this->refresh($type, $fd, $data['uid']);
+123:     }
+124: 
+125:     public function refresh($type, $fd, $uid)
+126:     {
+127:         $key = '_ws_' . $type;
+128:         Cache::expire($key, 3600);
+129:         Cache::expire($key . $uid, 3600);
+130:         Cache::expire('_ws_f_' . $fd, 3600);
+131:     }
+132: 
+133:     public function logout($type, $fd)
+134:     {
+135:         $data = Cache::get('_ws_f_' . $fd);
+136:         $key = '_ws_' . $type;
+137:         Cache::srem($key, $fd);
+138:         if ($data) {
+139:             Cache::delete('_ws_f_' . $fd);
+140:             Cache::srem($key . $data['uid'], $fd);
+141:             if (($data['mer_id'] ?? null) !== null) {
+142:                 $groupKey = $key . '_group' . $data['mer_id'];
+143:                 Cache::srem($groupKey, $fd);
+144:             }
+145:         }
+146:     }
+147: 
+148:     public static function merFd($merId)
+149:     {
+150:         return Cache::smembers('_ws_2_group' . $merId) ?: [];
+151:     }
+152: 
+153:     public static function userFd($type, $uid = '')
+154:     {
+155:         $key = '_ws_' . $type . $uid;
+156:         return Cache::smembers($key) ?: [];
+157:     }
+158: 
+159:     /**
+160:      * @param $type
+161:      * @param $method
+162:      * @param $result
+163:      * @return null|Json
+164:      * @author xaboy
+165:      * @day 2020-05-06
+166:      */
+167:     protected function exec($type, $method, $result)
+168:     {
+169:         $handler = app()->make('websocket_handler_' . $type);
+170:         if (!method_exists($handler, $method)) return null;
+171:         /** @var Json $response */
+172:         return $handler->{$method}($result);
+173:     }
+174: 
+175:     /**
+176:      * @param Frame $frame
+177:      * @return bool
+178:      * @author xaboy
+179:      * @day 2020-04-29
+180:      */
+181:     public function onMessage(Frame $frame)
+182:     {
+183:         $info = Cache::get('_ws_f_' . $frame->fd);
+184:         $result = json_decode($frame->data, true) ?: [];
+185:         if (!isset($result['type']) || !$result['type']) return true;
+186:         if (!$info) return true;
+187:         $this->refresh($info['type'], $frame->fd, $info['uid']);
+188:         if (($info['mer_id'] ?? null) !== null) {
+189:             $groupKey = '_ws_' . $info['type'] . '_group' . $info['mer_id'];
+190:             Cache::expire($groupKey, 3600);
+191:         }
+192:         if ($result['type'] == 'ping') {
+193:             return $this->send($frame->fd, app('json')->message('ping', ['now' => time() ]));
+194:         }
+195:         if ($result['type'] == 'data_status') {
+196:             $k = env('APP_KEY','merchant').'_data_status';
+197:             Cache::set($k, time(),60);
+198:             $data = app()->make(DataScreenRepository::class)->data_screen();
+199:             return $this->send($frame->fd,  app('json')->message('data_screen', $data));
+200:         }
+201:         $data = $result['data'] ?? [];
+202:         $frame->uid = $info['uid'];
+203:         $frame->payload = $info['payload'];
+204:         /** @var Json $response */
+205:         $response = $this->exec(self::USER_TYPE[$info['type']], $result['type'], compact('data', 'frame', 'info'));
+206:         if ($response) return $this->send($frame->fd, $response);
+207:         return true;
+208:     }
+209: 
+210:     protected function send($fd, Json $json)
+211:     {
+212:         $this->pingService->createPing($fd, time(), $this->cache_timeout);
+213:         if ($this->server->isEstablished($fd) && $this->server->exist($fd)) {
+214:             $this->server->push($fd, json_encode($json->getData()));
+215:         }
+216:         return true;
+217:     }
+218: 
+219:     /**
+220:      * @param int $fd
+221:      * @param int $reactorId
+222:      * @author xaboy
+223:      * @day 2020-04-29
+224:      */
+225:     public function onClose($fd, $reactorId)
+226:     {
+227:         $data = Cache::get('_ws_f_' . $fd);
+228:         if ($data) {
+229:             $this->logout($data['type'], $fd);
+230:             $this->exec(self::USER_TYPE[$data['type']], 'close', $data);
+231:         }
+232:         $this->pingService->removePing($fd);
+233:     }
+234: }
+</file>
+
+<file path="Ping.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\webscoket;
+ 15: 
+ 16: 
+ 17: use think\facade\Cache;
+ 18: 
+ 19: /**
+ 20:  * Class Ping
+ 21:  * @package app\webscoket
+ 22:  * @author xaboy
+ 23:  * @day 2020-04-29
+ 24:  */
+ 25: class Ping
+ 26: {
+ 27:     /**
+ 28:      * @var \Redis
+ 29:      */
+ 30:     protected $redis;
+ 31: 
+ 32: 
+ 33:     const CACHE_PINK_KEY = 'ws.p.';
+ 34: 
+ 35: 
+ 36:     const CACHE_SET_KEY = 'ws.s';
+ 37: 
+ 38: 
+ 39:     /**
+ 40:      * Ping constructor.
+ 41:      */
+ 42:     public function __construct()
+ 43:     {
+ 44:         $this->redis = Cache::store('redis')->handler();
+ 45:         $this->destroy();
+ 46:     }
+ 47: 
+ 48:     /**
+ 49:      * @param $id
+ 50:      * @param $time
+ 51:      * @param int $timeout
+ 52:      * @author xaboy
+ 53:      * @day 2020-04-29
+ 54:      */
+ 55:     public function createPing($id, $time, $timeout = 0)
+ 56:     {
+ 57:         $this->updateTime($id, $time, $timeout);
+ 58:         $this->redis->sAdd(self::CACHE_SET_KEY, $id);
+ 59:     }
+ 60: 
+ 61:     /**
+ 62:      * @param $id
+ 63:      * @param $time
+ 64:      * @param int $timeout
+ 65:      * @author xaboy
+ 66:      * @day 2020-04-29
+ 67:      */
+ 68:     public function updateTime($id, $time, $timeout = 0)
+ 69:     {
+ 70:         $this->redis->set(self::CACHE_PINK_KEY . $id, $time, $timeout);
+ 71:     }
+ 72: 
+ 73:     /**
+ 74:      * @param $id
+ 75:      * @author xaboy
+ 76:      * @day 2020-05-06
+ 77:      */
+ 78:     public function removePing($id)
+ 79:     {
+ 80:         $this->redis->del(self::CACHE_PINK_KEY . $id);
+ 81:         $this->redis->del(self::CACHE_SET_KEY, $id);
+ 82:     }
+ 83: 
+ 84:     /**
+ 85:      * @param $id
+ 86:      * @return bool|string
+ 87:      * @author xaboy
+ 88:      * @day 2020-04-29
+ 89:      */
+ 90:     public function getLastTime($id)
+ 91:     {
+ 92:         return $this->redis->get(self::CACHE_PINK_KEY . $id);
+ 93:     }
+ 94: 
+ 95:     /**
+ 96:      * @author xaboy
+ 97:      * @day 2020-04-29
+ 98:      */
+ 99:     public function destroy()
+100:     {
+101:         $members = $this->redis->sMembers(self::CACHE_SET_KEY) ?: [];
+102:         foreach ($members as $k => $member) {
+103:             $members[$k] = self::CACHE_PINK_KEY . $member;
+104:         }
+105:         if (count($members))
+106:             $this->redis->del(self::CACHE_SET_KEY, ...$members);
+107:     }
+108: }
+</file>
+
+<file path="SwooleWorkerStart.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\webscoket;
+15: 
+16: 
+17: use app\common\repositories\store\service\StoreServiceUserRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: use Swoole\Server;
+20: use Swoole\Timer;
+21: use think\Config;
+22: use think\facade\Cache;
+23: 
+24: /**
+25:  * Class SwooleWorkerStart
+26:  * @package app\webscoket
+27:  * @author xaboy
+28:  * @day 2020-04-29
+29:  */
+30: class SwooleWorkerStart implements ListenerInterface
+31: {
+32: 
+33:     /**
+34:      * @var \Swoole\WebSocket\Server
+35:      */
+36:     protected $server;
+37: 
+38:     /**
+39:      * @var Config
+40:      */
+41:     protected $config;
+42: 
+43:     /**
+44:      * SwooleWorkerStart constructor.
+45:      * @param Server $server
+46:      * @param Config $config
+47:      */
+48:     public function __construct(Server $server, Config $config)
+49:     {
+50:         $this->server = $server;
+51:         $this->config = $config;
+52:     }
+53: 
+54:     /**
+55:      * @param $event
+56:      * @author xaboy
+57:      * @day 2020-04-29
+58:      */
+59:     public function handle($event): void
+60:     {
+61:         if (!env('INSTALLED', false)) return;
+62:         if ($this->server->worker_id == ($this->config->get('swoole.server.options.worker_num')) && $this->config->get('swoole.websocket.enable', false)) {
+63:             $keys = array_merge(Cache::keys('m_chat*') ?: [], Cache::keys('u_chat*') ?: []);
+64:             if (count($keys)) {
+65:                 Cache::del(...$keys);
+66:             }
+67:             $this->ping();
+68:             app()->make(StoreServiceUserRepository::class)->onlineDown();
+69:         }
+70:     }
+71: 
+72:     /**
+73:      * @author xaboy
+74:      * @day 2020-05-06
+75:      */
+76:     protected function ping()
+77:     {
+78:         /**
+79:          * @var $pingService Ping
+80:          */
+81:         $pingService = app()->make(Ping::class);
+82:         $server = $this->server;
+83:         $timeout = (int)($this->config->get('swoole.websocket.ping_timeout', 60000) / 1000);
+84:         Timer::tick(1500, function (int $timer_id) use (&$server, &$pingService, $timeout) {
+85:             $nowTime = time();
+86:             foreach ($server->connections as $fd) {
+87:                 if ($server->isEstablished($fd) && $server->exist($fd)) {
+88:                     $last = $pingService->getLastTime($fd);
+89:                     if ($last && ($nowTime - $last) > $timeout) {
+90:                         $server->close($fd);
+91:                     }
+92:                 }
+93:             }
+94:         });
+95:     }
+96: }
+</file>
+
+</files>

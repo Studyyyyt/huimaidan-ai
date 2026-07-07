@@ -1,0 +1,694 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: **/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+BackGoodsValidate.php
+ChangePasswordValidate.php
+CircleAgentValidate.php
+CommunityValidate.php
+FeedbackValidate.php
+MerchantIntentionValidate.php
+OrderVirtualFieldValidate.php
+ProductReplyValidate.php
+StoreCartValidate.php
+StoreRefundOrderValidate.php
+UserAddressValidate.php
+UserAuthValidate.php
+UserBaseInfoValidate.php
+UserExtractValidate.php
+UserReceiptValidate.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="BackGoodsValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\api;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class BackGoodsValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'delivery_type|快递公司' => 'require',
+25:         'delivery_id|快递单号' => 'require',
+26:         'delivery_phone|联系电话' => 'require|mobile',
+27:         'delivery_mark|备注' => 'max:128',
+28:         'delivery_pics|凭证' => 'array|max:9',
+29:     ];
+30: }
+</file>
+
+<file path="ChangePasswordValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\api;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class ChangePasswordValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'phone|手机号' => 'require|mobile',
+25:         'pwd|密码' => 'require|min:6',
+26:         'sms_code|短信验证码' => 'require|max:4',
+27:     ];
+28: }
+</file>
+
+<file path="CircleAgentValidate.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: namespace app\validate\api;
+12: 
+13: use think\Validate;
+14: 
+15: class CircleAgentValidate extends Validate
+16: {
+17:     protected $rule = [
+18:         'name|代理人姓名' => 'require|max:64|gt:0',
+19:         'phone|代理人电话' => 'require|mobile|gt:0',
+20:         'qualification|申请资质' => 'array|max:10',
+21:         'remark|说明' => 'max:255',
+22:         'extend|扩展表单' => 'array',
+23:         'type|类型' => 'require|in:0,1',
+24:         'business_name|商户名称' => 'requireIf:type,1|max:64',
+25:         'business_store_category' => 'requireIf:type,1',
+26:         'business_store_type' => 'requireIf:type,1',
+27:     ];
+28: 
+29:     protected $scene = [
+30:         'create'  =>  ['name', 'phone', 'qualification', 'remark', 'type', 'business_name', 'extend','business_store_category','business_store_type']
+31:     ];
+32: 
+33:     public function add(array $data): bool
+34:     {
+35:         if (!$this->scene('create')->check($data)) {
+36:             return false;
+37:         }
+38: 
+39:         return true;
+40:     }
+41: 
+42:     public function edit(array $data): bool
+43:     {
+44:         if (!$this->scene('create')->check($data)) {
+45:             return false;
+46:         }
+47: 
+48:         return true;
+49:     }
+50: }
+</file>
+
+<file path="CommunityValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\api;
+15: 
+16: use think\Validate;
+17: 
+18: class CommunityValidate extends Validate
+19: {
+20:     protected $failException = true;
+21: 
+22:     protected $rule = [
+23:         'image|图片' => 'require|array',
+24:         'content|内容' => 'require',
+25:         'spu_id|关联商品' => 'array',
+26:     ];
+27: 
+28: }
+</file>
+
+<file path="FeedbackValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\api;
+15: 
+16: use think\Validate;
+17: 
+18: class FeedbackValidate extends Validate
+19: {
+20:     protected $failException = true;
+21: 
+22:     protected $rule = [
+23:         'type|类型' => 'require|number|gt:0',
+24:         'images|图片' => 'array|max:6',
+25:         'realname|姓名' => 'require|>:1',
+26:         'contact|联系方式' => 'require|checkContact'
+27:     ];
+28: 
+29:     protected function checkContact($val)
+30:     {
+31:         if ($this->regex($val, 'mobile') || $this->filter($val, 'email'))
+32:             return true;
+33:         else
+34:             return '请输入正确的联系方式';
+35:     }
+36: }
+</file>
+
+<file path="MerchantIntentionValidate.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace app\validate\api;
+14: 
+15: 
+16: use think\Validate;
+17: 
+18: class MerchantIntentionValidate extends Validate
+19: {
+20:     protected $failException = true;
+21: 
+22:     protected $rule = [
+23:         'phone|手机号' => 'require|mobile',
+24:         'name|姓名' => 'require',
+25:         'mer_name|姓名' => 'require|max:32',
+26:         'merchant_category_id|商户分类' => 'require',
+27:         'mer_type_id|店铺类型' => 'integer',
+28:         // 'code|验证码' => 'require',
+29:         'images|资质' => 'array',
+30:     ];
+31: }
+</file>
+
+<file path="OrderVirtualFieldValidate.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\validate\api;
+ 15: 
+ 16: use think\Validate;
+ 17: 
+ 18: class OrderVirtualFieldValidate extends Validate
+ 19: {
+ 20:     protected $failException = true;
+ 21: 
+ 22:     protected $rule = [];
+ 23: 
+ 24:     public function load(array $extend, array $value)
+ 25:     {
+ 26:         $extend = array_combine(array_column($extend, 'title'), $extend);
+ 27:         $rule = [];
+ 28:         foreach ($extend as $title => $val) {
+ 29:             $item = [];
+ 30:             if ($val['key'] === 'image') {
+ 31:                 if ($val['require']) {
+ 32:                     $item[] = 'isRequireImage';
+ 33:                 } else {
+ 34:                     $item[] = 'isImage';
+ 35:                 }
+ 36: 
+ 37:             } else {
+ 38:                 if ($val['require']) {
+ 39:                     $item[] = 'require';
+ 40:                 }
+ 41:                 $item[] = 'is' . ucfirst($val['key']);
+ 42:             }
+ 43:             $rule[$title.' '] = implode('|', $item);
+ 44:         }
+ 45:         $this->rule = $rule;
+ 46:         $data = [];
+ 47:         foreach ($value as $v) {
+ 48:             $data[(string)$v['title'].' '] = $v['value'] ?? '';
+ 49:         }
+ 50:         $this->check($data);
+ 51:         return $data;
+ 52:     }
+ 53: 
+ 54:     public function isMobile($val)
+ 55:     {
+ 56:         return $this->regex($val, 'mobile');
+ 57:     }
+ 58: 
+ 59:     public function isDate($val)
+ 60:     {
+ 61:         return $this->dateFormat($val, 'Y-m-d');
+ 62:     }
+ 63: 
+ 64:     public function isTime($val)
+ 65:     {
+ 66:         return $this->dateFormat($val, 'H:i');
+ 67:     }
+ 68: 
+ 69:     public function isRequireImage($val)
+ 70:     {
+ 71:         if (!count($val)) return false;
+ 72:         foreach ($val as $v) {
+ 73:             if (!is_string($v)) return false;
+ 74:         }
+ 75:         return true;
+ 76:     }
+ 77: 
+ 78:     public function isImage($val)
+ 79:     {
+ 80:         if (!count($val)) return true;
+ 81:         return $this->isRequireImage($val);
+ 82:     }
+ 83: 
+ 84:     public function isEmail($val)
+ 85:     {
+ 86:         return $this->filter($val, FILTER_VALIDATE_EMAIL);
+ 87:     }
+ 88: 
+ 89:     public function isNumber($val)
+ 90:     {
+ 91:         return ctype_digit((string)$val);
+ 92:     }
+ 93: 
+ 94:     public function isText($val)
+ 95:     {
+ 96:         return (bool)trim((string)$val);
+ 97:     }
+ 98: 
+ 99:     public function isIdCard($val)
+100:     {
+101:         return $this->regex($val, 'idCard');
+102:     }
+103: }
+</file>
+
+<file path="ProductReplyValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\api;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class ProductReplyValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'comment|评论' => 'require|max:128',
+25:         'product_score|商品分数' => 'require|integer|max:5',
+26:         'service_score|服务分数' => 'require|integer|max:5',
+27:         'postage_score|物流分数' => 'require|integer|max:5',
+28:         'pics|评价图片' => 'array|max:6',
+29:     ];
+30: 
+31:     protected $message = [
+32:         'pics.max' => '评价最多上传6张图片'
+33:     ];
+34: }
+</file>
+
+<file path="StoreCartValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\api;
+15: 
+16: use think\Validate;
+17: 
+18: class StoreCartValidate extends Validate
+19: {
+20:     protected $failException = true;
+21: 
+22:     protected $rule = [
+23:         'product_id|商品ID' => 'require',
+24:         'product_attr_unique|SKU' => 'require',
+25:         'cart_num|购买数量' => 'require|integer|>:0',
+26:     ];
+27: }
+</file>
+
+<file path="StoreRefundOrderValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\api;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class StoreRefundOrderValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'type|退款类型' => 'require|in:1,2',
+25:         'refund_type|退款方式' => 'require|in:1,2',
+26:         'num|商品件数' => 'requireIf:type,1|integer|>:0',
+27:         'ids|退款商品' => 'require',
+28:         'refund_message|退款原因' => 'require|max:128',
+29:         'mark|备注' => 'max:128',
+30:         'refund_price|退款金额' => 'require|float|>=:0',
+31:         'pics|凭证' => 'array|max:9',
+32:     ];
+33: }
+</file>
+
+<file path="UserAddressValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\api;
+15: 
+16: use think\Validate;
+17: 
+18: class UserAddressValidate extends Validate
+19: {
+20:     protected $failException = true;
+21: 
+22:     protected $rule = [
+23:         'real_name|收货人姓名' => 'require',
+24:         'phone|收货人电话' => 'require|alphaDash|mobile',
+25:         'area|收货信息' => 'require|array|checkArea',
+26:         'detail|收货人详细地址' => 'require',
+27:     ];
+28: 
+29:     protected $scene = [
+30:         'take' => ['real_name', 'phone']
+31:     ];
+32: 
+33:     public function checkArea($list)
+34:     {
+35:         if (count($list) < 3) return '请完善地址信息，需包括省市区/县街道/乡';
+36:         foreach ($list as $item) {
+37:             if (!isset($item['name'], $item['id']))
+38:                 return '请选择正确的收货地址';
+39:         }
+40:         return true;
+41:     }
+42: }
+</file>
+
+<file path="UserAuthValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\api;
+15: 
+16: use think\Validate;
+17: 
+18: class UserAuthValidate extends Validate
+19: {
+20:     protected $failException = true;
+21: 
+22:     protected $rule = [
+23:         'phone|手机号' => 'require|mobile',
+24:         'pwd|密码' => 'require|min:6',
+25:         'sms_code|短信验证码' => 'require|max:4',
+26:     ];
+27: 
+28: 
+29:     public function scenePwdlogin()
+30:     {
+31:         return $this->remove('sms_code','require|max:4');
+32:     }
+33: 
+34:     public function sceneSmslogin()
+35:     {
+36:         return $this->remove('pwd','require|min:6');
+37:     }
+38: 
+39:     public function sceneVerify()
+40:     {
+41:         return $this->remove('pwd','require|min:6')
+42:             ->remove('sms_code','require|max:4');
+43:     }
+44: }
+</file>
+
+<file path="UserBaseInfoValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\api;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class UserBaseInfoValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'nickname|昵称' => 'require|max:8'
+25:     ];
+26: 
+27:     protected $message = [
+28:         'nickname.max' => '昵称最多8个字符'
+29:     ];
+30: }
+</file>
+
+<file path="UserExtractValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\api;
+15: 
+16: use think\Validate;
+17: 
+18: class UserExtractValidate extends Validate
+19: {
+20:     protected $failException = true;
+21: 
+22:     protected $rule = [
+23:         //'wechat|微信号' => 'requireIf:extract_type,1',
+24:         //'real_name|姓名' => 'requireIf:extract_type,0',
+25:         //'bank_code|银行卡号' => 'requireIf:extract_type,0|number',
+26:         'extract_type|收款方式' => 'require',
+27:         'extract_price|提现金额' => 'require|gt:0',
+28:         //'alipay_code|支付宝账户' => 'requireIf:extract_type,2',
+29:     ];
+30: 
+31: }
+</file>
+
+<file path="UserReceiptValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\api;
+15: 
+16: use think\Validate;
+17: 
+18: class UserReceiptValidate extends Validate
+19: {
+20:     protected $failException = true;
+21: 
+22:     protected $rule = [
+23:         'receipt_type|发票类型' => 'require|in:1,2',
+24:         'receipt_title|发票抬头' => 'require',
+25:         'receipt_title_type|发票抬头类型' => 'require|in:1,2',
+26:         'duty_paragraph|税号' => 'requireIf:receipt_title_type,2|alphaNum',
+27:         'email|邮箱' => 'requireIf:receipt_type,1|email',
+28:         'bank_name|开户行' => 'requireIf:receipt_type,2',
+29:         'bank_code|银行卡号' => 'requireIf:receipt_type,2|number',
+30:         'address|企业地址' => 'requireIf:receipt_type,2',
+31:         'tel|企业电话' => 'requireIf:receipt_type,2',
+32:     ];
+33: 
+34: }
+</file>
+
+</files>

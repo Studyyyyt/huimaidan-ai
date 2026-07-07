@@ -1,0 +1,7 @@
+interface:
+  display_name: "部署 WSL PHP 7.3 Swoole4"
+  short_description: "部署 WSL2 PHP7.3 Swoole4 全栈"
+  default_prompt: "使用 $deploy-wsl-php73-swoole4 在 Windows WSL2 Ubuntu 环境部署 PHP 7.3 + Swoole4 项目，并配置 MySQL、Redis、Nginx HTTPS 反代和 Supervisor 守护进程。"
+
+policy:
+  allow_implicit_invocation: true

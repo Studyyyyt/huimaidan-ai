@@ -1,0 +1,1029 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: app/controller/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/controller/Install.php
+app/controller/View.php
+app/controller/WechatNotice.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/controller/Install.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\controller;
+ 15: 
+ 16: use crmeb\basic\BaseController;
+ 17: use Redis;
+ 18: use think\App;
+ 19: use think\Exception;
+ 20: use think\exception\ValidateException;
+ 21: use think\facade\Config;
+ 22: use think\facade\View;
+ 23: use think\Request;
+ 24: use think\Response;
+ 25: use Throwable;
+ 26: use ZipArchive;
+ 27: use ZipStream\ZipStream;
+ 28: 
+ 29: class Install //extends BaseController
+ 30: {
+ 31: 
+ 32:     /**
+ 33:      * Request实例
+ 34:      * @var Request
+ 35:      */
+ 36:     protected $request;
+ 37: 
+ 38:     /**
+ 39:      * 应用实例
+ 40:      * @var App
+ 41:      */
+ 42:     protected $app;
+ 43:     /**
+ 44:      * sql文件
+ 45:      * @var App
+ 46:      */
+ 47:     public $sqlFile = 'crmeb_merchant.sql';
+ 48:     /**
+ 49:      * 配置文件
+ 50:      * @var App
+ 51:      */
+ 52:     public $configFile = '.env';
+ 53:     public $env;
+ 54:     public $installHost;
+ 55:     public $_url;
+ 56:     const DEMO_SQL_TABLE = [
+ 57:         'eb_system_admin',
+ 58:         'eb_system_menu',
+ 59:         'eb_system_role',
+ 60:         'eb_system_group',
+ 61:         'eb_system_group_data',
+ 62:         'eb_express',
+ 63:         'eb_system_config',
+ 64:         'eb_system_config_classify',
+ 65:         'eb_system_config_value',
+ 66:         'eb_template_message',
+ 67:         'system_notice_config',
+ 68:         'eb_city_area',
+ 69:         'eb_diy',
+ 70:         'eb_page_category',
+ 71:         'eb_page_link',
+ 72:         'eb_system_notice_config',
+ 73:         'eb_member_interests',
+ 74:     ];
+ 75: 
+ 76:     public function __construct(App $app)
+ 77:     {
+ 78:         if (file_exists(__DIR__ . '/../../install/install.lock')) {
+ 79:             throw new ValidateException('你已经安装过该系统，如果想重新安装，请先删除install目录下的 install.lock 文件，然后再安装。');
+ 80:         }
+ 81:         if (!file_exists(__DIR__ . '/../../install/' . $this->sqlFile)) {
+ 82:             throw new ValidateException('缺少数据库文件："install/' . $this->sqlFile . '"');
+ 83:         }
+ 84:         if (!file_exists(__DIR__ . '/../../install/' . $this->configFile)) {
+ 85:             throw new ValidateException('缺少配置文件："install/' . $this->configFile . '"');
+ 86:         }
+ 87:         $this->app = $app;
+ 88:         $this->request = $this->app->request;
+ 89:         $this->env = [];
+ 90:         $this->installHost = $this->request->domain();
+ 91:         $hostArr = explode('//', $this->installHost);
+ 92:         $this->_url = $hostArr[1];
+ 93:     }
+ 94: 
+ 95:     /**
+ 96:      * 1 开始安装
+ 97:      * @return string
+ 98:      * @author Qinii
+ 99:      * @day 2020-07-16
+100:      */
+101:     public function begin()
+102:     {
+103:         return View::fetch('/install/step1');
+104:     }
+105: 
+106:     /**
+107:      * 2 环境检测
+108:      * @return string
+109:      * @author Qinii
+110:      * @day 2020-07-16
+111:      */
+112:     public function environment()
+113:     {
+114:         $phpv = @ phpversion();
+115:         $os = PHP_OS;
+116:         $tmp = function_exists('gd_info') ? gd_info() : array();
+117:         $max_execution_time = ini_get('max_execution_time');
+118:         $allow_reference = (ini_get('allow_call_time_pass_reference') ? '<font color=green>[√]On</font>' : '<font color=red>[×]Off</font>');
+119:         $allow_url_fopen = (ini_get('allow_url_fopen') ? '<font color=green>[√]On</font>' : '<font color=red>[×]Off</font>');
+120: 
+121: 
+122:         $err = 0;
+123:         $passOne = $passTwo = 'yes';
+124:         if (!ini_get('safe_mode')) {
+125:             $safe_mode = '<img class="yes" src="images/install/yes.png" alt="对"> 启用';
+126:         } else {
+127:             $safe_mode = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+128:             $err++;
+129:             $passOne = 'no';
+130:         }
+131:         if (empty($tmp['GD Version'])) {
+132:             $gd = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+133:             $err++;
+134:             $passOne = 'no';
+135:         } else {
+136:             $gd = '<img class="yes" src="images/install/yes.png" alt="对"> ' . $tmp['GD Version'];
+137:         }
+138:         if (function_exists('mysqli_connect')) {
+139:             $mysql = '<img class="yes" src="images/install/yes.png" alt="对"> 已安装';
+140:         } else {
+141:             $mysql = '<img class="no" src="images/install/warring.png" alt="错"> 请安装mysqli扩展';
+142:             $err++;
+143:             $passOne = 'no';
+144:         }
+145:         if (ini_get('file_uploads')) {
+146:             $uploadSize = '<img class="yes" src="/install/images/install/yes.png" alt="对"> ' . ini_get('upload_max_filesize');
+147:         } else {
+148:             $uploadSize = '<img class="no" src="images/install/warring.png" alt="错"> 禁止上传';
+149:             $err++;
+150:             $passOne = 'no';
+151:         }
+152:         if (function_exists('session_start')) {
+153:             $session = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+154:         } else {
+155:             $session = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+156:             $err++;
+157:             $passOne = 'no';
+158:         }
+159:         if (extension_loaded('zip')) {
+160:             $zip = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+161:         } else {
+162:             $zip = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+163:             $err++;
+164:             $passOne = 'no';
+165:         }
+166:         if (extension_loaded(('redis'))) {
+167:             $redis = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+168:         } else {
+169:             $redis = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+170:             $err++;
+171:             $passOne = 'no';
+172:         }
+173:         if (extension_loaded('swoole')) {
+174:             $swoole = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+175:         } else {
+176:             $swoole = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+177:             $err++;
+178:             $passOne = 'no';
+179:         }
+180:         if (extension_loaded('swoole_loader')) {
+181:             $swooleCompiler = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+182:         } else {
+183:             $swooleCompiler = '<img class="no" src="images/install/warring.png" alt="错"><a href="/install/loader" target="_blank" style="color: #ff0000;"> 请安装swoole_loader扩展</a>';
+184:             $err++;
+185:             $passOne = 'no';
+186:         }
+187:         if (function_exists('curl_init')) {
+188:             $curl = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+189:         } else {
+190:             $curl = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+191:             $err++;
+192:             $passOne = 'no';
+193:         }
+194:         if (function_exists('bcadd')) {
+195:             $bcmath = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+196:         } else {
+197:             $bcmath = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+198:             $err++;
+199:             $passOne = 'no';
+200:         }
+201:         if (function_exists('openssl_encrypt')) {
+202:             $openssl = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+203:         } else {
+204:             $openssl = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+205:             $err++;
+206:             $passOne = 'no';
+207:         }
+208:         if (function_exists('finfo_open')) {
+209:             $finfo_open = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+210:         } else {
+211:             $finfo_open = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+212:             $err++;
+213:             $passOne = 'no';
+214:         }
+215:         $folder = array(
+216:             'public/install',
+217:             'public/uploads',
+218:             'runtime',
+219:             '.env',
+220:         );
+221:         //必须开启函数
+222:         if (function_exists('file_put_contents')) {
+223:             $file_put_contents = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+224:         } else {
+225:             $file_put_contents = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+226:             $err++;
+227:             $passTwo = 'no';
+228:         }
+229:         if (function_exists('imagettftext')) {
+230:             $imagettftext = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+231:         } else {
+232:             $imagettftext = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+233:             $err++;
+234:             $passTwo = 'no';
+235:         }
+236:         if (function_exists('pcntl_alarm')) {
+237:             $pcntl_alarm = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+238:         } else {
+239:             $pcntl_alarm = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+240:             $err++;
+241:             $passTwo = 'no';
+242:         }
+243:         if (function_exists('proc_open')) {
+244:             $proc_open = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+245:         } else {
+246:             $proc_open = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+247:             $err++;
+248:             $passTwo = 'no';
+249:         }
+250:         if (function_exists('pcntl_signal')) {
+251:             $pcntl_signal = '<img class="yes" src="/install/images/install/yes.png" alt="对"> 启用';
+252:         } else {
+253:             $pcntl_signal = '<img class="no" src="images/install/warring.png" alt="错"> 禁用';
+254:             $err++;
+255:             $passTwo = 'no';
+256:         }
+257:         View::assign([
+258:             'max_execution_time' => $max_execution_time,
+259:             'allow_reference' => $allow_reference,
+260:             'swooleCompiler' => $swooleCompiler,
+261:             'phpv' => $phpv,
+262:             'allow_url_fopen' => $allow_url_fopen,
+263:             'safe_mode' => $safe_mode,
+264:             'gd' => $gd,
+265:             'mysql' => $mysql,
+266:             'uploadSize' => $uploadSize,
+267:             'redis' => $redis,
+268:             'session' => $session,
+269:             'swoole' => $swoole,
+270:             'curl' => $curl,
+271:             'bcmath' => $bcmath,
+272:             'openssl' => $openssl,
+273:             'finfo_open' => $finfo_open,
+274:             'file_put_contents' => $file_put_contents,
+275:             'imagettftext' => $imagettftext,
+276:             'folder' => $folder,
+277:             'zip' => $zip,
+278:             'proc_open' => $proc_open,
+279:             'pcntl_alarm' => $pcntl_alarm,
+280:             'pcntl_signal' => $pcntl_signal,
+281:             'passOne' => $passOne,
+282:             'passTwo' => $passTwo,
+283:         ]);
+284:         return View::fetch('/install/step2', ['err' => $err]);
+285:     }
+286: 
+287:     /**
+288:      * 3 数据库填写表单
+289:      * @return string
+290:      * @author Qinii
+291:      * @day 2020-07-15
+292:      */
+293:     public function databases()
+294:     {
+295:         return View::fetch('/install/step3');
+296:     }
+297: 
+298:     /**
+299:      * 4 安装数据库
+300:      * @return string
+301:      * @author Qinii
+302:      * @day 2020-07-16
+303:      */
+304:     public function create()
+305:     {
+306:         $data = $this->request->params(['dbhost', 'dbport', 'dbname', 'dbuser', 'dbpw', ['dbprefix', 'eb_'], 'manager', 'manager_pwd', ['rbhost', '127.0.0.1'], ['rbport', 6379], 'rbpw', ['rbselect', 0], 'demo']);
+307:         $mysql = $this->checkDatabsaces($data);
+308:         if ($mysql !== 1) throw new ValidateException('数据库链接失败' . $mysql);
+309:         return View::fetch('/install/step4', ['data' => $data]);
+310:     }
+311: 
+312:     /**
+313:      * 5 安装完成
+314:      * @return string
+315:      * @author Qinii
+316:      * @day 2020-07-16
+317:      */
+318:     public function end()
+319:     {
+320:         $ip = $this->get_client_ip();
+321:         $server = $this->request->server();
+322:         $host = $server['HTTP_HOST'];
+323:         $version = get_code_version('未知');
+324:         $this->installlog();
+325:         @touch(__DIR__ . '/../../install/install.lock');
+326:         $this->unzip();
+327:         return View::fetch('/install/step5', [
+328:             'host' => $host,
+329:             'ip' => $ip,
+330:             'version' => $version,
+331:             'merchant' => Config::get('admin.merchant_prefix'),
+332:             'system' => Config::get('admin.admin_prefix'),
+333:             'uid' => Config::get('notice.sms.ADMIN_ORDER_UID'),
+334:         ]);
+335:     }
+336: 
+337:     /**
+338:      * 链接数据库 读取sql
+339:      * @param $n
+340:      * @return array
+341:      * @author Qinii
+342:      * @day 2020-07-16
+343:      */
+344:     public function perform($n)
+345:     {
+346:         $data = $this->request->param();
+347:         $dbName = strtolower(trim($data['dbname']));
+348:         $conn = @mysqli_connect($data['dbhost'], $data['dbuser'], $data['dbpw'], NULL, $data['dbport']);
+349:         if (mysqli_connect_errno($conn)) {
+350:             throw new ValidateException("连接数据库失败!" . mysqli_connect_error($conn));
+351:         }
+352:         if (!mysqli_select_db($conn, $dbName)) {
+353:             //创建数据时同时设置编码
+354:             if (!mysqli_query($conn, "CREATE DATABASE IF NOT EXISTS `" . $dbName . "` DEFAULT CHARACTER SET utf8;")) {
+355:                 throw new ValidateException('数据库 ' . $dbName . ' 不存在，也没权限创建新的数据库！');
+356:             }
+357:         }
+358:         mysqli_select_db($conn, $dbName);
+359:         mysqli_query($conn, 'SET NAMES utf8;');
+360:         //读取数据文件
+361:         $sqldata = file_get_contents(__DIR__ . '/../../install/' . $this->sqlFile);
+362:         $sqldata = str_replace('mer1.crmeb.net', $this->_url, $sqldata);
+363:         $sqldata = str_replace('mer.crmeb.net', $this->_url, $sqldata);
+364:         $sqlFormat = $this->sql_split($sqldata, $data['dbprefix']);
+365:         $counts = count($sqlFormat);
+366:         if ($n <= $counts && isset($sqlFormat[$n])) {
+367:             $sql = trim($sqlFormat[$n]);
+368:             $message = $this->install($sql, $conn, $data['dbprefix']);
+369:             $n++;
+370:         } else {
+371:             if ($data['demo'] == '') $this->clear($conn, $data['dbprefix']);
+372:             $this->setConfig($data);
+373:             $message = $this->setDatabase($conn, $data);
+374:             $n = 999999;
+375:         }
+376:         return [
+377:             'n' => $n,
+378:             'count' => $counts,
+379:             'msg' => $message,
+380:             'time' => date('Y-m-d H:i:s')
+381:         ];
+382:     }
+383: 
+384: 
+385:     /**
+386:      * 执行数据库文件安装
+387:      * @param $sql
+388:      * @param $conn
+389:      * @param $dbPrefix
+390:      * @return string
+391:      * @author Qinii
+392:      * @day 2020-07-16
+393:      */
+394:     public function install($sql, $conn, $dbPrefix)
+395:     {
+396:         // 建表
+397:         if (strstr($sql, 'CREATE TABLE')) {
+398:             preg_match('/CREATE TABLE `eb_([^ ]*)`/is', $sql, $matches);
+399:             mysqli_query($conn, "DROP TABLE IF EXISTS `$matches[1]");
+400:             $sql = str_replace('`eb_', '`' . $dbPrefix, $sql);//替换表前缀
+401:             $ret = mysqli_query($conn, $sql);
+402:             if ($ret) {
+403:                 $message = '创建数据表[' . $dbPrefix . $matches[1] . ']完成!';
+404:             } else {
+405:                 $message = '创建数据表[' . $dbPrefix . $matches[1] . ']失败!失败原因：' . mysqli_error($conn);
+406:             }
+407: 
+408:         } //插入数据
+409:         else {
+410:             $message = '';
+411:             if (trim($sql) !== '') {
+412:                 $sql = str_replace('`eb_', '`' . $dbPrefix, $sql);//替换表前缀
+413:                 $ret = mysqli_query($conn, $sql);
+414:                 $sql = htmlspecialchars($sql);
+415:                 $msg = substr($sql, 0, 30);
+416:                 if ($ret) {
+417:                     $message = '执行 [' . $msg . '...]成功!' . date('Y-m-d H:i:s');
+418:                 } else {
+419:                     $message = '执行[' . $msg . '..]失败!' . date('Y-m-d H:i:s');
+420:                 }
+421:             }
+422:         }
+423:         return $message;
+424:     }
+425: 
+426:     /**
+427:      * 清除测试数据
+428:      * @param $conn
+429:      * @param $dbPrefix
+430:      * @author Qinii
+431:      * @day 2020-07-16
+432:      */
+433:     public function clear($conn, $dbPrefix)
+434:     {
+435:         $result = mysqli_query($conn, "show tables");
+436:         $tables = mysqli_fetch_all($result);//参数MYSQL_ASSOC、MYSQLI_NUM、MYSQLI_BOTH规定产生数组类型
+437:         $bl_table = self::DEMO_SQL_TABLE;
+438:         foreach ($bl_table as $k => $v) {
+439:             $bl_table[$k] = str_replace('eb_', $dbPrefix, $v);
+440:         }
+441: 
+442:         foreach ($tables as $key => $val) {
+443:             if (!in_array($val[0], $bl_table)) {
+444:                 mysqli_query($conn, "truncate table " . $val[0]);
+445:             }
+446:         }
+447:     }
+448: 
+449:     /**
+450:      * 创建.env文件
+451:      * @param $data
+452:      * @author Qinii
+453:      * @day 2020-07-16
+454:      */
+455:     public function setConfig($data)
+456:     {
+457:         //读取配置文件，并替换真实配置数据1
+458:         $strConfig = file_get_contents(__DIR__ . '/../../install/' . $this->configFile);
+459:         //'dbhost', 'dbport', 'dbname', 'dbuser', 'dbpw', 'dbprefix', 'manager', 'manager_pwd', ['rbhost', '127.0.0.1'], ['rbport', 6379], 'rbpw', ['rbselect', 0]
+460:         $strConfig = str_replace('#DB_HOST#', $data['dbhost'], $strConfig);
+461:         $strConfig = str_replace('#DB_NAME#', $data['dbname'], $strConfig);
+462:         $strConfig = str_replace('#DB_USER#', $data['dbuser'], $strConfig);
+463:         $strConfig = str_replace('#DB_PWD#', $data['dbpw'], $strConfig);
+464:         $strConfig = str_replace('#DB_PORT#', $data['dbport'], $strConfig);
+465:         $strConfig = str_replace('#DB_PREFIX#', $data['dbprefix'], $strConfig);
+466:         $strConfig = str_replace('#DB_CHARSET#', 'utf8', $strConfig);
+467:         //redis数据库信息
+468:         $strConfig = str_replace('#RB_HOST#', $data['rbhost'], $strConfig);
+469:         $strConfig = str_replace('#RB_PORT#', $data['rbport'], $strConfig);
+470:         $strConfig = str_replace('#RB_PWD#', $data['rbpw'], $strConfig);
+471:         $strConfig = str_replace('#RB_SELECT#', $data['rbselect'], $strConfig);
+472:         $strConfig = str_replace('#APP_KEY#', md5(time() . random_int(10000000, 99999999)), $strConfig);
+473:         @chmod(__DIR__ . '/../../.env', 0777);
+474:         @file_put_contents(__DIR__ . '/../../.env', $strConfig); //数据库配置文件的地址
+475:     }
+476: 
+477:     /**
+478:      * 修改后台管理员用户
+479:      * @param $conn
+480:      * @param $data
+481:      * @return string
+482:      * @author Qinii
+483:      * @day 2020-07-16
+484:      */
+485:     public function setDatabase($conn, $data)
+486:     {
+487:         $time = date('Y-m-d H:i:s');
+488:         $ip = $this->get_client_ip();
+489:         $ip = empty($ip) ? "0.0.0.0" : $ip;
+490:         $password = password_hash(trim($data['manager_pwd']), PASSWORD_BCRYPT);
+491:         mysqli_query($conn, "truncate table {$data['dbprefix']}system_admin");
+492:         $addadminsql = "INSERT INTO `{$data['dbprefix']}system_admin` (`admin_id`, `account`, `pwd`, `real_name`, `roles`, `last_ip`, `last_time`, `create_time`, `login_count`, `level`, `status`, `is_del`) VALUES
+493: (1, '" . $data['manager'] . "', '" . $password . "', '', '1', '" . $ip . "','$time' , '$time', 0, 0, 1, 0)";
+494:         $res = mysqli_query($conn, $addadminsql);
+495:         if ($res) {
+496:             $message = '添加管理员成功，成功写入配置文件，安装完成．';
+497:         } else {
+498:             $message = '添加管理员失败，成功写入配置文件，安装完成．';
+499:         }
+500:         return $message;
+501:     }
+502: 
+503:     /**
+504:      * 检测数据库链接是否成功以及版本
+505:      * @param $data
+506:      * @return false|int|string
+507:      * @author Qinii
+508:      * @day 2020-07-16
+509:      */
+510:     public function checkDatabsaces($data)
+511:     {
+512:         $dbName = strtolower(trim($data['dbname']));
+513:         $conn = @mysqli_connect($data['dbhost'], $data['dbuser'], $data['dbpw'], NULL, $data['dbport']);
+514:         if (mysqli_connect_errno($conn)) return 0;
+515:         $result = mysqli_query($conn, "SELECT @@global.sql_mode");
+516:         $result = $result->fetch_array();
+517:         $version = mysqli_get_server_info($conn);
+518:         if ($version < 5.6) return (json_encode(-4));
+519: 
+520:         if (strstr($result[0], 'STRICT_TRANS_TABLES') || strstr($result[0], 'STRICT_ALL_TABLES') || strstr($result[0], 'TRADITIONAL') || strstr($result[0], 'ANSI'))
+521:             return ($version < 8.0) ? -1 : -2;
+522: 
+523:         $result = mysqli_query($conn, "select count(table_name) as c from information_schema.`TABLES` where table_schema='$dbName'");
+524:         $result = $result->fetch_array();
+525:         if ($result['c'] > 0) return -3;
+526:         return 1;
+527:     }
+528: 
+529:     /**
+530:      * 验证数据库及redis是否正常
+531:      * @return false|int|string
+532:      * @author Qinii
+533:      * @day 2020-07-15
+534:      */
+535:     public function databasesCheck()
+536:     {
+537:         $data = $this->request->params(['dbhost', 'dbport', 'dbname', 'dbuser', 'dbpw', ['dbprefix', 'eb_'], ['rbhost', '127.0.0.1'], ['rbport', 6379], 'rbpw', ['rbselect', 0]]);
+538:         // mysql 检测
+539:         $mysql = $this->checkDatabsaces($data);
+540:         if ($mysql !== 1) return $mysql;
+541:         // redis检测
+542:         try {
+543:             $redis = new Redis();
+544:             $redis->connect($data['rbhost'], $data['rbport']);
+545:             if ($data['rbpw']) $redis->auth($data['rbpw']);
+546:             if ($data['rbselect']) $redis->select($data['rbselect']);
+547:             $res = $redis->set('install', 1, 10);
+548:             return $res ? 1 : -5;
+549:         } catch (Throwable $e) {
+550:             return -5;
+551:         }
+552:     }
+553: 
+554:     /**
+555:      * 安装记录文件生成
+556:      * @author Qinii
+557:      * @day 2020-07-16
+558:      */
+559:     public function installlog()
+560:     {
+561:         $mt_rand_str = $this->sp_random_string(6);
+562:         $str_constant = "<?php" . PHP_EOL . "define('INSTALL_DATE'," . time() . ");" . PHP_EOL . "define('SERIALNUMBER','" . $mt_rand_str . "');";
+563:         @file_put_contents(__DIR__ . '/../../.constant', $str_constant);
+564:     }
+565: 
+566:     /**
+567:      * 随机字符串
+568:      * @param int $len
+569:      * @return string
+570:      * @author Qinii
+571:      * @day 2020-07-16
+572:      */
+573:     public function sp_random_string($len = 8)
+574:     {
+575:         $chars = array(
+576:             "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
+577:             "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v",
+578:             "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G",
+579:             "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R",
+580:             "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2",
+581:             "3", "4", "5", "6", "7", "8", "9"
+582:         );
+583:         $charsLen = count($chars) - 1;
+584:         shuffle($chars);    // 将数组打乱
+585:         $output = "";
+586:         for ($i = 0; $i < $len; $i++) {
+587:             $output .= $chars[mt_rand(0, $charsLen)];
+588:         }
+589:         return $output;
+590:     }
+591: 
+592:     /**
+593:      * 格式化mysql文件
+594:      * @param $sql
+595:      * @param $tablepre
+596:      * @return array
+597:      * @author Qinii
+598:      * @day 2020-07-16
+599:      */
+600:     public function sql_split($sql, $tablepre)
+601:     {
+602: 
+603:         if ($tablepre != "tp_")
+604:             $sql = str_replace("tp_", $tablepre, $sql);
+605: 
+606:         $sql = preg_replace("/TYPE=(InnoDB|MyISAM|MEMORY)( DEFAULT CHARSET=[^; ]+)?/", "ENGINE=\\1 DEFAULT CHARSET=utf8", $sql);
+607: 
+608:         $sql = str_replace("\r", "\n", $sql);
+609:         $ret = array();
+610:         $num = 0;
+611:         $queriesarray = explode(";\n", trim($sql, "\xEF\xBB\xBF"));
+612:         unset($sql);
+613:         foreach ($queriesarray as $query) {
+614:             $ret[$num] = '';
+615:             $queries = explode("\n", trim($query));
+616:             $queries = array_filter($queries);
+617:             foreach ($queries as $query) {
+618:                 $str1 = substr($query, 0, 1);
+619:                 if ($str1 != '#' && $str1 != '-')
+620:                     $ret[$num] .= $query;
+621:             }
+622:             $num++;
+623:         }
+624:         return $ret;
+625:     }
+626: 
+627:     /**
+628:      * 获取ip地址
+629:      * @return string|null
+630:      * @author Qinii
+631:      * @day 2020-07-16
+632:      */
+633:     public function get_client_ip()
+634:     {
+635:         $server = $this->request->server();
+636:         if (isset($server['REMOTE_ADDR']))
+637:             $ip = $server['REMOTE_ADDR'];
+638:         // IP地址合法验证
+639:         $ip = (false !== ip2long($ip)) ? $ip : '0.0.0.0';
+640:         return $ip;
+641:     }
+642: 
+643:     /**
+644:      *  生成基础文件
+645:      * @Author:Qinii
+646:      * @Date: 2020/8/31
+647:      */
+648:     public function unzip()
+649:     {
+650:         update_crmeb_compiled();
+651:     }
+652: 
+653: 
+654:     /**
+655:      * swoole_loader 安装向导
+656:      * @Author:Qinii
+657:      * @Date: 2020/9/10
+658:      */
+659:     public function swooleCompiler()
+660:     {
+661:         // Check os type
+662:         $this->env['os'] = [];
+663:         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+664:             $this->env['os']['name'] = "windows";
+665:             $this->env['os']['raw_name'] = php_uname();
+666:         } else {
+667:             $this->env['os']['name'] = "unix";
+668:             $this->env['os']['raw_name'] = php_uname();
+669:         }
+670:         // Check php
+671:         $this->env['php'] = [];
+672:         $this->env['php']['version'] = phpversion();
+673:         // Check run mode
+674:         $sapi_type = php_sapi_name();
+675:         if ("cli" == $sapi_type) {
+676:             $this->env['php']['run_mode'] = "cli";
+677:         } else {
+678:             $this->env['php']['run_mode'] = "web";
+679:         }
+680:         // Check php bit
+681:         if (PHP_INT_SIZE == 4) {
+682:             $this->env['php']['bit'] = 32;
+683:         } else {
+684:             $this->env['php']['bit'] = 64;
+685:         }
+686:         $this->env['php']['sapi'] = $sapi_type;
+687:         $this->env['php']['ini_loaded_file'] = php_ini_loaded_file();
+688:         $this->env['php']['ini_scanned_files'] = php_ini_scanned_files();
+689:         $this->env['php']['loaded_extensions'] = get_loaded_extensions();
+690:         $this->env['php']['incompatible_extensions'] = ['xdebug', 'ionCube', 'zend_loader'];
+691:         $this->env['php']['loaded_incompatible_extensions'] = [];
+692:         $this->env['php']['extension_dir'] = ini_get('extension_dir');
+693:         // Check incompatible extensions
+694:         if (is_array($this->env['php']['loaded_extensions'])) {
+695:             foreach ($this->env['php']['loaded_extensions'] as $loaded_extension) {
+696:                 foreach ($this->env['php']['incompatible_extensions'] as $incompatible_extension) {
+697:                     if (strpos(strtolower($loaded_extension), strtolower($incompatible_extension)) !== false) {
+698:                         $this->env['php']['loaded_incompatible_extensions'][] = $loaded_extension;
+699:                     }
+700:                 }
+701:             }
+702:         }
+703:         $this->env['php']['loaded_incompatible_extensions'] = array_unique($this->env['php']['loaded_incompatible_extensions']);
+704:         // Parse System Environment Info
+705:         $sysInfo = $this->w_getSysInfo();
+706:         // Check php thread safety
+707:         $this->env['php']['raw_thread_safety'] = isset($sysInfo['thread_safety']) ? $sysInfo['thread_safety'] : false;
+708:         if (isset($sysInfo['thread_safety'])) {
+709:             $this->env['php']['thread_safety'] = $sysInfo['thread_safety'] ? '线程安全' : '非线程安全';
+710:         } else {
+711:             $this->env['php']['thread_safety'] = '未知';
+712:         }
+713:         // Check swoole loader installation
+714:         if (isset($sysInfo['swoole_loader']) and isset($sysInfo['swoole_loader_version'])) {
+715:             $this->env['php']['swoole_loader']['status'] = $sysInfo['swoole_loader'] ? "<span style='color: #007bff;'>已安装</span>"
+716:                 : '未安装';
+717:             if ($sysInfo['swoole_loader_version'] !== false) {
+718:                 $this->env['php']['swoole_loader']['version'] = "<span style='color: #007bff;'>" . $sysInfo['swoole_loader_version'] . "</span>";
+719:             } else {
+720:                 $this->env['php']['swoole_loader']['version'] = '未知';
+721:             }
+722:         } else {
+723:             $this->env['php']['swoole_loader']['status'] = '未安装';
+724:             $this->env['php']['swoole_loader']['version'] = '未知';
+725:         }
+726:         $this->html($sysInfo);
+727:     }
+728: 
+729:     /**
+730:      * 页面输出内容
+731:      * @Author:Qinii
+732:      * @Date: 2020/9/10
+733:      * @param $this ->>env
+734:      * @param $sysInfo
+735:      */
+736:     public function html($sysInfo)
+737:     {
+738:         $html = '';
+739:         // Header
+740:         $html_header = '<!doctype html>
+741: 	<html lang="en">
+742: 	  <head>
+743: 		<!-- Required meta tags -->
+744: 		<meta charset="utf-8">
+745: 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+746: 		<!-- Bootstrap CSS -->
+747: 		<link href="https://lib.baomitu.com/twitter-bootstrap/4.1.0/css/bootstrap.min.css" rel="stylesheet">
+748: 		<title>%s</title>
+749: 		<style>
+750: 			.list_info {display: inline-block; width: 12rem;}
+751: 			.bold_text {font-weight: bold;}
+752: 			.code {color:#007bff;font-size: medium;}
+753: 		</style>
+754: 	  </head>
+755: 	  <body class="bg-light"> 
+756: 	  ';
+757:         $html_header = sprintf($html_header, 'CRMEB Swoole Compiler 安装向导');
+758:         $html_body = '<div class="container">';
+759:         $html_body_nav = '<div class="py-5 text-center"  style="padding-bottom: 1rem!important;">';
+760:         $html_body_nav .= '<h2>CRMEB Swoole Compiler 安装向导</h2>';
+761:         $html_body_nav .= '<p class="lead"> Version:3.0.8</p>';
+762:         $html_body_nav .= '</div><hr>';
+763: 
+764:         // Environment information
+765:         $html_body_environment = '
+766: 	<div class="col-12"  style="padding-top: 1rem!important;">
+767: 		<h5 class="text-center">检查当前环境</h5>
+768: 		<ul class="list-unstyled text-small">';
+769:         $html_body_environment .= '<li><span class="list_info">操作系统 : </span>' . $this->env['os']['raw_name'] . '</li>';
+770:         $html_body_environment .= '<li><span class="list_info">PHP版本 : </span>' . $this->env['php']['version'] . '</li>';
+771:         $html_body_environment .= '<li><span class="list_info">PHP运行环境 : </span>' . $this->env['php']['sapi'] . '</li>';
+772:         $html_body_environment .= '<li><span class="list_info">PHP配置文件 : </span>' . $this->env['php']['ini_loaded_file'] . '</li>';
+773:         $html_body_environment .= '<li><span class="list_info">PHP扩展安装目录 : </span>' . $this->env['php']['extension_dir'] . '</li>';
+774:         $html_body_environment .= '<li><span class="list_info">PHP是否线程安全 : </span>' . $this->env['php']['thread_safety'] . '</li>';
+775:         $html_body_environment .= '<li><span class="list_info">是否安装swoole_loader : </span>' . $this->env['php']['swoole_loader']['status'] . '</li>';
+776:         if (isset($sysInfo['swoole_loader']) and $sysInfo['swoole_loader']) {
+777:             $html_body_environment .= '<li><span class="list_info">swoole_loader版本 : </span>' . $this->env['php']['swoole_loader']['version'] . '</li>';
+778:         }
+779:         if ($this->env['php']['bit'] == 32) {
+780:             $html_body_environment .= '<li><span style="color:red">温馨提示：当前环境使用的PHP为 ' . $this->env['php']['bit'] . ' 位的PHP，Compiler 目前不支持 Debug 版本或 32 位的PHP，可在 phpinfo() 中查看对应位数，如果误报请忽略此提示</span></li>';
+781:         }
+782:         $html_body_environment .= '	</ul></div>';
+783: 
+784:         // Error infomation
+785:         $html_error = "";
+786:         if (!empty($this->env['php']['loaded_incompatible_extensions'])) {
+787:             $html_error = '<hr>
+788:             <div class="col-12"  style="padding-top: 1rem!important;">
+789:             <h5 class="text-center" style="color:red">错误信息</h5>
+790:             <p class="text-center" style="color:red">%s</p>
+791:         </div>
+792: 		';
+793:             $err_msg = "当前PHP包含与swoole_compiler_loader扩展不兼容的扩展" . implode(',', $this->env['php']['loaded_incompatible_extensions']) . "，请移除不兼容的扩展。";
+794:             $html_error = sprintf($html_error, $err_msg);
+795:         }
+796: 
+797:         // Check Loader Status
+798:         $html_body_loader = '<hr>';
+799:         $html_body_loader .= '<div class="col-12" style="padding-top: 1rem!important;">';
+800:         $html_body_loader .= '<h5 class="text-center">宝塔面版命令行安装Swoole Loader</h5>';
+801:         $html_body_loader .= '<p><span class="bold_text">1 - 命令安装</span></p><p>可直接在项目目录中执行命令：<pre class="code">/bin/bash auto.sh -s </pre></p>';
+802:         $html_body_loader .= '<p><span class="bold_text">2 - 如果提醒命令不存在</span></p><p> 可直接在项目目录中执行命令：<pre class="code"> wget -O auto.sh https://mer.crmeb.net/auto.sh && /bin/bash auto.sh -s </pre></p>';
+803:         $html_body_loader .= '<p><span class="bold_text">3 - 如果执行完仍然未安装成功，请手动操作</span></p>';
+804:         $html_body_loader .= '</div>';
+805: 
+806:         if (empty($html_error)) {
+807:             $html_body_loader .= '<div class="col-12" style="padding-top: 1rem!important;">';
+808:             $html_body_loader .= '<h5 class="text-center">手动安装和配置Swoole Loader</h5>';
+809:             $phpversion = substr($this->env['php']['version'], 0, 3);
+810:             $phpversion = str_replace('.', '', $phpversion);
+811:             $loaderFileName = '';
+812:             if ($this->env['os']['name'] == "windows") {
+813:                 $loaderFileName = 'php_swoole_loader_php' . $phpversion;
+814:                 if ($this->env['php']['thread_safety'] == '非线程安全') {
+815:                     $loaderFileName .= '_nzts_x64.dll';
+816:                 } else {
+817:                     $loaderFileName .= '_zts_x64.dll';
+818:                 }
+819:             } else {
+820:                 if ($this->env['php']['thread_safety'] != '非线程安全') {
+821:                     $loaderFileName = 'swoole_loader' . $phpversion . '_zts.so';
+822:                 } else {
+823: 
+824:                     $loaderFileName = 'swoole_loader' . $phpversion . '.so';
+825:                 }
+826:             }
+827:             $html_body_loader .= '<p><span class="bold_text">1 - 安装Swoole Loader</span></p><p>前往根目录 /install/swoole-loader/' . $loaderFileName . '扩展文件上传到当前PHP的扩展安装目录中：<br/><pre class="code">' . $this->env['php']['extension_dir'] . '</pre></p>';
+828:             $html_body_loader .= '<p><span class="bold_text">2 - 修改php.ini配置</span>（如已修改配置，请忽略此步骤，不必重复添加）</p><p>';
+829:             $html_body_loader .= '编辑此PHP配置文件：<span class="code">' . $this->env['php']['ini_loaded_file'] . '</span>，在此文件底部结尾处加入如下配置<br/>';
+830:             if ($this->env['os']['name'] == "windows") {
+831:                 $html_body_loader .= '<pre class="code">extension=' . $this->env['php']['extension_dir'] . DIRECTORY_SEPARATOR . $loaderFileName . '</pre>注意：需要名称和刚才上传到当前PHP的扩展安装目录中的文件名一致';
+832:             } else {
+833:                 $html_body_loader .= '<pre class="code">extension=' . $this->env['php']['extension_dir'] . DIRECTORY_SEPARATOR . $loaderFileName . '</pre>注意：需要名称和刚才上传到当前PHP的扩展安装目录中的文件名一致';
+834:             }
+835:             $html_body_loader .= '</p>';
+836:             $html_body_loader .= '<p><span class="bold_text">3 - 重启服务</span></p><p>重启或重载PHP配置</p>';
+837:             $html_body_loader .= '</div>';
+838:         }
+839: 
+840:         // Body footer
+841:         $html_body_footer = '<footer class="my-5 pt-5 text-muted text-center text-small">
+842:   </footer>';
+843:         $html_body .= $html_body_nav . '<div class="row">' . $html_body_environment . $html_error . $html_body_loader . '</div>' . $html_body_footer;
+844:         $html_body .= '</div>';
+845:         // Footer
+846:         $html_footer = '
+847: 		<script src="https://lib.baomitu.com/jquery/3.3.1/jquery.min.js"></script>
+848: 		<script src="https://lib.baomitu.com/axios/0.18.0/axios.min.js"></script>
+849: 		<script src="https://lib.baomitu.com/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+850: 		</body>
+851: 	</html>';
+852: 
+853:         $html = $html_header . $html_body . $html_footer;
+854:         return Response::create()->content($html)->send();
+855:     }
+856: 
+857:     public function w_getSysInfo()
+858:     {
+859:         $sysEnv = [];
+860:         // Get content of phpinfo
+861:         ob_start();
+862:         phpinfo();
+863:         $sysInfo = ob_get_contents();
+864:         ob_end_clean();
+865:         // Explode phpinfo content
+866:         if ($this->env['php']['run_mode'] == 'cli') {
+867:             $sysInfoList = explode('\n', $sysInfo);
+868:         } else {
+869:             $sysInfoList = explode('</tr>', $sysInfo);
+870:         }
+871:         foreach ($sysInfoList as $sysInfoItem) {
+872:             if (preg_match('/thread safety/i', $sysInfoItem)) {
+873:                 $sysEnv['thread_safety'] = (preg_match('/(enabled|yes)/i', $sysInfoItem) != 0);
+874:             }
+875:             if (preg_match('/swoole_loader support/i', $sysInfoItem)) {
+876:                 $sysEnv['swoole_loader'] = (preg_match('/(enabled|yes)/i', $sysInfoItem) != 0);
+877:             }
+878:             if (preg_match('/swoole_loader version/i', $sysInfoItem)) {
+879:                 preg_match('/\d+.\d+.\d+/s', $sysInfoItem, $match);
+880:                 $sysEnv['swoole_loader_version'] = isset($match[0]) ? $match[0] : false;
+881:             }
+882:         }
+883:         return $sysEnv;
+884:     }
+885: }
+</file>
+
+<file path="app/controller/View.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\controller;
+15: 
+16: 
+17: use crmeb\basic\BaseController;
+18: 
+19: class View extends BaseController
+20: {
+21:     public function mobile()
+22:     {
+23:         $siteName = systemConfig('site_name');
+24:         $https = (parse_url(systemConfig('site_url'))['scheme'] ?? '') == 'https';
+25:         $url = set_http_type($this->request->url(true), $https ? 0 : 1);
+26:         $url .= (strpos($url, '?') === false ? '?' : '&');
+27:         $url .= 'inner_frame=1';
+28:         return \think\facade\View::fetch('/mobile/view', compact('siteName', 'url'));
+29:     }
+30: 
+31:     public function h5()
+32:     {
+33:         if ((!$this->request->isMobile()) && (!$this->request->param('inner_frame')) && !strpos($this->request->server('HTTP_USER_AGENT'), 'MicroMessenger')) return $this->mobile();
+34:         $DB = DIRECTORY_SEPARATOR;
+35:         return view(app()->getRootPath() . 'public' . $DB . 'index.html');
+36:     }
+37: }
+</file>
+
+<file path="app/controller/WechatNotice.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\controller;
+15: 
+16: use crmeb\basic\BaseController;
+17: use crmeb\services\WechatService;
+18: use EasyWeChat\Core\Exceptions\InvalidArgumentException;
+19: use EasyWeChat\Server\BadRequestException;
+20: use think\Response;
+21: 
+22: /**
+23:  * Class WechatNotice
+24:  * @package app\controller
+25:  * @author xaboy
+26:  * @day 2020-04-26
+27:  */
+28: class WechatNotice extends BaseController
+29: {
+30:     /**
+31:      * @return Response
+32:      * @throws InvalidArgumentException
+33:      * @throws BadRequestException
+34:      * @author xaboy
+35:      * @day 2020-04-26
+36:      */
+37:     public function serve()
+38:     {
+39:         ob_clean();
+40:         return WechatService::create()->serve($this->request);
+41:     }
+42: }
+</file>
+
+</files>

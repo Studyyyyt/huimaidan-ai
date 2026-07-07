@@ -1,0 +1,1744 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: app/controller/api/server/**/*.php, route/api/server.php, app/common/repositories/server/**/*.php, app/common/dao/server/**/*.php, app/common/model/server/**/*.php, app/validate/api/*Server*.php, crmeb/services/server/**/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/controller/api/server/ShippingTemplate.php
+app/controller/api/server/StoreCategory.php
+app/controller/api/server/StoreOrder.php
+app/controller/api/server/StoreProduct.php
+app/controller/api/server/StoreProductAttrTemplate.php
+app/controller/api/server/StoreRefundOrder.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/controller/api/server/ShippingTemplate.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace app\controller\api\server;
+ 14: 
+ 15: use think\App;
+ 16: use crmeb\basic\BaseController;
+ 17: use think\exception\HttpResponseException;
+ 18: use app\validate\merchant\ShippingTemplateValidate;
+ 19: use app\common\repositories\store\service\StoreServiceRepository;
+ 20: use app\common\repositories\store\shipping\ShippingTemplateRepository;
+ 21: 
+ 22: /**
+ 23:  * Class ShippingTemplate
+ 24:  * app\controller\api\server
+ 25:  * 移动端客服运费模板管理
+ 26:  */
+ 27: class ShippingTemplate extends BaseController
+ 28: {
+ 29: 
+ 30:     protected $merId;
+ 31:     protected $repository;
+ 32: 
+ 33:     public function __construct(App $app, ShippingTemplateRepository $repository)
+ 34:     {
+ 35:         parent::__construct($app);
+ 36:         $this->repository = $repository;
+ 37:         $this->merId = $this->request->route('merId');
+ 38:     }
+ 39: 
+ 40:     /**
+ 41:      * 列表 - 下啦筛选
+ 42:      * @return \think\response\Json
+ 43:      * @author Qinii
+ 44:      * @day 8/24/21
+ 45:      */
+ 46:     public function lst()
+ 47:     {
+ 48:         [$page, $limit] = $this->getPage();
+ 49:         $where = $this->request->params(['type','name']);
+ 50:         return app('json')->success($this->repository->search($this->merId, $where, $page, $limit));
+ 51:     }
+ 52: 
+ 53:     /**
+ 54:      * 列表
+ 55:      * @return \think\response\Json
+ 56:      * @author Qinii
+ 57:      * @day 8/24/21
+ 58:      */
+ 59:     public function getList()
+ 60:     {
+ 61:         return app('json')->success($this->repository->getList($this->merId));
+ 62:     }
+ 63: 
+ 64:     /**
+ 65:      * 创建
+ 66:      * @param ShippingTemplateValidate $validate
+ 67:      * @return \think\response\Json
+ 68:      * @author Qinii
+ 69:      * @day 8/24/21
+ 70:      */
+ 71:     public function create(ShippingTemplateValidate $validate)
+ 72:     {
+ 73:         $data = $this->checkParams($validate);
+ 74:         $data['mer_id'] = $this->merId;
+ 75:         $this->repository->create($data);
+ 76:         return app('json')->success('添加成功');
+ 77:     }
+ 78: 
+ 79:     /**
+ 80:      * 详情
+ 81:      * @param $id
+ 82:      * @return \think\response\Json
+ 83:      * @author Qinii
+ 84:      * @day 8/24/21
+ 85:      */
+ 86:     public function detail($id)
+ 87:     {
+ 88:         if(!$this->repository->merExists($this->merId,$id))
+ 89:             return app('json')->fail('数据不存在');
+ 90:         return app('json')->success($this->repository->getOne($id,1));
+ 91:     }
+ 92: 
+ 93:     /**
+ 94:      * 编辑
+ 95:      * @param $id
+ 96:      * @param ShippingTemplateValidate $validate
+ 97:      * @return \think\response\Json
+ 98:      * @author Qinii
+ 99:      * @day 8/24/21
+100:      */
+101:     public function update($id, ShippingTemplateValidate $validate)
+102:     {
+103:         $data = $this->checkParams($validate);
+104:         if(!$this->repository->merExists($this->merId,$id))
+105:             return app('json')->fail('数据不存在');
+106:         $this->repository->update($id,$data, $this->merId);
+107: 
+108:         return app('json')->success('编辑成功');
+109:     }
+110: 
+111:     /**
+112:      * 删除
+113:      * @param $id
+114:      * @return \think\response\Json
+115:      * @author Qinii
+116:      * @day 8/24/21
+117:      */
+118:     public function batchDelete()
+119:     {
+120:         $ids = $this->request->param('ids');
+121:         foreach ($ids as $id) {
+122:             $this->repository->check($this->merId, $id);
+123:         }
+124:         $this->repository->delete($ids);
+125:         return app('json')->success('删除成功');
+126:     }
+127: 
+128:     /**
+129:      * 参数验证
+130:      * @param ShippingTemplateValidate $validate
+131:      * @return array
+132:      * @author Qinii
+133:      * @day 8/24/21
+134:      */
+135:     public function checkParams(ShippingTemplateValidate $validate)
+136:     {
+137:         $data = $this->request->params(['name','type','appoint','undelivery','region','free','undelives','sort','info']);
+138:         $validate->check($data);
+139:         return $data;
+140:     }
+141: }
+</file>
+
+<file path="app/controller/api/server/StoreCategory.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: namespace app\controller\api\server;
+ 12: 
+ 13: use app\common\repositories\store\StoreCategoryRepository;
+ 14: use think\App;
+ 15: use crmeb\basic\BaseController;
+ 16: use think\exception\HttpResponseException;
+ 17: use app\validate\admin\StoreCategoryValidate;
+ 18: use app\common\repositories\store\service\StoreServiceRepository;
+ 19: 
+ 20: /**
+ 21:  * Class StoreCategory
+ 22:  * app\controller\api\server
+ 23:  * 移动客服 商品分类管理
+ 24:  */
+ 25: class StoreCategory extends BaseController
+ 26: {
+ 27:     protected $merId;
+ 28:     protected $repository;
+ 29: 
+ 30:     public function __construct(App $app, StoreCategoryRepository $repository)
+ 31:     {
+ 32:         parent::__construct($app);
+ 33:         $this->repository = $repository;
+ 34:         $this->merId = $this->request->route('merId');
+ 35:     }
+ 36: 
+ 37:     /**
+ 38:      * 列表
+ 39:      * @param $merId
+ 40:      * @return \think\response\Json
+ 41:      * @author Qinii
+ 42:      * @day 8/24/21
+ 43:      */
+ 44:     public function lst($merId)
+ 45:     {
+ 46:         return app('json')->success($this->repository->getFormatList($merId));
+ 47:     }
+ 48: 
+ 49:     /**
+ 50:      * 创建
+ 51:      * @param $merId
+ 52:      * @param StoreCategoryValidate $validate
+ 53:      * @return \think\response\Json
+ 54:      * @author Qinii
+ 55:      * @day 8/24/21
+ 56:      */
+ 57:     public function create($merId, StoreCategoryValidate $validate)
+ 58:     {
+ 59:         $data = $this->checkParams($validate);
+ 60:         $data['cate_name'] = trim($data['cate_name']);
+ 61:         if($data['cate_name'] == '')  return app('json')->fail('分类名不可为空');
+ 62: 
+ 63:         if ($data['pid'] && !$this->repository->merExists($merId, $data['pid']))
+ 64:             return app('json')->fail('上级分类不存在');
+ 65:         if ($data['pid'] && !$this->repository->checkLevel($data['pid'],0,$merId))
+ 66:             return app('json')->fail('不可添加更低阶分类');
+ 67:         $data['mer_id'] = $merId;
+ 68:         $this->repository->create($data);
+ 69:         return app('json')->success('添加成功');
+ 70:     }
+ 71: 
+ 72:     /**
+ 73:      * 编辑
+ 74:      * @param $merId
+ 75:      * @param $id
+ 76:      * @param StoreCategoryValidate $validate
+ 77:      * @return \think\response\Json
+ 78:      * @author Qinii
+ 79:      * @day 8/24/21
+ 80:      */
+ 81:     public function update($merId, $id, StoreCategoryValidate $validate)
+ 82:     {
+ 83:         $data = $this->checkParams($validate);
+ 84: 
+ 85:         if(!$this->repository->checkUpdate($id,$data['pid'])){
+ 86:             if (!$this->repository->merExists($merId, $id))
+ 87:                 return app('json')->fail('数据不存在');
+ 88:             if ($data['pid'] && !$this->repository->merExists($merId, $data['pid']))
+ 89:                 return app('json')->fail('上级分类不存在');
+ 90:             if ($data['pid'] && !$this->repository->checkLevel($data['pid'],0, $merId))
+ 91:                 return app('json')->fail('不可添加更低阶分类');
+ 92:             if (!$this->repository->checkChangeToChild($id,$data['pid']))
+ 93:                 return app('json')->fail('无法修改到当前分类到子集，请先修改子类');
+ 94:             if (!$this->repository->checkChildLevel($id,$data['pid'],$merId))
+ 95:                 return app('json')->fail('子类超过最低限制，请先修改子类');
+ 96:         }
+ 97:         $this->repository->update($id,$data);
+ 98: 
+ 99:         return app('json')->success('编辑成功');
+100:     }
+101: 
+102:     /**
+103:      * 修改状态
+104:      * @param $id
+105:      * @return \think\response\Json
+106:      * @author Qinii
+107:      * @day 8/24/21
+108:      */
+109:     public function switchStatus($id)
+110:     {
+111:         $status = $this->request->param('status', 0) == 1 ? 1 : 0;
+112:         if (!$this->repository->merExists($this->merId, $id))
+113:             return app('json')->fail('数据不存在');
+114: 
+115:         $this->repository->switchStatus($id, $status);
+116:         return app('json')->success('修改成功');
+117:     }
+118: 
+119:     /**
+120:      * 详情
+121:      * @param $id
+122:      * @return \think\response\Json
+123:      * @author Qinii
+124:      * @day 8/24/21
+125:      */
+126:     public function detail($id)
+127:     {
+128:         if (!$this->repository->merExists($this->merId, $id))
+129:             return app('json')->fail('数据不存在');
+130:         return app('json')->success($this->repository->get($id));
+131:     }
+132: 
+133: 
+134:     public function delete($id)
+135:     {
+136:         if (!$this->repository->merExists($this->merId, $id))
+137:             return app('json')->fail('数据不存在');
+138:         if ($this->repository->hasChild($id))
+139:             return app('json')->fail('该分类存在子集，请先处理子集');
+140: 
+141:         $this->repository->delete($id);
+142:         return app('json')->success('删除成功');
+143:     }
+144: 
+145:     /**
+146:      * 列表 树形结构
+147:      * @return \think\response\Json
+148:      * @author Qinii
+149:      * @day 8/24/21
+150:      */
+151:     public function getTreeList()
+152:     {
+153:         $data = $this->repository->getTreeList($this->merId,1);
+154:         $ret = [];
+155:         foreach ($data as $datum) {
+156:             if (isset($datum['children'])) {
+157:                 $ret[] = $datum;
+158:             }
+159:         }
+160:         return app('json')->success($ret);
+161:     }
+162: 
+163:     /**
+164:      *  列表 - 必须三级
+165:      * @return \think\response\Json
+166:      * @author Qinii
+167:      * @day 8/24/21
+168:      */
+169:     public function getList()
+170:     {
+171:         $data = $this->repository->getList(1);
+172:         $ret = [];
+173:         foreach ($data as $key => $value) {
+174:             if (isset($value['children'])) {
+175:                 $level = [];
+176:                 foreach ($value['children'] as $child) {
+177:                     if (isset($child['children'])) {
+178:                         $level[] = $child;
+179:                     }
+180:                 }
+181:                 if (isset($level) && !empty($level)) {
+182:                     $value['children'] = $level;
+183:                     $ret[] = $value;
+184:                 }
+185:             }
+186:         }
+187:         return app('json')->success($ret);
+188:     }
+189: 
+190:     /**
+191:      *  品牌列表
+192:      * @return \think\response\Json
+193:      * @author Qinii
+194:      * @day 8/24/21
+195:      */
+196:     public function BrandList()
+197:     {
+198:         return app('json')->success($this->repository->getBrandList());
+199:     }
+200: 
+201:     /**
+202:      *  参数验证
+203:      * @param StoreCategoryValidate $validate
+204:      * @return array
+205:      * @author Qinii
+206:      * @day 8/24/21
+207:      */
+208:     public function checkParams(StoreCategoryValidate $validate)
+209:     {
+210:         $data = $this->request->params(['pid','cate_name','is_show','pic','sort']);
+211:         $validate->check($data);
+212:         return $data;
+213:     }
+214: }
+</file>
+
+<file path="app/controller/api/server/StoreOrder.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\controller\api\server;
+ 15: 
+ 16: 
+ 17: use app\common\repositories\delivery\DeliveryStationRepository;
+ 18: use app\common\repositories\store\order\StoreOrderRepository;
+ 19: use app\common\repositories\delivery\DeliveryServiceRepository;
+ 20: use app\common\repositories\store\order\StoreRefundOrderRepository;
+ 21: use app\common\repositories\delivery\DeliveryOrderRepository;
+ 22: use app\common\repositories\store\staff\StaffsRepository;
+ 23: use app\validate\merchant\OrderValidate;
+ 24: use app\controller\merchant\Common;
+ 25: use crmeb\basic\BaseController;
+ 26: use think\App;
+ 27: use think\exception\ValidateException;
+ 28: use think\response\Json;
+ 29: 
+ 30: /**
+ 31:  * Class StoreOrder
+ 32:  * app\controller\api\server
+ 33:  * 移动端客服 - 订单管理
+ 34:  */
+ 35: class StoreOrder extends BaseController
+ 36: {
+ 37:     public function __construct(App $app)
+ 38:     {
+ 39:         parent::__construct($app);
+ 40:     }
+ 41: 
+ 42:     /**
+ 43:      *  数据统计
+ 44:      * @param $merId
+ 45:      * @param StoreOrderRepository $repository
+ 46:      * @return Json
+ 47:      * @author Qinii
+ 48:      */
+ 49:     public function orderStatistics($merId, StoreOrderRepository $repository)
+ 50:     {
+ 51:         $order = $repository->OrderTitleNumber($merId, null);
+ 52:         $order['refund'] = app()->make(StoreRefundOrderRepository::class)->getWhereCount(['is_system_del' => 0, 'mer_id' => $merId]);
+ 53:         $common = app()->make(Common::class);
+ 54:         $data = [];
+ 55:         $data['today'] = $common->mainGroup('today', $merId);
+ 56:         $data['yesterday'] = $common->mainGroup('yesterday', $merId);
+ 57:         $data['month'] = $common->mainGroup('month', $merId);
+ 58:         return app('json')->success(compact('order', 'data'));
+ 59:     }
+ 60: 
+ 61:     /**
+ 62:      *  数据统计  - 时间筛选
+ 63:      * @param $merId
+ 64:      * @param StoreOrderRepository $repository
+ 65:      * @return Json
+ 66:      * @author Qinii
+ 67:      */
+ 68:     public function orderDetail($merId, StoreOrderRepository $repository)
+ 69:     {
+ 70:         [$page, $limit] = $this->getPage();
+ 71:         list($start, $stop) = $this->request->params([
+ 72:             ['start', strtotime(date('Y-m'))],
+ 73:             ['stop', time()],
+ 74:         ], true);
+ 75:         if ($start == $stop) return app('json')->fail('参数有误');
+ 76:         if ($start > $stop) {
+ 77:             $middle = $stop;
+ 78:             $stop = $start;
+ 79:             $start = $middle;
+ 80:         }
+ 81:         $where = $this->request->has('start') ? ['dateRange' => compact('start', 'stop')] : [];
+ 82:         $list = $repository->orderGroupNumPage($where, $page, $limit, $merId);
+ 83:         return app('json')->success($list);
+ 84:     }
+ 85: 
+ 86:     /**
+ 87:      *  订单列表
+ 88:      * @param $merId
+ 89:      * @param StoreOrderRepository $repository
+ 90:      * @return Json
+ 91:      * @author Qinii
+ 92:      */
+ 93:     public function orderList($merId, StoreOrderRepository $repository)
+ 94:     {
+ 95:         [$page, $limit] = $this->getPage();
+ 96:         $where['status'] = $this->request->param('status');
+ 97:         $where['is_verify'] = $this->request->param('is_verify');
+ 98:         $where['search'] = $this->request->param('store_name');
+ 99:         $where['mer_id'] = $merId;
+100:         $where['is_del'] = 0;
+101:         if($where['status'] == 2) $where['order_type'] = 0;
+102:         return app('json')->success($repository->merchantGetList($where, $page, $limit));
+103:     }
+104: 
+105:     /**
+106:      * 订单详情
+107:      * @param $merId
+108:      * @param $id
+109:      * @param StoreOrderRepository $repository
+110:      * @return Json
+111:      * @author Qinii
+112:      */
+113:     public function order($merId, $id, StoreOrderRepository $repository)
+114:     {
+115:         $detail = $repository->getDetail($id);
+116:         if (!$detail)
+117:             return app('json')->fail('订单不存在');
+118:         if ($detail['mer_id'] != $merId)
+119:             return app('json')->fail('没有权限');
+120:         return app('json')->success($detail->toArray());
+121:     }
+122: 
+123:     /**
+124:      * 检查用户是否有权限
+125:      * @param $merId
+126:      * @param $id
+127:      * @return void
+128:      * @author Qinii
+129:      */
+130:     protected function checkOrderAuth($merId, $id)
+131:     {
+132:         if (!app()->make(StoreOrderRepository::class)->existsWhere(['mer_id' => $merId, 'order_id' => $id]))
+133:             throw new ValidateException('没有权限');
+134:     }
+135: 
+136:     /**
+137:      *  备注
+138:      * @param $merId
+139:      * @param $id
+140:      * @param StoreOrderRepository $repository
+141:      * @return Json
+142:      * @author Qinii
+143:      */
+144:     public function mark($merId, $id, StoreOrderRepository $repository)
+145:     {
+146:         $this->checkOrderAuth($merId, $id);
+147:         $data = $this->request->params(['remark']);
+148:         $repository->update($id, $data);
+149:         return app('json')->success('备注成功');
+150:     }
+151: 
+152:     /**
+153:      *  修改价格
+154:      * @param $merId
+155:      * @param $id
+156:      * @param StoreOrderRepository $repository
+157:      * @return Json
+158:      * @author Qinii
+159:      */
+160:     public function price($merId, $id, StoreOrderRepository $repository)
+161:     {
+162:         $this->checkOrderAuth($merId, $id);
+163: 
+164:         $data = $this->request->params(['total_price', 'pay_postage']);
+165: 
+166:         if ($data['total_price'] < 0 || $data['pay_postage'] < 0)
+167:             return app('json')->fail('金额不可未负数');
+168:         if (!$repository->merStatusExists((int)$id, $merId))
+169:             return app('json')->fail('订单信息或状态错误');
+170:         $repository->eidt($id, $data);
+171:         return app('json')->success('修改成功');
+172:     }
+173: 
+174:     /**
+175:      *  发货操作
+176:      * @param $merId
+177:      * @param $id
+178:      * @param StoreOrderRepository $repository
+179:      * @return Json
+180:      * @author Qinii
+181:      * @day 6/1/22
+182:      */
+183:     public function delivery($merId, $id, StoreOrderRepository $repository)
+184:     {
+185:         $this->checkOrderAuth($merId, $id);
+186:         $type = $this->request->param('delivery_type');
+187:         $split = $this->request->params(['is_split',['split',[]]]);
+188:         if (!$repository->merDeliveryExists($id, $merId))
+189:             return app('json')->fail('订单信息或状态错误');
+190:         switch ($type)
+191:         {
+192:             case 2:
+193:                 $data = $this->request->params(['delivery_type', 'delivery_name', 'delivery_id', 'remark',]);
+194:                 if (!$data['delivery_type'] || !$data['delivery_name'] || !$data['delivery_id'])
+195:                     return app('json')->fail('填写配送信息');
+196:                 $ser = app()->make(DeliveryServiceRepository::class)->get($data['delivery_name']);
+197:                 $data['delivery_name'] = $ser['name'] ?? $data['delivery_name'];
+198:                 $method = 'delivery';
+199:                 break;
+200:             case 3: //虚拟发货
+201:                 $data  = $this->request->params([
+202:                     'delivery_type',
+203:                     'remark',
+204:                 ]);
+205:                 $data['delivery_name'] = '';
+206:                 $data['delivery_id'] = '';
+207:                 $method = 'delivery';
+208:                 break;
+209:             case 4: //电子面单
+210:                 if (!systemConfig('crmeb_serve_dump'))
+211:                     return app('json')->fail('电子面单功能未开启');
+212:                 $data = $this->request->params([
+213:                     'delivery_type',
+214:                     'delivery_name',
+215:                     'from_name',
+216:                     'from_tel',
+217:                     'from_addr',
+218:                     'temp_id',
+219:                     'remark',
+220:                 ]);
+221:                 if (!$data['from_name'] ||
+222:                     !$data['delivery_name'] ||
+223:                     !$data['from_tel'] ||
+224:                     !$data['from_addr'] ||
+225:                     !$data['temp_id']
+226:                 )
+227:                     return app('json')->fail('填写配送信息');
+228:                 $method = 'dump';
+229:                 break;
+230:             case 5: //同城配送
+231:                 if (systemConfig('delivery_status') != 1)
+232:                     return app('json')->fail('未开启同城配送');
+233:                 $data = $this->request->params([
+234:                     'delivery_type',
+235:                     'station_id',
+236:                     'mark',
+237:                     ['cargo_weight',0],
+238:                     'remark',
+239:                 ]);
+240:                 if ($data['cargo_weight'] < 0) return app('json')->fail('包裹重量能为负数');
+241:                 if (!$data['station_id']) return app('json')->fail('请选择门店');
+242:                 $method = 'cityDelivery';
+243:                 break;
+244:             default: //快递
+245:                 $data  = $this->request->params([
+246:                     'delivery_type',
+247:                     'delivery_type',
+248:                     'delivery_name',
+249:                     'delivery_id',
+250:                     'remark',
+251:                 ]);
+252:                 if (!$data['delivery_type'] || !$data['delivery_name'] || !$data['delivery_id'])
+253:                     return app('json')->fail('填写配送信息');
+254: 
+255:                 $method = 'delivery';
+256:                 break;
+257:         }
+258:         $repository->runDelivery($id,$merId, $data, $split, $method, $this->request->serviceInfo()->service_id);
+259:         return app('json')->success('发货成功');
+260:     }
+261: 
+262:     /**
+263:      *  订单金额统计 图表
+264:      * @param $merId
+265:      * @param $id
+266:      * @param StoreOrderRepository $repository
+267:      * @return Json
+268:      * @author Qinii
+269:      */
+270:     public function payPrice($merId, StoreOrderRepository $repository)
+271:     {
+272:         list($start, $stop, $month) = $this->request->params([
+273:             ['start', strtotime(date('Y-m'))],
+274:             ['stop', time()],
+275:             'month'
+276:         ], true);
+277: 
+278:         if ($month) {
+279:             $start = date('Y/m/d', strtotime(getStartModelTime('month')));
+280:             $stop = date('Y/m/d H:i:s', strtotime('+ 1day'));
+281:             $front = date('Y/m/d', strtotime('first Day of this month', strtotime('-1 day', strtotime('first Day of this month'))));
+282:             $end = date('Y/m/d H:i:s', strtotime($start . ' -1 second'));
+283:         } else {
+284:             if ($start == $stop) return app('json')->fail('参数有误');
+285:             if ($start > $stop) {
+286:                 $middle = $stop;
+287:                 $stop = $start;
+288:                 $start = $middle;
+289:             }
+290:             $space = bcsub($stop, $start, 0);//间隔时间段
+291:             $front = bcsub($start, $space, 0);//第一个时间段
+292: 
+293:             $front = date('Y/m/d H:i:s', $front);
+294:             $start = date('Y/m/d H:i:s', $start);
+295:             $stop = date('Y/m/d H:i:s', $stop);
+296:             $end = date('Y/m/d H:i:s', strtotime($start . ' -1 second'));
+297:         }
+298:         $frontPrice = $repository->dateOrderPrice($front . '-' . $end, $merId);
+299:         $afterPrice = $repository->dateOrderPrice($start . '-' . date('Y/m/d H:i:s', strtotime($stop . '-1 second')), $merId);
+300:         $chartInfo = $repository->chartTimePrice($start, date('Y/m/d H:i:s', strtotime($stop . '-1 second')), $merId);
+301:         $data['chart'] = $chartInfo;//营业额图表数据
+302:         $data['time'] = $afterPrice;//时间区间营业额
+303:         $increase = (float)bcsub((string)$afterPrice, (string)$frontPrice, 2); //同比上个时间区间增长营业额
+304:         $growthRate = abs($increase);
+305:         if ($growthRate == 0) $data['growth_rate'] = 0;
+306:         else if ($frontPrice == 0) $data['growth_rate'] = bcmul($growthRate, 100, 0);
+307:         else $data['growth_rate'] = (int)bcmul((string)bcdiv((string)$growthRate, (string)$frontPrice, 2), '100', 0);//时间区间增长率
+308:         $data['increase_time'] = abs($increase); //同比上个时间区间增长营业额
+309:         $data['increase_time_status'] = $increase >= 0 ? 1 : 2; //同比上个时间区间增长营业额增长 1 减少 2
+310: 
+311:         return app('json')->success($data);
+312:     }
+313: 
+314:     /**
+315:      * 订单数量统计 图表
+316:      * @param StoreOrderRepository $repository
+317:      * @return Json
+318:      * @author xaboy
+319:      * @day 2020/8/27
+320:      */
+321:     public function payNumber($merId, StoreOrderRepository $repository)
+322:     {
+323:         list($start, $stop, $month) = $this->request->params([
+324:             ['start', strtotime(date('Y-m'))],
+325:             ['stop', time()],
+326:             'month'
+327:         ], true);
+328: 
+329:         if ($month) {
+330:             $start = date('Y/m/d', strtotime(getStartModelTime('month')));
+331:             $stop = date('Y/m/d H:i:s', strtotime('+ 1day'));
+332:             $front = date('Y/m/d', strtotime('first Day of this month', strtotime('-1 day', strtotime('first Day of this month'))));
+333:             $end = date('Y/m/d H:i:s', strtotime($start . ' -1 second'));
+334:         } else {
+335:             if ($start == $stop) return app('json')->fail('参数有误');
+336:             if ($start > $stop) {
+337:                 $middle = $stop;
+338:                 $stop = $start;
+339:                 $start = $middle;
+340:             }
+341:             $space = bcsub($stop, $start, 0);//间隔时间段
+342:             $front = bcsub($start, $space, 0);//第一个时间段
+343: 
+344:             $front = date('Y/m/d H:i:s', $front);
+345:             $start = date('Y/m/d H:i:s', $start);
+346:             $stop = date('Y/m/d H:i:s', $stop);
+347:             $end = date('Y/m/d H:i:s', strtotime($start . ' -1 second'));
+348:         }
+349:         $frontNumber = $repository->dateOrderNum($front . '-' . $end, $merId);
+350:         $afterNumber = $repository->dateOrderNum($start . '-' . date('Y/m/d H:i:s', strtotime($stop . '-1 second')), $merId);
+351:         $chartInfo = $repository->chartTimeNum($start . '-' . date('Y/m/d H:i:s', strtotime($stop . '-1 second')), $merId);
+352:         $data['chart'] = $chartInfo;//订单数图表数据
+353:         $data['time'] = $afterNumber;//时间区间订单数
+354:         $increase = $afterNumber - $frontNumber; //同比上个时间区间增长订单数
+355:         $growthRate = abs($increase);
+356:         if ($growthRate == 0) $data['growth_rate'] = 0;
+357:         else if ($frontNumber == 0) $data['growth_rate'] = bcmul($growthRate, 100, 0);
+358:         else $data['growth_rate'] = (int)bcmul((string)bcdiv((string)$growthRate, (string)$frontNumber, 2), '100', 0);//时间区间增长率
+359:         $data['increase_time'] = abs($increase); //同比上个时间区间增长营业额
+360:         $data['increase_time_status'] = $increase >= 0 ? 1 : 2; //同比上个时间区间增长营业额增长 1 减少 2
+361: 
+362:         return app('json')->success($data);
+363:     }
+364: 
+365:     /**
+366:      * 获取商户配置
+367:      * @param $merId
+368:      * @return Json
+369:      * @author Qinii
+370:      */
+371:     public function getFormData($merId)
+372:     {
+373:         $config = [
+374:             'mer_from_com',
+375:             'mer_from_name',
+376:             'mer_from_tel',
+377:             'mer_from_addr',
+378:             'mer_config_siid',
+379:             'mer_config_temp_id'
+380:         ];
+381:         $data = merchantConfig($merId,$config);
+382:         return app('json')->success($data);
+383:     }
+384: 
+385:     /**
+386:      * 获取配送配置
+387:      * @return Json
+388:      * @author Qinii
+389:      */
+390:     public function getDeliveryConfig()
+391:     {
+392:         $data = systemConfig(['crmeb_serve_dump','delivery_status']);
+393:         return app('json')->success($data);
+394:     }
+395: 
+396:     /**
+397:      * 获取同城配送配置
+398:      * @return Json
+399:      * @author Qinii
+400:      */
+401:     public function getDeliveryOptions($merId, DeliveryStationRepository $repository)
+402:     {
+403:         if (!systemConfig('delivery_status')) {
+404:             return app('json')->success([]);
+405:         }
+406:         $where = [
+407:             'status' => 1,
+408:             'mer_id' => $merId,
+409:             'type' => systemConfig('delivery_type'),
+410:         ];
+411:         $data = $repository->getOptions($where)->toArray();
+412:         $type = systemConfig('delivery_type') == 1 ? 'UU' : '达达';
+413:         if (empty($data)) return app('json')->fail('请前往商户后台添加'.$type.'发货点');
+414:         return app('json')->success($data);
+415:     }
+416: 
+417:     /**
+418:      * 订单核销
+419:      * @param $merId
+420:      * @param $id
+421:      * @param StoreOrderRepository $orderRepository
+422:      * @return Json
+423:      * @author Qinii
+424:      */
+425:     public function verify($merId,$id,StoreOrderRepository $orderRepository)
+426:     {
+427:         $order = $orderRepository->getWhere(['order_id' => $id,'mer_id' => $merId]);
+428:         if (!$order)  return app('json')->fail('数据不存在');
+429:         $data = $this->request->params(['verify_code','data']);
+430: 
+431:         // 根据订单ID、商家ID、验证码和订单类型查询订单，并连带查询订单产品信息
+432:         $order = $orderRepository->getWhere(['order_id' => $id, 'mer_id' => $merId, 'verify_code' => $data['verify_code'], 'order_type' => 1], '*', ['orderProduct']);
+433:         // 如果订单不存在，则抛出验证异常
+434:         if (!$order)  return app('json')->fail('订单不存在');
+435:         // 如果订单未支付，则抛出验证异常
+436:         if (!$order->paid)  return app('json')->fail('订单未支付');
+437:         // 如果订单已全部核销，则抛出验证异常
+438:         if ($order['status'])  return app('json')->fail('订单已全部核销，请勿重复操作');
+439: 
+440:         $orderRepository->verifyOrder($order, $data,  $this->request->serviceInfo()->service_id);
+441:         return app('json')->success('订单核销成功');
+442:     }
+443: 
+444:     public function options($merId)
+445:     {
+446:         $where = [
+447:             'status' => 1,
+448:             'mer_id' => $merId,
+449:         ];
+450:         $data = app()->make(DeliveryServiceRepository::class)->getOptions($where);
+451:         return app('json')->success($data);
+452:     }
+453:     /**
+454:      * 预约订单派单
+455:      *
+456:      * @param integer $id
+457:      * @return json
+458:      */
+459:     public function reservationDispatch(int $merId, int $id, StoreOrderRepository $repository)
+460:     {
+461:         $params = $this->request->params(['staffs_id']);
+462:         if (!$params['staffs_id']) {
+463:             return app('json')->fail('请选择服务人员');
+464:         }
+465: 
+466:         $res = $repository->reservationDispatch($id, $merId, $params, $this->request->serviceInfo()->service_id);
+467:         if (!$res) {
+468:             return app('json')->fail('派单失败');
+469:         }
+470: 
+471:         return app('json')->success('派单成功');
+472:     }
+473:     /**
+474:      * 派单员工列表
+475:      *
+476:      * @param integer $merId
+477:      * @param StaffsRepository $repository
+478:      * @return void
+479:      */
+480:     public function staffList(int $merId, StaffsRepository $repository)
+481:     {
+482:         $where = $this->request->params(['keyword']);
+483:         $where['mer_id'] = $merId;
+484:         $where['status'] = 1;
+485:         [$page, $limit] = $this->getPage();
+486:         $list = $repository->getList($where, $page, $limit);
+487: 
+488:         return app('json')->success($list);
+489:     }
+490:     /**
+491:      * 预约订单改派
+492:      *
+493:      * @param integer $id
+494:      * @return json
+495:      */
+496:     public function reservationUpdateDispatch(int $merId, int $id, StoreOrderRepository $repository)
+497:     {
+498:         $params = $this->request->params(['staffs_id']);
+499:         if (!$params['staffs_id']) {
+500:             return app('json')->fail('请选择服务人员');
+501:         }
+502: 
+503:         $res = $repository->reservationUpdateDispatch($id, $merId, $params, $this->request->serviceInfo()->service_id);
+504:         if (!$res) {
+505:             return app('json')->fail('改派失败');
+506:         }
+507: 
+508:         return app('json')->success('改派成功');
+509:     }
+510:     /**
+511:      * 预约订单改期
+512:      *
+513:      * @param [type] $id
+514:      * @return void
+515:      */
+516:     public function reservationReschedule(int $merId, int $id, StoreOrderRepository $repository)
+517:     {
+518:         $params = $this->request->params(
+519:             [
+520:                 'order_type',
+521:                 'reservation_date',
+522:                 'real_name',
+523:                 'user_phone',
+524:                 'user_address',
+525:                 'order_extend',
+526:                 'part_start',
+527:                 'part_end'
+528:             ]
+529:         );
+530: 
+531:         $validate = app()->make(OrderValidate::class);
+532:         if (!$validate->sceneReservationReschedule($params)) {
+533:             return app('json')->fail($validate->getError());
+534:         }
+535:         $res = $repository->reservationReschedule($id, $merId, $params, $this->request->serviceInfo()->service_id);
+536:         if (!$res) {
+537:             return app('json')->fail('改约失败');
+538:         }
+539: 
+540:         return app('json')->success('改约成功');
+541:     }
+542:     /**
+543:      * 预约订单核销
+544:      *
+545:      * @param integer $id
+546:      * @return void
+547:      */
+548:     public function reservationVerify(int $merId, int $id, StoreOrderRepository $repository)
+549:     {
+550:         $res = $repository->reservationVerify($id, $merId, $this->request->serviceInfo()->service_id);
+551:         if (!$res) {
+552:             return app('json')->fail('核销失败');
+553:         }
+554:         return app('json')->success('核销成功');
+555:     }
+556:     /**
+557:      * 预约配置
+558:      *
+559:      * @return json
+560:      */
+561:     public function reservationConfig(int $merId)
+562:     {
+563:         if (!$merId) {
+564:             throw new ValidateException('参数错误');
+565:         }
+566: 
+567:         $config = merchantConfig($merId, ['enable_assigned', 'enable_checkin', 'checkin_radius', 'enable_trace', 'trace_form_id']);
+568:         $config['enable_assigned'] = $config['enable_assigned'] ?: 0;
+569:         $config['enable_checkin'] = $config['enable_checkin'] ?: 0;
+570:         $config['checkin_radius'] = $config['checkin_radius'] ?: 0;
+571:         $config['enable_trace'] = $config['enable_trace'] ?: 0;
+572:         $config['trace_form_id'] = $config['trace_form_id'] ?: 0;
+573: 
+574:         return app('json')->success($config);
+575:     }
+576:     /**
+577:      * 配送人员列表
+578:      *
+579:      * @param integer $merId
+580:      * @return void
+581:      */
+582:     public function deliveryPersonList(int $merId, DeliveryServiceRepository $repository)
+583:     {
+584:         $where = $this->request->params(['keyword']);
+585:         $where['mer_id'] = $merId;
+586:         $where['status'] = 1;
+587:         [$page, $limit] = $this->getPage();
+588:         $list = $repository->getList($where, $page, $limit);
+589: 
+590:         return app('json')->success($list);
+591:     }
+592:     /**
+593:      * 同城配送派单
+594:      *
+595:      * @param integer $merId
+596:      * @param integer $id
+597:      * @return void
+598:      */
+599:     public function deliveryDispatch(int $merId, int $id)
+600:     {
+601:         $params = $this->request->params(['service_id']);
+602:         if (!$params['service_id']) {
+603:             return app('json')->fail('请选择配送人员');
+604:         }
+605: 
+606:         $res = app()->make(DeliveryOrderRepository::class)->merDispatch($id, $merId, $params);
+607:         if (!$res) {
+608:             return app('json')->fail('派单失败');
+609:         }
+610: 
+611:         return app('json')->success('派单成功');
+612:     }
+613:     /**
+614:      * 同城配送改派
+615:      *
+616:      * @param integer $merId
+617:      * @param integer $id
+618:      * @return void
+619:      */
+620:     public function deliveryUpdateDispatch(int $merId, int $id)
+621:     {
+622:         $params = $this->request->params(['service_id']);
+623:         if (!$params['service_id']) {
+624:             return app('json')->fail('请选择配送人员');
+625:         }
+626: 
+627:         $res = app()->make(DeliveryOrderRepository::class)->merUpdateDispatch($id, $merId, $params);
+628:         if (!$res) {
+629:             return app('json')->fail('改派失败');
+630:         }
+631: 
+632:         return app('json')->success('改派成功');
+633:     }
+634:     /**
+635:      * 同城配送确认
+636:      *
+637:      * @param integer $id
+638:      * @return void
+639:      */
+640:     public function deliveryConfirm(int $merId, int $id)
+641:     {
+642:         $res = app()->make(DeliveryOrderRepository::class)->confirm($id, $merId, $this->request->serviceInfo()->service_id);
+643:         if (!$res) {
+644:             return app('json')->fail('确认失败');
+645:         }
+646:         return app('json')->success('确认成功');
+647:     }
+648: }
+</file>
+
+<file path="app/controller/api/server/StoreProduct.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: namespace app\controller\api\server;
+ 12: 
+ 13: use app\common\repositories\store\order\StoreCartRepository;
+ 14: use app\common\repositories\store\product\ProductLabelRepository;
+ 15: use app\common\repositories\store\product\ProductRepository;
+ 16: use app\common\repositories\store\service\StoreServiceRepository;
+ 17: use app\common\repositories\system\merchant\MerchantRepository;
+ 18: use app\validate\merchant\StoreProductValidate;
+ 19: use crmeb\basic\BaseController;
+ 20: use crmeb\services\UploadService;
+ 21: use think\App;
+ 22: use think\exception\HttpResponseException;
+ 23: use think\exception\ValidateException;
+ 24: 
+ 25: /**
+ 26:  * Class StoreProduct
+ 27:  * app\controller\api\server
+ 28:  *  移动客服  商品管理
+ 29:  */
+ 30: class StoreProduct extends BaseController
+ 31: {
+ 32:     protected $merId;
+ 33:     protected $repository;
+ 34: 
+ 35:     public function __construct(App $app, ProductRepository $repository)
+ 36:     {
+ 37:         parent::__construct($app);
+ 38:         $this->repository = $repository;
+ 39:         $this->merId = $this->request->route('merId');
+ 40:     }
+ 41: 
+ 42:     /**
+ 43:      *  头部统计
+ 44:      * @param $merId
+ 45:      * @return \think\response\Json
+ 46:      * @author Qinii
+ 47:      * @day 8/24/21
+ 48:      */
+ 49:     public function title($merId)
+ 50:     {
+ 51:         return app('json')->success($this->repository->getFilter($merId, '', 0));
+ 52:     }
+ 53: 
+ 54:     /**
+ 55:      *  列表
+ 56:      * @param $merId
+ 57:      * @return \think\response\Json
+ 58:      * @author Qinii
+ 59:      * @day 8/24/21
+ 60:      */
+ 61:     public function lst($merId)
+ 62:     {
+ 63:         [$page, $limit] = $this->getPage();
+ 64:         $where = $this->request->params(['cate_id', 'keyword', 'mer_cate_id', 'is_gift_bag', 'status', 'us_status', 'product_id', 'mer_labels',['order','sort']]);
+ 65:         $type = $this->request->param('type',1);
+ 66:         $where = array_merge($where, $this->repository->switchType($type, $merId, 0));
+ 67:         return app('json')->success($this->repository->getList($merId, $where, $page, $limit));
+ 68:     }
+ 69: 
+ 70:     /**
+ 71:      *  添加
+ 72:      * @param $merId
+ 73:      * @param StoreProductValidate $validate
+ 74:      * @return \think\response\Json
+ 75:      * @author Qinii
+ 76:      * @day 8/24/21
+ 77:      */
+ 78:     public function create($merId, StoreProductValidate $validate)
+ 79:     {
+ 80:         $res = $this->request->params($this->repository::CREATE_PARAMS);
+ 81:         $res['is_gift_bag'] = 0;
+ 82:         $res['mer_id'] = $merId;
+ 83: 
+ 84:         $data = $this->repository->checkParams($res,$merId);
+ 85:         $merchant = app()->make(MerchantRepository::class)->get($merId);
+ 86:         $data['status'] = $merchant->is_audit ? 0 : 1;
+ 87:         $data['mer_status'] = ($merchant['is_del'] || !$merchant['mer_state'] || !$merchant['status']) ? 0 : 1;
+ 88:         $data['rate'] = 5;
+ 89:         $this->repository->create($data, 0);
+ 90:         return app('json')->success('添加成功');
+ 91:     }
+ 92: 
+ 93:     /**
+ 94:      *  编辑
+ 95:      * @param $merId
+ 96:      * @param $id
+ 97:      * @param StoreProductValidate $validate
+ 98:      * @return \think\response\Json
+ 99:      * @author Qinii
+100:      * @day 8/24/21
+101:      */
+102:     public function update($merId, $id, StoreProductValidate $validate)
+103:     {
+104:         $res = $this->request->params($this->repository::CREATE_PARAMS);
+105:         $data = $this->repository->checkParams($res,$merId,$id);
+106: 
+107:         $merchant = app()->make(MerchantRepository::class)->get($merId);
+108:         if (!$this->repository->merExists($merId, $id))
+109:             return app('json')->fail('数据不存在');
+110:         $pro = $this->repository->getWhere(['product_id' => $id]);
+111:         if ($pro->status == -2) {
+112:             $data['status'] = 0;
+113:         } else {
+114:             $data['status'] = $merchant->is_audit ? 0 : 1;
+115:         }
+116:         $data['mer_status'] = ($merchant['is_del'] || !$merchant['mer_state'] || !$merchant['status']) ? 0 : 1;
+117:         $data['mer_id'] = $merId;
+118:         $this->repository->edit($id, $data, $merId, 0, 1);
+119:         return app('json')->success('编辑成功');
+120:     }
+121: 
+122:     /**
+123:      *  详情
+124:      * @param $merId
+125:      * @param $id
+126:      * @return \think\response\Json
+127:      * @author Qinii
+128:      * @day 8/24/21
+129:      */
+130:     public function detail($merId, $id)
+131:     {
+132:         if (!$this->repository->merExists($merId, $id))
+133:             return app('json')->fail('数据不存在');
+134:         return app('json')->success($this->repository->getAdminOneProduct($id, 0, 1));
+135:     }
+136: 
+137:     /**
+138:      *  修改状态
+139:      * @param $merId
+140:      * @param $id
+141:      * @return \think\response\Json
+142:      * @author Qinii
+143:      * @day 8/24/21
+144:      */
+145:     public function switchStatus($merId, $id)
+146:     {
+147:         $status = $this->request->param('status', 0) == 1 ? 1 : 0;
+148:         if (!$this->repository->merExists($merId, $id))
+149:             return app('json')->fail('数据不存在');
+150:         $this->repository->switchShow($id,$status, 'is_show',$merId);
+151:         return app('json')->success('修改成功');
+152:     }
+153: 
+154:     /**
+155:      *  加入回收站
+156:      * @param $merId
+157:      * @param $id
+158:      * @return \think\response\Json
+159:      * @author Qinii
+160:      * @day 8/24/21
+161:      */
+162:     public function delete($merId, $id)
+163:     {
+164:         if (!$this->repository->merExists($merId, $id))
+165:             return app('json')->fail('数据不存在');
+166:         if ($this->repository->getWhereCount(['product_id' => $id, 'is_show' => 1, 'status' => 1]))
+167:             return app('json')->fail('商品上架中');
+168:         $this->repository->delete($id);
+169:         return app('json')->success('转入回收站');
+170:     }
+171: 
+172:     /**
+173:      *  商品配置
+174:      * @param $merId
+175:      * @return \think\response\Json
+176:      * @author Qinii
+177:      * @day 8/24/21
+178:      */
+179:     public function config($merId)
+180:     {
+181:         $data['extension_status'] = systemConfig('extension_status');
+182:         $data['integral_status'] = 0;
+183:         $data['integral_rate'] = 0;
+184:         if(systemConfig('integral_status') && merchantConfig($merId,'mer_integral_status')) {
+185:             $data['integral_status'] = 1;
+186:             $data['integral_rate'] = merchantConfig($merId,'mer_integral_rate');
+187:         }
+188:         $merchant = app()->make(MerchantRepository::class)->get($merId);
+189:         $data['delivery_way'] = $merchant->delivery_way;
+190:         return app('json')->success($data);
+191:     }
+192: 
+193:     /**
+194:      *  商品加入回收站
+195:      * @param $merId
+196:      * @return \think\response\Json
+197:      * @author Qinii
+198:      * @day 8/24/21
+199:      */
+200:     public function restore($id)
+201:     {
+202:         if (!$this->repository->merDeleteExists($this->merId, $id))
+203:             return app('json')->fail('只能删除回收站的商品');
+204:         $this->repository->restore($id);
+205:         return app('json')->success('商品已恢复');
+206:     }
+207: 
+208:     /**
+209:      *  商品彻底删除
+210:      * @param $merId
+211:      * @return \think\response\Json
+212:      * @author Qinii
+213:      * @day 8/24/21
+214:      */
+215:     public function destory($id)
+216:     {
+217:         if (!$this->repository->merDeleteExists($this->merId, $id))
+218:             return app('json')->fail('只能删除回收站的商品');
+219: //        if (app()->make(StoreCartRepository::class)->getProductById($id))
+220: //            return app('json')->fail('商品有被加入购物车不可删除');
+221:         $this->repository->destory($id);
+222:         return app('json')->success('删除成功');
+223:     }
+224: 
+225:     /**
+226:      *  商品推荐
+227:      * @param $merId
+228:      * @return \think\response\Json
+229:      * @author Qinii
+230:      * @day 8/24/21
+231:      */
+232:     public function updateGood($id)
+233:     {
+234:         $is_good = $this->request->param('is_good', 0) == 1 ? 1 : 0;
+235:         if (!$this->repository->merExists($this->merId, $id))
+236:             return app('json')->fail('数据不存在');
+237: 
+238:         $this->repository->update($id, ['is_good' => $is_good]);
+239:         return app('json')->success('修改成功');
+240:     }
+241: 
+242:     /**
+243:      *  修改商品的平台分类
+244:      * @param $id
+245:      * @return \think\response\Json
+246:      * @author Qinii
+247:      */
+248:     public function editCate($id)
+249:     {
+250:         $param = $this->request->params(['cate_id']);
+251:         if (!$this->repository->merExists($this->merId, $id))
+252:             return app('json')->fail('数据不存在');
+253:         $this->repository->update($id,$param);
+254:         return app('json')->success('修改成功');
+255:     }
+256: 
+257:     /**
+258:      *  修改商品的商户分类
+259:      * @param $id
+260:      * @return \think\response\Json
+261:      * @author Qinii
+262:      */
+263:     public function editMerCate($id)
+264:     {
+265:         $ids = $this->request->param('ids',[]);
+266:         if (!$this->repository->merExists($this->merId, $id))
+267:             return app('json')->fail('数据不存在');
+268:         $this->repository->editMerCate($id,$ids,$this->merId);
+269:         return app('json')->success('修改成功');
+270:     }
+271: 
+272:     /**
+273:      *  获取商品的规格
+274:      * @return void
+275:      * @author Qinii
+276:      */
+277:     public function getValue($id)
+278:     {
+279:         $res = $this->repository->getAttrValue($id,$this->merId);
+280:         return app('json')->success($res);
+281:     }
+282: 
+283: 
+284:     /**
+285:      *  修改商品规格
+286:      * @param $id
+287:      * @return \think\response\Json
+288:      * @author Qinii
+289:      */
+290:     public function setValue($id)
+291:     {
+292:         $params = $this->request->param('attr_value');
+293:         $this->repository->changeAttrValue($id,$params);
+294:         return app('json')->success('修改成功');
+295:     }
+296: }
+</file>
+
+<file path="app/controller/api/server/StoreProductAttrTemplate.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: namespace app\controller\api\server;
+ 13: 
+ 14: use crmeb\basic\BaseController;
+ 15: use app\common\repositories\store\service\StoreServiceRepository;
+ 16: use app\validate\merchant\StoreAttrTemplateValidate;
+ 17: use think\App;
+ 18: use app\common\repositories\store\StoreAttrTemplateRepository;
+ 19: use think\exception\HttpResponseException;
+ 20: 
+ 21: /**
+ 22:  * Class StoreProductAttrTemplate
+ 23:  * app\controller\api\server
+ 24:  * 移动客服 - 商品属性模板
+ 25:  */
+ 26: class StoreProductAttrTemplate extends BaseController
+ 27: {
+ 28:     protected $merId;
+ 29:     protected $repository;
+ 30: 
+ 31:     public function __construct(App $app, StoreAttrTemplateRepository $repository)
+ 32:     {
+ 33:         parent::__construct($app);
+ 34:         $this->repository = $repository;
+ 35:         $this->merId = $this->request->route('merId');
+ 36:     }
+ 37: 
+ 38:     /**
+ 39:      * 列表
+ 40:      * @return \think\response\Json
+ 41:      * @author Qinii
+ 42:      * @day 8/24/21
+ 43:      */
+ 44:     public function lst()
+ 45:     {
+ 46:         [$page, $limit] = $this->getPage();
+ 47:         $where = $this->request->params(['keyword']);
+ 48:         $data = $this->repository->getList($this->merId, $where, $page, $limit);
+ 49: 
+ 50:         return app('json')->success($data);
+ 51:     }
+ 52: 
+ 53:     /**
+ 54:      * 获取所有属性模板
+ 55:      * @return \think\response\Json
+ 56:      * @author Qinii
+ 57:      * @day 8/24/21
+ 58:      */
+ 59:     public function getlist()
+ 60:     {
+ 61:         return app('json')->success($this->repository->list($this->merId));
+ 62:     }
+ 63: 
+ 64:     /**
+ 65:      *  创建
+ 66:      * @param StoreAttrTemplateValidate $validate
+ 67:      * @return \think\response\Json
+ 68:      * @author Qinii
+ 69:      */
+ 70:     public function create(StoreAttrTemplateValidate $validate)
+ 71:     {
+ 72:         $data = $this->checkParams($validate);
+ 73:         $data['mer_id'] = $this->merId;
+ 74:         $this->repository->create($data);
+ 75: 
+ 76:         return app('json')->success('添加成功');
+ 77:     }
+ 78: 
+ 79:     /**
+ 80:      * 编辑
+ 81:      * @param $id
+ 82:      * @param StoreAttrTemplateValidate $validate
+ 83:      * @return \think\response\Json
+ 84:      * @author Qinii
+ 85:      */
+ 86:     public function update($id, StoreAttrTemplateValidate $validate)
+ 87:     {
+ 88:         $merId = $this->merId;
+ 89:         if (!$this->repository->merExists($merId, $id))
+ 90:             return app('json')->fail('数据不存在');
+ 91:         $data = $this->checkParams($validate);
+ 92:         $data['mer_id'] = $merId;
+ 93:         $this->repository->update($id, $data);
+ 94: 
+ 95:         return app('json')->success('编辑成功');
+ 96:     }
+ 97: 
+ 98:     /**
+ 99:      * 详情
+100:      * @param $id
+101:      * @return \think\response\Json
+102:      * @author Qinii
+103:      */
+104:     public function detail($id)
+105:     {
+106:         if (!$this->repository->merExists($this->merId, $id))
+107:             return app('json')->fail('数据不存在');
+108:         return app('json')->success($this->repository->get($id,$this->merId));
+109:     }
+110: 
+111:     /**
+112:      * 批量删除
+113:      * @param $id
+114:      * @return \think\response\Json
+115:      * @author Qinii
+116:      */
+117:     public function batchDelete()
+118:     {
+119:         $ids = $this->request->param('ids');
+120:         $merId = $this->merId;
+121:         foreach ($ids as $id){
+122:             if (!$this->repository->merExists($merId, $id))
+123:                 return app('json')->fail('ID:'.$id.' 不存在');
+124:         }
+125:         $this->repository->delete($ids, $merId);
+126: 
+127:         return app('json')->success('删除成功');
+128:     }
+129: 
+130:     /**
+131:      *  参数验证
+132:      * @param StoreAttrTemplateValidate $validate
+133:      * @return array|mixed|string|string[]
+134:      * @author Qinii
+135:      */
+136:     public function checkParams(StoreAttrTemplateValidate $validate)
+137:     {
+138:         $data = $this->request->params(['template_name', ['template_value', []]]);
+139:         $validate->check($data);
+140:         return $data;
+141:     }
+142: 
+143: 
+144: }
+</file>
+
+<file path="app/controller/api/server/StoreRefundOrder.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: namespace app\controller\api\server;
+ 13: 
+ 14: use app\common\repositories\store\order\StoreOrderProductRepository;
+ 15: use app\common\repositories\store\order\StoreOrderRepository;
+ 16: use app\common\repositories\store\order\StoreRefundOrderRepository;
+ 17: use crmeb\basic\BaseController;
+ 18: use think\App;
+ 19: 
+ 20: /**
+ 21:  * Class StoreRefundOrder
+ 22:  * app\controller\api\server
+ 23:  *  移动客服 - 退款单
+ 24:  */
+ 25: class StoreRefundOrder extends BaseController
+ 26: {
+ 27:     protected $merId;
+ 28:     protected $repository;
+ 29:     protected $service_id;
+ 30: 
+ 31:     public function __construct(App $app, StoreRefundOrderRepository $repository)
+ 32:     {
+ 33:         parent::__construct($app);
+ 34:         $this->repository = $repository;
+ 35:         $this->merId = $this->request->route('merId');
+ 36:         $this->service_id = $this->request->serviceInfo()->service_id;
+ 37:     }
+ 38: 
+ 39:     /**
+ 40:      *  获取可退款的商品信息
+ 41:      * @param $id
+ 42:      * @param StoreOrderRepository $storeOrderRepository
+ 43:      * @param StoreOrderProductRepository $orderProductRepository
+ 44:      * @return \think\response\Json
+ 45:      * @author Qinii
+ 46:      * @day 2023/7/13
+ 47:      */
+ 48:     public function check($id, StoreOrderRepository $storeOrderRepository, StoreOrderProductRepository $orderProductRepository)
+ 49:     {
+ 50:         $order = $storeOrderRepository->getSearch(['mer_id' => $this->merId])->where('order_id',$id)->find();
+ 51:         if (!$order) return app('json')->fail('订单状态有误');
+ 52:         if (!$order->refund_status) return app('json')->fail('订单已过退款/退货期限');
+ 53:         if ($order->status < 0) return app('json')->fail('订单已退款');
+ 54:         if ($order->status == 10) return app('json')->fail('订单不支持退款');
+ 55:         $product = $orderProductRepository->userRefundProducts([],0,$id,0);
+ 56:         $total_refund_price = $this->repository->getRefundsTotalPrice($order,$product,0);
+ 57:         $activity_type = $order->activity_type;
+ 58:         $status = (!$order->status || $order->status == 9) ? 0 : $order->status;
+ 59:         $postage_price = 0;
+ 60:         return app('json')->success(compact('activity_type', 'total_refund_price','postage_price', 'product', 'status'));
+ 61:     }
+ 62: 
+ 63:     /**
+ 64:      * 获取订单可退款金额
+ 65:      * @param StoreOrderRepository $storeOrderRepository
+ 66:      * @return \think\response\Json
+ 67:      * @author Qinii
+ 68:      */
+ 69:     public function compute(StoreOrderRepository $storeOrderRepository)
+ 70:     {
+ 71:         $refund = $this->request->param('refund',[]);
+ 72:         $orderId = $this->request->param('order_id',02);
+ 73:         $order = $storeOrderRepository->getSearch(['mer_id' => $this->merId])->where('order_id',$orderId)->find();
+ 74:         if (!$order) return app('json')->fail('订单状态有误');
+ 75:         if (!$order->refund_status) return app('json')->fail('订单已过退款/退货期限');
+ 76:         if ($order->status < 0) return app('json')->fail('订单已退款');
+ 77:         if ($order->status == 10) return app('json')->fail('订单不支持退款');
+ 78:         $totalRefundPrice = $this->repository->compute($order,$refund);
+ 79:         return app('json')->success(compact('totalRefundPrice'));
+ 80:     }
+ 81: 
+ 82: 
+ 83:     /**
+ 84:      *  创建退款单，并执行退款操作
+ 85:      * @param StoreOrderRepository $storeOrderRepository
+ 86:      * @return \think\response\Json
+ 87:      * @author Qinii
+ 88:      * @day 2023/7/13
+ 89:      */
+ 90:     public function create(StoreOrderRepository $storeOrderRepository)
+ 91:     {
+ 92:         $data = $this->request->params(['refund_message','refund_price','mer_mark']);
+ 93:         $refund = $this->request->param('refund',[]);
+ 94:         $orderId = $this->request->param('order_id',02);
+ 95:         $order = $storeOrderRepository->getSearch(['mer_id' =>  $this->merId])->where('order_id',$orderId)->find();
+ 96:         if (!$order) return app('json')->fail('订单状态有误');
+ 97:         if (!$order->refund_status) return app('json')->fail('订单已过退款/退货期限');
+ 98:         if ($order->status < 0) return app('json')->fail('订单已退款');
+ 99:         if ($order->status == 10) return app('json')->fail('订单不支持退款');
+100:         $data['refund_type'] = 1;
+101:         $data['admin_id'] = $this->service_id;
+102:         $data['user_type'] = 4;
+103:         $refund  = $this->repository->merRefund($order,$refund,$data);
+104:         return app('json')->success('退款成功',['refund_order_id' => $refund->refund_order_id]);
+105:     }
+106: 
+107:     /**
+108:      * 列表
+109:      * @return \think\response\Json
+110:      * @author Qinii
+111:      */
+112:     public function lst()
+113:     {
+114:         [$page, $limit] = $this->getPage();
+115:         $where = $this->request->params(['order_type','delivery_id']);
+116:         $where['mer_id'] = $this->merId;
+117:         return app('json')->success($this->repository->getListByService($where,$page,$limit));
+118:     }
+119: 
+120:     /**
+121:      *  详情
+122:      * @param $id
+123:      * @return \think\response\Json
+124:      * @author Qinii
+125:      */
+126:     public function detail($id)
+127:     {
+128:         $data = $this->repository->getWhere([$this->repository->getPk() => $id,'mer_id' => $this->merId],'*',['order','refundProduct.product','user']);
+129:         return app('json')->success($data);
+130:     }
+131: 
+132:     /**
+133:      *  退款详情
+134:      * @param $id
+135:      * @return \think\response\Json
+136:      * @author Qinii
+137:      */
+138:     public function getRefundPrice($id)
+139:     {
+140:         return app('json')->success($this->repository->serverRefundDetail($id,$this->merId));
+141:     }
+142: 
+143:     /**
+144:      * 快递信息查询
+145:      * @param $id
+146:      * @return \think\response\Json
+147:      * @author Qinii
+148:      */
+149:     public function express($id)
+150:     {
+151:         $data['refund'] = $this->repository->getWhere(['refund_order_id' => $id,'mer_id'=> $this->merId,'status' =>2],'*', ['refundProduct.product']);
+152:         if(!$data['refund'])
+153:             return app('json')->fail('订单信息或状态错误');
+154: 
+155:         $data['express'] = $this->repository->express($id);
+156:         return app('json')->success($data);
+157:     }
+158: 
+159:     /**
+160:      *  审核
+161:      * @param $id
+162:      * @return \think\response\Json
+163:      * @author Qinii
+164:      */
+165:     public function switchStatus($id)
+166:     {
+167:         if(!$this->repository->getStatusExists($this->merId,$id))
+168:             return app('json')->fail('信息或状态错误');
+169:         $status = ($this->request->param('status') == 1) ? 1 : -1;
+170:         event('refund.status',compact('id','status'));
+171:         if($status == 1){
+172:             $data = $this->request->params(['mer_delivery_user','mer_delivery_address','phone']);
+173:             if ($data['phone'] && isPhone($data['phone']))
+174:                 return app('json')->fail('请输入正确的手机号');
+175:             $data['status'] = $status;
+176:             $this->repository->agree($id,$data,$this->service_id);
+177:         }else{
+178:             $fail_message = $this->request->param('fail_message','');
+179:             if($status == -1 && empty($fail_message))
+180:                 return app('json')->fail('未通过必须填写');
+181:             $data['status'] = $status;
+182:             $data['fail_message'] = $fail_message;
+183:             $this->repository->refuse($id,$data, $this->service_id);
+184:         }
+185:         return app('json')->success('审核成功');
+186:     }
+187: 
+188:     /**
+189:      *  - 用户退款退货
+190:      *  - 确认收货并退款
+191:      * @param $id
+192:      * @return \think\response\Json
+193:      * @author Qinii
+194:      */
+195:     public function refundPrice($id)
+196:     {
+197:         if(!$this->repository->getRefundPriceExists($this->merId,$id)){
+198:             return app('json')->fail('信息或状态错误');
+199:         }
+200:         $params = $this->request->params(['status','fail_message']);
+201:         if (!$params['status']) {
+202:             return app('json')->fail('请选择状态');
+203:         }
+204:         if ($params['status'] == -1 && empty($params['fail_message'])) {
+205:             return app('json')->fail('拒绝原因必须填写');
+206:         }
+207:         $this->repository->adminRefund($id, $params, $this->service_id);
+208:         return app('json')->success('审核成功');
+209:     }
+210: 
+211:     /**
+212:      *  备注
+213:      * @param $id
+214:      * @return \think\response\Json
+215:      * @author Qinii
+216:      */
+217:     public function mark($id){
+218:         if(!$this->repository->getExistsById($this->merId,$id))
+219:             return app('json')->fail('数据不存在');
+220:         $this->repository->update($id,['mer_mark' => $this->request->param('mer_mark','')]);
+221: 
+222:         return app('json')->success('备注成功');
+223:     }
+224: }
+</file>
+
+</files>

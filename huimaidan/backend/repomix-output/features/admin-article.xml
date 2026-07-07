@@ -1,0 +1,1442 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: app/controller/admin/article/**/*.php, route/admin/article.php, app/common/repositories/article/**/*.php, app/common/dao/article/**/*.php, app/common/model/article/**/*.php, app/validate/admin/*Article*.php, crmeb/services/article/**/*.php, app/validate/admin/Article*.php, app/validate/api/Article*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/common/dao/article/ArticleCategoryDao.php
+app/common/dao/article/ArticleContentDao.php
+app/common/dao/article/ArticleDao.php
+app/common/model/article/Article.php
+app/common/model/article/ArticleCategory.php
+app/common/model/article/ArticleContent.php
+app/common/repositories/article/ArticleCategoryRepository.php
+app/common/repositories/article/ArticleContentRepository.php
+app/common/repositories/article/ArticleRepository.php
+app/controller/admin/article/Article.php
+app/controller/admin/article/ArticleCategory.php
+app/validate/admin/ArticleCategoryValidate.php
+app/validate/admin/ArticleValidate.php
+route/admin/article.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/common/dao/article/ArticleCategoryDao.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\common\dao\article;
+ 15: 
+ 16: 
+ 17: use app\common\dao\BaseDao;
+ 18: use app\common\model\article\ArticleCategory;
+ 19: use app\common\model\BaseModel;
+ 20: use think\Collection;
+ 21: use think\db\exception\DataNotFoundException;
+ 22: use think\db\exception\DbException;
+ 23: use think\db\exception\ModelNotFoundException;
+ 24: use think\Model;
+ 25: 
+ 26: /**
+ 27:  * Class ArticleCategoryDao
+ 28:  * @package app\common\dao\article
+ 29:  * @author xaboy
+ 30:  * @day 2020-04-20
+ 31:  */
+ 32: class ArticleCategoryDao extends BaseDao
+ 33: {
+ 34: 
+ 35:     /**
+ 36:      * @return BaseModel
+ 37:      * @author xaboy
+ 38:      * @day 2020-03-30
+ 39:      */
+ 40:     protected function getModel(): string
+ 41:     {
+ 42:         return ArticleCategory::class;
+ 43:     }
+ 44: 
+ 45:     /**
+ 46:      * 获取文章分类集合
+ 47:      * @param int $mer_id
+ 48:      * @return array
+ 49:      * @author xaboy
+ 50:      * @day 2020-04-20
+ 51:      */
+ 52:     public function getAllOptions($mer_id = 0)
+ 53:     {
+ 54:         return ArticleCategory::getDB()->where('mer_id', $mer_id)->order('sort DESC')->column('pid,title', $this->getPk());
+ 55:     }
+ 56: 
+ 57:     /**
+ 58:      * 获取文章分类
+ 59:      * @param int $mer_id
+ 60:      * @return Collection
+ 61:      * @throws DataNotFoundException
+ 62:      * @throws DbException
+ 63:      * @throws ModelNotFoundException
+ 64:      * @author xaboy
+ 65:      * @day 2020-04-20
+ 66:      */
+ 67:     public function getAll($mer_id = 0,$status = null)
+ 68:     {
+ 69:         return ArticleCategory::getDB()->where('mer_id', $mer_id)->when($status,function($query)use($status){
+ 70:             $query->where('status',$status);
+ 71:         })->order('sort DESC')->select();
+ 72:     }
+ 73: 
+ 74:     /**
+ 75:      * 查询文章分类
+ 76:      * @param array $where
+ 77:      * @return \think\db\BaseQuery
+ 78:      * @author xaboy
+ 79:      * @day 2020/9/18
+ 80:      */
+ 81:     public function search(array $where)
+ 82:     {
+ 83:         return ArticleCategory::getDB()->when(isset($where['status']) && $where['status'] !== '', function ($query) use ($where) {
+ 84:             $query->where('status', $where['status']);
+ 85:         })->when(isset($where['pid']) && $where['pid'] !== '', function ($query) use ($where) {
+ 86:             $query->where('pid', $where['pid']);
+ 87:         })->order('sort DESC, article_category_id DESC');
+ 88:     }
+ 89: 
+ 90:     /**
+ 91:      * 查询指定字段的数据是否存在
+ 92:      * @param int $merId
+ 93:      * @param $field
+ 94:      * @param $value
+ 95:      * @param null $except
+ 96:      * @return bool
+ 97:      * @author xaboy
+ 98:      * @day 2020-04-20
+ 99:      */
+100:     public function merFieldExists(int $merId, $field, $value, $except = null)
+101:     {
+102:         return ($this->getModel())::getDB()->when($except, function ($query, $except) use ($field) {
+103:                 $query->where($field, '<>', $except);
+104:             })->where('mer_id', $merId)->where($field, $value)->count() > 0;
+105:     }
+106: 
+107:     /**
+108:      * 查询主键是否存在
+109:      * @param int $merId
+110:      * @param int $id
+111:      * @param null $except
+112:      * @return bool
+113:      * @author xaboy
+114:      * @day 2020-04-20
+115:      */
+116:     public function merExists(int $merId, int $id, $except = null)
+117:     {
+118:         return $this->merFieldExists($merId, $this->getPk(), $id, $except);
+119:     }
+120: 
+121:     /**
+122:      * 文章分类详情
+123:      * @param int $id
+124:      * @param int $merId
+125:      * @return array|Model|null
+126:      * @throws DataNotFoundException
+127:      * @throws DbException
+128:      * @throws ModelNotFoundException
+129:      * @author xaboy
+130:      * @day 2020-04-15
+131:      */
+132:     public function get( $id, $merId = 0)
+133:     {
+134:         return ($this->getModel())::getDB()->where('mer_id', 0)->find($id);
+135:     }
+136: 
+137:     /**
+138:      * 删除文章分类
+139:      * @param int $id
+140:      * @param int $merId
+141:      * @return int
+142:      * @throws DbException
+143:      * @author xaboy
+144:      * @day 2020-04-20
+145:      */
+146:     public function delete(int $id, $merId = 0)
+147:     {
+148:         return ($this->getModel())::getDB()->where($this->getPk(), $id)->where('mer_id', $merId)->delete();
+149:     }
+150: }
+</file>
+
+<file path="app/common/dao/article/ArticleContentDao.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\dao\article;
+15: 
+16: 
+17: use app\common\dao\BaseDao;
+18: use app\common\model\BaseModel;
+19: 
+20: class ArticleContentDao extends BaseDao
+21: {
+22: 
+23:     /**
+24:      * @return BaseModel
+25:      * @author xaboy
+26:      * @day 2020-03-30
+27:      */
+28:     protected function getModel(): string
+29:     {
+30:         return ArticleContentDao::class;
+31:     }
+32: }
+</file>
+
+<file path="app/common/dao/article/ArticleDao.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\common\dao\article;
+ 15: 
+ 16: use think\Collection;
+ 17: use think\db\BaseQuery;
+ 18: use think\db\exception\DataNotFoundException;
+ 19: use think\db\exception\DbException;
+ 20: use think\db\exception\ModelNotFoundException;
+ 21: use think\facade\Db;
+ 22: use app\common\dao\BaseDao;
+ 23: use app\common\model\article\Article;
+ 24: use app\common\model\BaseModel;
+ 25: use think\Model;
+ 26: 
+ 27: class ArticleDao extends BaseDao
+ 28: {
+ 29: 
+ 30:     /**
+ 31:      * @return BaseModel
+ 32:      * @author xaboy
+ 33:      * @day 2020-03-30
+ 34:      */
+ 35:     protected function getModel(): string
+ 36:     {
+ 37:         return Article::class;
+ 38:     }
+ 39: 
+ 40:     /**
+ 41:      * 获取全部文章
+ 42:      * @param int $mer_id
+ 43:      * @return Collection
+ 44:      * @throws DataNotFoundException
+ 45:      * @throws DbException
+ 46:      * @throws ModelNotFoundException
+ 47:      */
+ 48:     public function getAll($mer_id = 0)
+ 49:     {
+ 50:         return Article::getDB()->with('content')->where('mer_id', $mer_id)->select();
+ 51:     }
+ 52: 
+ 53:     /**
+ 54:      * 搜索列表
+ 55:      * @param $merId
+ 56:      * @param array $where
+ 57:      * @return BaseQuery
+ 58:      * @author Qinii
+ 59:      */
+ 60:     public function search($merId,array $where)
+ 61:     {
+ 62:         $query = Article::getDB();
+ 63:         if (isset($where['cid']) && $where['cid'] !== '') $query->where('cid', (int)$where['cid']);
+ 64:         if (isset($where['title']) && $where['title'] !== '') $query->whereLike('title', "%{$where['title']}%");
+ 65:         if (isset($where['status']) && $where['status'] !== '') $query->where('status', $where['status']);
+ 66:         if (isset($where['wechat_news_id']) && $where['wechat_news_id'] !== '') $query->where('wechat_news_id', $where['wechat_news_id']);
+ 67: 
+ 68:         if (isset($where['article_id']) && $where['article_id'] !== ''){
+ 69:             if (is_array($where['article_id'])) {
+ 70:                 $query->whereIn('article_id', $where['article_id']);
+ 71:             } else {
+ 72:                 $query->where('article_id', $where['article_id']);
+ 73:             }
+ 74: 
+ 75:         }
+ 76: 
+ 77: 
+ 78:         $query->with(['content','articleCategory']);
+ 79: 
+ 80:         return $query->where('mer_id',$merId)->order('sort DESC,create_time DESC');
+ 81:     }
+ 82: 
+ 83: 
+ 84: 
+ 85:     /**
+ 86:      * 根据 字段名查询
+ 87:      * @param int $merId
+ 88:      * @param $field
+ 89:      * @param $value
+ 90:      * @param null $except
+ 91:      * @return bool
+ 92:      * @author Qinii
+ 93:      */
+ 94:     public function merFieldExists(int $merId, $field, $value, $except = null)
+ 95:     {
+ 96:         return ($this->getModel())::getDB()->when($except, function ($query, $except) use ($field) {
+ 97:                 $query->where($field, '<>', $except);
+ 98:             })->where('mer_id', $merId)->where('wechat_news_id',0)->where($field, $value)->count() > 0;
+ 99:     }
+100: 
+101:     /**
+102:      * @param int $id
+103:      * @param int $merId
+104:      * @return int
+105:      * @throws DbException
+106:      * @author xaboy
+107:      * @day 2020-04-20
+108:      */
+109:     public function delete(int $id, int $merId = 0)
+110:     {
+111:         $result = ($this->getModel())::getDB()->where('mer_id', $merId)
+112:             ->where($this->getPk(),$id)
+113:             ->with('content')
+114:             ->find();
+115:         return $result->together(['content'])->delete();
+116:     }
+117: 
+118: 
+119:     /**
+120:      * 关联添加
+121:      * @param array $data
+122:      * @return BaseDao|Model|void
+123:      * @author Qinii
+124:      */
+125:     public function create(array $data)
+126:     {
+127:         Db::transaction(function()use($data){
+128:             $content = $data['content'];
+129:             unset($data['content']);
+130:             $article = $this->getModel()::create($data);
+131:             $article->content()->save(['content' => $content]);
+132:         });
+133:     }
+134: 
+135:     /**
+136:      * 关联更新
+137:      * @param int $id
+138:      * @param array $data
+139:      * @return int|void
+140:      * @author Qinii
+141:      */
+142:     public function update(int $id, array $data)
+143:     {
+144:         Db::transaction(function()use($id,$data){
+145:             $content = $data['content'];
+146:             unset($data['content']);
+147: 
+148:             $this->getModel()::where($this->getPk(),$id)->update($data);
+149: 
+150:             $article = $this->getModel()::find($id);
+151:             $article->content->content = $content;
+152:             $article->together(['content'])->save();
+153:         });
+154:     }
+155: 
+156:     /**
+157:      * 根据字段获取 主键值
+158:      * @param int $vale
+159:      * @param null $field
+160:      * @return array
+161:      * @author Qinii
+162:      */
+163:     public function getKey(int $vale,$field = null)
+164:     {
+165:         return ($this->getModel())::getDB()->where($field,$vale)->column($this->getPk());
+166:     }
+167: 
+168:     /**
+169:      * 查询微信图文消息
+170:      * @param $id
+171:      * @return array|Collection|BaseQuery[]
+172:      * @throws DataNotFoundException
+173:      * @throws DbException
+174:      * @throws ModelNotFoundException
+175:      * @author wuhaotian
+176:      * @email 442384644@qq.com
+177:      * @date 2024/7/12
+178:      */
+179:     public function wechatNewIdByData($id)
+180:     {
+181:         return ($this->getModel())::getDB()->where('wechat_news_id', $id)->select();
+182:     }
+183: 
+184:     /**
+185:      * 切换状态
+186:      * @param $id
+187:      * @param $data
+188:      * @return int
+189:      * @throws DbException
+190:      * @author wuhaotian
+191:      * @email 442384644@qq.com
+192:      * @date 2024/7/12
+193:      */
+194:     public function switchStatus($id, $data)
+195:     {
+196:        return ($this->getModel())::getDB()->where($this->getPk(),$id)->update($data);
+197:     }
+198: 
+199:     /**
+200:      * 增加阅读量
+201:      * @param $id
+202:      * @author wuhaotian
+203:      * @email 442384644@qq.com
+204:      * @date 2024/7/12
+205:      */
+206:     public function incVisit($id)
+207:     {
+208:         $this->getModel()::getDB()->where($this->getPk(),$id)->inc('visit',1);
+209:     }
+210: }
+</file>
+
+<file path="app/common/model/article/Article.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\model\article;
+15: 
+16: 
+17: use app\common\model\BaseModel;
+18: 
+19: class Article extends BaseModel
+20: {
+21: 
+22:     /**
+23:      * @return string
+24:      * @author xaboy
+25:      * @day 2020-03-30
+26:      */
+27:     public static function tablePk(): string
+28:     {
+29:         return 'article_id';
+30:     }
+31: 
+32:     /**
+33:      * @return string
+34:      * @author xaboy
+35:      * @day 2020-03-30
+36:      */
+37:     public static function tableName(): string
+38:     {
+39:         return 'article';
+40:     }
+41: 
+42:     /**
+43:      * @return \think\model\relation\HasOne
+44:      * @author Qinii
+45:      */
+46:     public function content()
+47:     {
+48:         return $this->hasOne(ArticleContent::class,'article_content_id','article_id');
+49:     }
+50: 
+51:     /**
+52:      * @return \think\model\relation\HasOne
+53:      * @author Qinii
+54:      */
+55:     public function articleCategory()
+56:     {
+57:         return $this->hasOne(ArticleCategory::class ,'article_category_id','cid')
+58:             ->field('article_category_id,title');
+59:     }
+60: 
+61:     public function searchStatusAttr($query, $value)
+62:     {
+63:         $query->where('status', $value);
+64:     }
+65: }
+</file>
+
+<file path="app/common/model/article/ArticleCategory.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\model\article;
+15: 
+16: 
+17: use app\common\model\BaseModel;
+18: 
+19: class ArticleCategory extends BaseModel
+20: {
+21: 
+22:     /**
+23:      * @return string
+24:      * @author xaboy
+25:      * @day 2020-03-30
+26:      */
+27:     public static function tablePk(): string
+28:     {
+29:         return 'article_category_id';
+30:     }
+31: 
+32:     /**
+33:      * @return string
+34:      * @author xaboy
+35:      * @day 2020-03-30
+36:      */
+37:     public static function tableName(): string
+38:     {
+39:         return 'article_category';
+40:     }
+41: }
+</file>
+
+<file path="app/common/model/article/ArticleContent.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\model\article;
+15: 
+16: 
+17: use app\common\model\BaseModel;
+18: 
+19: class ArticleContent extends BaseModel
+20: {
+21: 
+22:     /**
+23:      * @return string
+24:      * @author xaboy
+25:      * @day 2020-03-30
+26:      */
+27:     public static function tablePk(): string
+28:     {
+29:         return 'article_content_id';
+30:     }
+31: 
+32:     /**
+33:      * @return string
+34:      * @author xaboy
+35:      * @day 2020-03-30
+36:      */
+37:     public static function tableName(): string
+38:     {
+39:         return 'article_content';
+40:     }
+41: }
+</file>
+
+<file path="app/common/repositories/article/ArticleCategoryRepository.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\common\repositories\article;
+ 15: 
+ 16: 
+ 17: use app\common\dao\article\ArticleCategoryDao;
+ 18: use app\common\repositories\BaseRepository;
+ 19: use FormBuilder\Exception\FormBuilderException;
+ 20: use FormBuilder\Factory\Elm;
+ 21: use FormBuilder\Form;
+ 22: use think\db\exception\DataNotFoundException;
+ 23: use think\db\exception\DbException;
+ 24: use think\db\exception\ModelNotFoundException;
+ 25: use think\facade\Route;
+ 26: 
+ 27: /**
+ 28:  * 文章内容分类
+ 29:  */
+ 30: class ArticleCategoryRepository extends BaseRepository
+ 31: {
+ 32:     /**
+ 33:      * ArticleCategoryRepository constructor.
+ 34:      * @param ArticleCategoryDao $dao
+ 35:      */
+ 36:     public function __construct(ArticleCategoryDao $dao)
+ 37:     {
+ 38:         $this->dao = $dao;
+ 39:     }
+ 40: 
+ 41:     /**
+ 42:      * 文章分类列表
+ 43:      * @param int $merId
+ 44:      * @return array
+ 45:      * @throws DataNotFoundException
+ 46:      * @throws DbException
+ 47:      * @throws ModelNotFoundException
+ 48:      * @author xaboy
+ 49:      * @day 2020-04-20
+ 50:      */
+ 51:     public function getFormatList($merId = 0,$status = null)
+ 52:     {
+ 53:         return formatCategory($this->dao->getAll($merId,$status)->toArray(), 'article_category_id');
+ 54:     }
+ 55: 
+ 56: 
+ 57:     /**
+ 58:      * 开启的文章分类列表
+ 59:      * @return \think\Collection
+ 60:      * @throws DataNotFoundException
+ 61:      * @throws DbException
+ 62:      * @throws ModelNotFoundException
+ 63:      * @author xaboy
+ 64:      * @day 2020/9/18
+ 65:      */
+ 66:     public function apiGetArticleCategory()
+ 67:     {
+ 68:         return $this->dao->search(['status' => 1, 'pid' => 0])->select();
+ 69:     }
+ 70: 
+ 71:     /**
+ 72:      * 文章分类表单
+ 73:      * @param int $merId
+ 74:      * @param int|null $id
+ 75:      * @param array $formData
+ 76:      * @return Form
+ 77:      * @throws FormBuilderException
+ 78:      * @author xaboy
+ 79:      * @day 2020-04-20
+ 80:      */
+ 81:     public function form(int $merId, ?int $id = null, array $formData = [])
+ 82:     {
+ 83:         $form = Elm::createForm(is_null($id) ? Route::buildUrl('systemArticleCategoryCreate')->build() : Route::buildUrl('systemArticleCategoryUpdate', ['id' => $id])->build());
+ 84:         $form->setRule([
+ 85: //            Elm::cascader('pid', '上级分类')->options(function () use ($id, $merId) {
+ 86: //                $menus = $this->dao->getAllOptions($merId);
+ 87: //                if ($id && isset($menus[$id])) unset($menus[$id]);
+ 88: //                $menus = formatCascaderData($menus, 'title');
+ 89: //                array_unshift($menus, ['label' => '顶级分类', 'value' => 0]);
+ 90: //                return $menus;
+ 91: //            })->props(['props' => ['checkStrictly' => true, 'emitPath' => false]]),
+ 92:             Elm::input('title', '分类名称：')->placeholder('请输入分类名称')->required('请输入分类名称'),
+ 93:             Elm::input('info', '分类简介：')->placeholder('请输入分类简介'),
+ 94:             Elm::frameImage('image', '分类图片：', '/' . config('admin.admin_prefix') . '/setting/uploadPicture?field=image&type=1')->width('1000px')->height('600px')->props(['footer' => false])->icon('el-icon-camera')->modal(['modal' => false, 'custom-class' => 'suibian-modal']),
+ 95:             Elm::switches('status', '状态：', 1)->activeValue(1)->inactiveValue(0)->inactiveText('关闭')->className('switch-width-double')->activeText('开启'),
+ 96:             Elm::number('sort', '排序：', 0)->precision(0)->max(99999),
+ 97:         ]);
+ 98: 
+ 99:         return $form->setTitle(is_null($id) ? '添加文章配置' : '编辑文章分类')->formData($formData);
+100:     }
+101: 
+102:     /**
+103:      * 编辑表单
+104:      * @param int $merId
+105:      * @param $id
+106:      * @return Form
+107:      * @throws DataNotFoundException
+108:      * @throws DbException
+109:      * @throws ModelNotFoundException
+110:      * @throws FormBuilderException
+111:      * @author xaboy
+112:      * @day 2020-04-20
+113:      */
+114:     public function updateForm(int $merId, $id)
+115:     {
+116:         return $this->form($merId, $id, $this->dao->get($id, $merId)->toArray());
+117:     }
+118: 
+119:     public function list(array $where, $page, $limit)
+120:     {
+121:         $query = $this->dao->search($where)->order('create_time DESC');
+122:         $count = $query->count($this->dao->getPk());
+123:         $list = $query->page($page, $limit)->select();
+124:         return compact('count', 'list');
+125:     }
+126: }
+</file>
+
+<file path="app/common/repositories/article/ArticleContentRepository.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\common\repositories\article;
+15: 
+16: 
+17: use app\common\dao\article\ArticleContentDao;
+18: use app\common\repositories\BaseRepository;
+19: 
+20: class ArticleContentRepository extends BaseRepository
+21: {
+22:     public function __construct(ArticleContentDao $dao)
+23:     {
+24:         $this->dao = $dao;
+25:     }
+26: }
+</file>
+
+<file path="app/common/repositories/article/ArticleRepository.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\common\repositories\article;
+ 15: 
+ 16: 
+ 17: use app\common\dao\article\ArticleDao;
+ 18: use app\common\model\article\ArticleContent;
+ 19: use app\common\repositories\BaseRepository;
+ 20: use think\facade\Db;
+ 21: 
+ 22: /**
+ 23:  * 文章内容
+ 24:  */
+ 25: class ArticleRepository extends BaseRepository
+ 26: {
+ 27:     public function __construct(ArticleDao $dao)
+ 28:     {
+ 29:         $this->dao = $dao;
+ 30:     }
+ 31: 
+ 32:     public function getFormatList($merId = 0)
+ 33:     {
+ 34:         return $this->dao->getAll($merId)->toArray();
+ 35:     }
+ 36: 
+ 37:     /**
+ 38:      *  列表搜索
+ 39:      * @param int $merId
+ 40:      * @param array $where
+ 41:      * @param $page
+ 42:      * @param $limit
+ 43:      * @return array
+ 44:      * @author Qinii
+ 45:      */
+ 46:     public function search(int $merId, array $where, $page, $limit)
+ 47:     {
+ 48:         $where['wechat_news_id'] = 0;
+ 49:         $query = $this->dao->search($merId, $where)->order('create_time DESC');
+ 50:         $count = $query->count($this->dao->getPk());
+ 51:         $list = $query->page($page, $limit)->hidden(['update_time'])->select();
+ 52:         return compact('count', 'list');
+ 53:     }
+ 54: 
+ 55:     /**
+ 56:      * 根据主键查询
+ 57:      * @param int $merId
+ 58:      * @param int $id
+ 59:      * @param null $except
+ 60:      * @return bool
+ 61:      * @author Qinii
+ 62:      */
+ 63:     public function merExists(int $merId, int $id, $except = null)
+ 64:     {
+ 65:         return $this->dao->merFieldExists($merId, $this->dao->getPk(), $id, $except);
+ 66:     }
+ 67: 
+ 68:     /**
+ 69:      * 根据主键查询开启的文章
+ 70:      * @param int $id
+ 71:      * @return array|\think\Model|null
+ 72:      * @throws \think\db\exception\DataNotFoundException
+ 73:      * @throws \think\db\exception\DbException
+ 74:      * @throws \think\db\exception\ModelNotFoundException
+ 75:      * @author wuhaotian
+ 76:      * @email 442384644@qq.com
+ 77:      * @date 2024/7/5
+ 78:      */
+ 79:     public function merApiExists(int $id)
+ 80:     {
+ 81:         return $this->dao->getWhere([$this->dao->getPk() => $id, 'status' => 1]);
+ 82:     }
+ 83: 
+ 84:     /**
+ 85:      * 根据微信文章id查询删除
+ 86:      * @param int $newId
+ 87:      * @return array|\think\Model|null
+ 88:      * @throws \think\db\exception\DataNotFoundException
+ 89:      * @throws \think\db\exception\DbException
+ 90:      * @throws \think\db\exception\ModelNotFoundException
+ 91:      * @author wuhaotian
+ 92:      * @email 442384644@qq.com
+ 93:      * @date 2024/7/5
+ 94:      */
+ 95:     public function clearByNewId($newId)
+ 96:     {
+ 97:         Db::transaction(function () use ($newId) {
+ 98:             $article_id = $this->dao->search(0, ['wechat_news_id' => $newId])->column('article_id');
+ 99:             foreach ($article_id as $item) {
+100:                 $this->dao->delete($item, 0);
+101:             }
+102:         });
+103:     }
+104: }
+</file>
+
+<file path="app/controller/admin/article/Article.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace app\controller\admin\article;
+ 14: 
+ 15: use crmeb\basic\BaseController;
+ 16: use app\common\repositories\article\ArticleCategoryRepository;
+ 17: use app\common\repositories\article\ArticleContentRepository;
+ 18: use app\common\repositories\article\ArticleRepository;
+ 19: use FormBuilder\Exception\FormBuilderException;
+ 20: use think\App;
+ 21: use think\db\exception\DataNotFoundException;
+ 22: use think\db\exception\DbException;
+ 23: use think\db\exception\ModelNotFoundException;
+ 24: use app\validate\admin\ArticleValidate;
+ 25: 
+ 26: /**
+ 27:  * 文章内容
+ 28:  */
+ 29: class Article extends BaseController
+ 30: {
+ 31:     /**
+ 32:      * @var ArticleRepository
+ 33:      */
+ 34:     protected $repository;
+ 35: 
+ 36:     /**
+ 37:      * Article constructor.
+ 38:      * @param App $app
+ 39:      * @param ArticleRepository $repository
+ 40:      */
+ 41:     public function __construct(App $app, ArticleRepository $repository)
+ 42:     {
+ 43:         parent::__construct($app);
+ 44:         $this->repository = $repository;
+ 45:     }
+ 46: 
+ 47: 
+ 48:     /**
+ 49:      * 文章列表
+ 50:      * @return mixed
+ 51:      * @author Qinii
+ 52:      */
+ 53:     public function getList()
+ 54:     {
+ 55:         [$page, $limit] = $this->getPage();
+ 56: 
+ 57:         $where = $this->request->params(['cid', 'title']);
+ 58: 
+ 59:         return app('json')->success($this->repository->search($this->request->merId(), $where, $page, $limit));
+ 60:     }
+ 61: 
+ 62:     /**
+ 63:      * 添加
+ 64:      * @param ArticleValidate $validate
+ 65:      * @param ArticleCategoryRepository $repository
+ 66:      * @return mixed
+ 67:      * @author Qinii
+ 68:      */
+ 69:     public function create(ArticleValidate $validate, ArticleCategoryRepository $repository)
+ 70:     {
+ 71:         $data = $this->checkParams($validate);
+ 72:         $data['admin_id'] = $this->request->adminId();
+ 73:         $data['mer_id'] = $this->request->merId();
+ 74:         $data['visit'] = 0;
+ 75:         if (!$repository->merExists(0, $data['cid']))
+ 76:             return app('json')->fail('分类不存在');
+ 77:         $this->repository->create($data);
+ 78:         return app('json')->success('添加成功');
+ 79: 
+ 80:     }
+ 81: 
+ 82:     /**
+ 83:      * 文章详情
+ 84:      * @param $id
+ 85:      * @return \think\response\Json
+ 86:      * @author wuhaotian
+ 87:      * @email 442384644@qq.com
+ 88:      * @date 2024/7/4
+ 89:      */
+ 90:     public function detail($id)
+ 91:     {
+ 92:         if (!$this->repository->merExists($this->request->merId(), $id))
+ 93:             return app('json')->fail('数据不存在');
+ 94: 
+ 95:         return app('json')->success($this->repository->getWith($id, ['content']));
+ 96:     }
+ 97: 
+ 98:     /**
+ 99:      * 更新
+100:      * @param $id
+101:      * @param ArticleValidate $validate
+102:      * @param ArticleCategoryRepository $articleCategoryRepository
+103:      * @return mixed
+104:      * @author Qinii
+105:      */
+106:     public function update($id, ArticleValidate $validate, ArticleCategoryRepository $articleCategoryRepository)
+107:     {
+108:         $data = $this->checkParams($validate);
+109:         if (!$this->repository->merExists($this->request->merId(), $id))
+110:             return app('json')->fail('数据不存在');
+111:         if (!$articleCategoryRepository->merExists($this->request->merId(), $data['cid']))
+112:             return app('json')->fail('分类不存在');
+113: 
+114:         $this->repository->update($id, $data);
+115: 
+116:         return app('json')->success('编辑成功');
+117:     }
+118: 
+119:     /**
+120:      * 删除
+121:      * @param $id
+122:      * @return mixed
+123:      * @throws DataNotFoundException
+124:      * @throws DbException
+125:      * @throws ModelNotFoundException
+126:      * @author Qinii
+127:      */
+128:     public function delete($id)
+129:     {
+130:         if (!$this->repository->merExists($this->request->merId(), $id))
+131:             return app('json')->fail('数据不存在');
+132: 
+133:         $this->repository->delete($id, $this->request->merId());
+134: 
+135:         return app('json')->success('删除成功');
+136:     }
+137: 
+138: 
+139:     /**
+140:      * 验证数据
+141:      * @param ArticleValidate $validate
+142:      * @return array
+143:      * @author Qinii
+144:      */
+145:     public function checkParams(ArticleValidate $validate)
+146:     {
+147:         $data = $this->request->params([['cid', 0], 'title', 'content', 'author', 'image_input', 'status', 'sort', 'synopsis', 'is_hot', 'is_banner', 'url']);
+148:         $validate->check($data);
+149:         return $data;
+150:     }
+151: 
+152:     /**
+153:      *  状态变更
+154:      * @param $id
+155:      * @return \think\response\Json
+156:      * @author Qinii
+157:      */
+158:     public function switchStatus($id)
+159:     {
+160:         $status = $this->request->param('status', 0) == 1 ? 1 : 0;
+161:         if (!$this->repository->get($id)) return app('json')->fail('数据不存在');
+162:         $this->repository->switchStatus($id, ['status' => $status]);
+163:         return app('json')->success('修改成功');
+164:     }
+165: 
+166: }
+</file>
+
+<file path="app/controller/admin/article/ArticleCategory.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace app\controller\admin\article;
+ 15: 
+ 16: 
+ 17: use crmeb\basic\BaseController;
+ 18: use app\common\repositories\article\ArticleCategoryRepository;
+ 19: use app\validate\admin\ArticleCategoryValidate;
+ 20: use FormBuilder\Exception\FormBuilderException;
+ 21: use think\App;
+ 22: use think\db\exception\DataNotFoundException;
+ 23: use think\db\exception\DbException;
+ 24: use think\db\exception\ModelNotFoundException;
+ 25: 
+ 26: /**
+ 27:  * 文章内容分类
+ 28:  */
+ 29: class ArticleCategory extends BaseController
+ 30: {
+ 31:     /**
+ 32:      * @var ArticleCategoryRepository
+ 33:      */
+ 34:     protected $repository;
+ 35: 
+ 36:     /**
+ 37:      * ArticleCategory constructor.
+ 38:      * @param App $app
+ 39:      * @param ArticleCategoryRepository $repository
+ 40:      */
+ 41:     public function __construct(App $app, ArticleCategoryRepository $repository)
+ 42:     {
+ 43:         parent::__construct($app);
+ 44:         $this->repository = $repository;
+ 45:     }
+ 46: 
+ 47:     /**
+ 48:      * 文章分类列表
+ 49:      * @return mixed
+ 50:      * @throws DataNotFoundException
+ 51:      * @throws DbException
+ 52:      * @throws ModelNotFoundException
+ 53:      * @author xaboy
+ 54:      * @day 2020-04-20
+ 55:      */
+ 56:     public function lst()
+ 57:     {
+ 58:         $result = $this->repository->getFormatList();
+ 59:         return app('json')->success($result);
+ 60:     }
+ 61: 
+ 62:     /**
+ 63:      * 文章分类添加表单
+ 64:      * @return mixed
+ 65:      * @throws FormBuilderException
+ 66:      * @author xaboy
+ 67:      * @day 2020-04-15
+ 68:      */
+ 69:     public function createForm()
+ 70:     {
+ 71:         return app('json')->success(formToData($this->repository->form(0)));
+ 72:     }
+ 73: 
+ 74:     /**
+ 75:      * 文章分类修改表单
+ 76:      * @param $id
+ 77:      * @return mixed
+ 78:      * @throws DataNotFoundException
+ 79:      * @throws DbException
+ 80:      * @throws FormBuilderException
+ 81:      * @throws ModelNotFoundException
+ 82:      * @author xaboy
+ 83:      * @day 2020-04-15
+ 84:      */
+ 85:     public function updateForm($id)
+ 86:     {
+ 87:         if (!$this->repository->merExists(0, $id))
+ 88:             return app('json')->fail('数据不存在');
+ 89:         return app('json')->success(formToData($this->repository->updateForm(0, $id)));
+ 90:     }
+ 91: 
+ 92:     /**
+ 93:      * 新增分类
+ 94:      * @param ArticleCategoryValidate $validate
+ 95:      * @return mixed
+ 96:      * @author xaboy
+ 97:      * @day 2020-04-20
+ 98:      */
+ 99:     public function create(ArticleCategoryValidate $validate)
+100:     {
+101:         $data = $this->checkParams($validate);
+102:         if ($data['pid'] && !$this->repository->merExists(0, $data['pid']))
+103:             return app('json')->fail('上级分类不存在');
+104:         $data['mer_id'] = 0;
+105:         $this->repository->create($data);
+106:         return app('json')->success('添加成功');
+107:     }
+108: 
+109:     /**
+110:      * 更新分类
+111:      * @param $id
+112:      * @param ArticleCategoryValidate $validate
+113:      * @return mixed
+114:      * @throws DbException
+115:      * @author xaboy
+116:      * @day 2020-04-20
+117:      */
+118:     public function update($id, ArticleCategoryValidate $validate)
+119:     {
+120:         $data = $this->checkParams($validate);
+121:         if (!$this->repository->merExists(0, $id))
+122:             return app('json')->fail('数据不存在');
+123:         if ($data['pid'] && !$this->repository->merExists(0, $data['pid']))
+124:             return app('json')->fail('上级分类不存在');
+125: 
+126:         $this->repository->update($id, $data);
+127:         return app('json')->success('编辑成功');
+128:     }
+129: 
+130:     /**
+131:      * 切换分类状态
+132:      * @param int $id
+133:      * @return mixed
+134:      * @throws DbException
+135:      * @author xaboy
+136:      * @day 2020-04-20
+137:      */
+138:     public function switchStatus($id)
+139:     {
+140:         $status = $this->request->param('status', 0) == 1 ? 1 : 0;
+141:         if (!$this->repository->exists($id))
+142:             return app('json')->fail('分类不存在');
+143:         $this->repository->update($id, compact('status'));
+144:         return app('json')->success('修改成功');
+145:     }
+146: 
+147:     /**
+148:      * 删除分类
+149:      * @param $id
+150:      * @return mixed
+151:      * @throws DbException
+152:      * @author xaboy
+153:      * @day 2020-04-20
+154:      */
+155:     public function delete($id)
+156:     {
+157:         if ($this->repository->merFieldExists(0, 'pid', $id))
+158:             return app('json')->fail('存在子级,无法删除');
+159:         $this->repository->delete($id, 0);
+160:         return app('json')->success('删除成功');
+161:     }
+162: 
+163: 
+164:     /**
+165:      * 分类详情
+166:      * @param $id
+167:      * @return mixed
+168:      * @throws DataNotFoundException
+169:      * @throws DbException
+170:      * @throws ModelNotFoundException
+171:      * @author Qinii
+172:      */
+173:     public function detail($id)
+174:     {
+175:         if (!$this->repository->exists($id))
+176:             return app('json')->fail('分类不存在');
+177:         return app('json')->success($this->repository->get($id, 0));
+178:     }
+179: 
+180:     /**
+181:      * 验证数据
+182:      * @param ArticleCategoryValidate $validate
+183:      * @return array
+184:      * @author xaboy
+185:      * @day 2020-04-20
+186:      */
+187:     public function checkParams(ArticleCategoryValidate $validate)
+188:     {
+189:         $data = $this->request->params([['pid', 0], 'title', 'info', 'status', 'image', 'sort']);
+190:         $validate->check($data);
+191:         return $data;
+192:     }
+193: 
+194:     /**
+195:      * 获取显示的分类
+196:      * @return \think\response\Json
+197:      * @throws DataNotFoundException
+198:      * @throws DbException
+199:      * @throws ModelNotFoundException
+200:      * @author wuhaotian
+201:      * @email 442384644@qq.com
+202:      * @date 2024/7/4
+203:      */
+204:     public function select()
+205:     {
+206:         $result = $this->repository->getFormatList(0, 1);
+207:         return app('json')->success($result);
+208:     }
+209: }
+</file>
+
+<file path="app/validate/admin/ArticleCategoryValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\admin;
+15: 
+16: 
+17: use think\Validate;
+18: 
+19: class ArticleCategoryValidate extends Validate
+20: {
+21:     protected $failException = true;
+22: 
+23:     protected $rule = [
+24:         'pid|选择分类' => 'require|integer',
+25:         'title|分类名称' => 'require|max:12',
+26:         'info|分类简介' => 'max:255',
+27:         'status|状态' => 'require|in:0,1',
+28:         'image|分类图片' => 'max:128',
+29:         'sort|排序' => 'require|integer'
+30:     ];
+31: }
+</file>
+
+<file path="app/validate/admin/ArticleValidate.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace app\validate\admin;
+15: 
+16: use think\Validate;
+17: 
+18: class ArticleValidate extends Validate
+19: {
+20:     protected $failException = true;
+21: 
+22:     protected $rule = [
+23:         'cid|选择分类' => 'require|integer',
+24:         'title|标题' => 'require|max:32',
+25:         'content|内容' => 'require',
+26:         'author|作者' => 'require|max:32',
+27:         'image_input|图片' => 'require|max:128',
+28:         'is_hot|是否热门' => 'require|integer',
+29:         'is_banner|是否为Banner' => 'require|integer'
+30:     ];
+31: }
+</file>
+
+<file path="route/admin/article.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: 
+ 12: use think\facade\Route;
+ 13: use app\common\middleware\AdminAuthMiddleware;
+ 14: use app\common\middleware\AdminTokenMiddleware;
+ 15: use app\common\middleware\AllowOriginMiddleware;
+ 16: use app\common\middleware\LogMiddleware;
+ 17: 
+ 18: Route::group(function () {
+ 19: 
+ 20:     //文章分类
+ 21:     Route::group('system/article/category', function () {
+ 22:         Route::get('create/form', '/createForm')->name('systemArticleCategoryCreateForm')->option([
+ 23:             '_alias' => '文章分类添加表单',
+ 24:             '_auth' => false,
+ 25:             '_form' => 'systemArticleCategoryCreate',
+ 26:         ]);
+ 27:         Route::get('lst', '/lst')->name('systemArticleCategoryLst')->option([
+ 28:             '_alias' => '文章分类列表',
+ 29:         ]);
+ 30:         Route::post('create', '/create')->name('systemArticleCategoryCreate')->option([
+ 31:             '_alias' => '文章分类添加',
+ 32:         ]);
+ 33:         Route::get('update/form/:id', '/updateForm')->name('systemArticleCategoryUpdateForm')->option([
+ 34:             '_alias' => '文章分类编辑表单',
+ 35:             '_auth' => false,
+ 36:             '_form' => 'systemArticleCategoryUpdate',
+ 37:         ]);
+ 38:         Route::post('update/:id', '/update')->name('systemArticleCategoryUpdate')->option([
+ 39:             '_alias' => '文章分类编辑',
+ 40:         ]);
+ 41:         Route::post('status/:id', '/switchStatus')->name('systemArticleCategoryStatus')->option([
+ 42:             '_alias' => '文章分类修改状态',
+ 43:         ]);
+ 44:         Route::delete('delete/:id', '/delete')->name('systemArticleCategoryDelete')->option([
+ 45:             '_alias' => '文章分类删除',
+ 46:         ]);
+ 47:         Route::get('detail/:id', '/detail')->name('systemArticleCategoryDetail')->option([
+ 48:             '_alias' => '文章分类详情',
+ 49:         ]);
+ 50:         Route::get('select', '/select')->option([
+ 51:             '_alias' => '文章分类筛选',
+ 52:             '_auth'  => false,
+ 53:         ]);
+ 54:     })->prefix('admin.article.ArticleCategory')->option([
+ 55:         '_path' => '/cms/articleCategory',
+ 56:         '_auth' => true,
+ 57:     ]);
+ 58: 
+ 59:     //文章
+ 60:     Route::group('system/article/article', function () {
+ 61:         Route::get('lst', '/getList')->name('systemArticlArticleLst')->option([
+ 62:             '_alias' => '文章列表',
+ 63:         ]);
+ 64:         Route::post('create', '/create')->name('systemArticleArticleCreate')->option([
+ 65:             '_alias' => '文章添加',
+ 66:         ]);
+ 67:         Route::post('update/:id', '/update')->name('systemArticArticleleUpdate')->option([
+ 68:             '_alias' => '文章编辑',
+ 69:         ]);
+ 70:         Route::delete('delete/:id', '/delete')->name('systemArticArticleleDelete')->option([
+ 71:             '_alias' => '文章删除',
+ 72:         ]);
+ 73:         Route::get('detail/:id', '/detail')->name('systemArticArticleleDetail')->option([
+ 74:             '_alias' => '文章详情',
+ 75:         ]);
+ 76:         Route::post('status/:id', '/switchStatus')->name('systemArticlArticlStatus')->option([
+ 77:             '_alias' => '文章修改状态',
+ 78:         ]);
+ 79:     })->prefix('admin.article.Article')->option([
+ 80:         '_path' => '/cms/article',
+ 81:         '_auth' => true,
+ 82:         '_append'=> [
+ 83:             [
+ 84:                 '_name'  =>'uploadImage',
+ 85:                 '_path'  =>'/cms/article',
+ 86:                 '_alias' => '上传图片',
+ 87:                 '_auth'  => true,
+ 88:             ],
+ 89:             [
+ 90:                 '_name'  =>'systemAttachmentLst',
+ 91:                 '_path'  =>'/cms/article',
+ 92:                 '_alias' => '素材列表',
+ 93:                 '_auth'  => true,
+ 94:             ],
+ 95:         ]
+ 96:     ]);
+ 97: 
+ 98: })->middleware(AllowOriginMiddleware::class)
+ 99:     ->middleware(AdminTokenMiddleware::class, true)
+100:     ->middleware(AdminAuthMiddleware::class)
+101:     ->middleware(LogMiddleware::class);
+</file>
+
+</files>

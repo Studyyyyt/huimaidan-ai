@@ -1,0 +1,3319 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AI 推荐大脑 - 后台管理</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; color: #1f2937; background: #f5f7fb; }
+    header { height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; background: #fff; border-bottom: 1px solid #e5e7eb; }
+    h1 { margin: 0; font-size: 24px; }
+    a { color: #2563eb; text-decoration: none; }
+    .layout { display: flex; min-height: calc(100vh - 70px); }
+    nav { width: 250px; padding: 20px 0; background: #fff; border-right: 1px solid #e5e7eb; }
+    .nav-section { margin: 16px 28px 6px; font-size: 12px; color: #94a3b8; font-weight: 700; letter-spacing: .08em; }
+    .nav-section:first-child { margin-top: 0; }
+    nav button { width: 100%; border: 0; background: transparent; padding: 16px 28px; text-align: left; font-size: 17px; color: #374151; cursor: pointer; white-space: normal; line-height: 1.35; }
+    nav button.active { color: #0f4fd6; background: #eaf2ff; font-weight: 700; box-shadow: inset 4px 0 0 #1677ff; }
+    main { flex: 1; padding: 26px 34px; overflow: auto; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 22px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(15, 23, 42, .04); }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+    input, select, textarea { border: 1px solid #d1d5db; border-radius: 6px; padding: 9px 11px; font-size: 14px; background: #fff; }
+    textarea { width: 100%; min-height: 120px; line-height: 1.6; }
+    button.primary, button.success, button.warn, button.plain, button.danger { border: 0; border-radius: 6px; padding: 10px 16px; font-size: 14px; cursor: pointer; color: #fff; }
+    button.primary { background: #1677ff; }
+    button.success { background: #22a35a; }
+    button.warn { background: #c89345; }
+    button.plain { background: #64748b; }
+    button.danger { background: #ef4444; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; }
+    th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: left; vertical-align: top; }
+    th { background: #f8fafc; color: #475569; }
+    .muted { color: #64748b; }
+    .guide { line-height: 1.8; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 18px; }
+    .guide h3 { margin: 0 0 8px; }
+    .guide ol { margin: 0; padding-left: 22px; }
+    .guide ul { margin: 0; padding-left: 22px; }
+    .status { min-height: 22px; margin: 10px 0; color: #0f766e; word-break: break-word; white-space: pre-wrap; }
+    .error { color: #dc2626; }
+    .hidden { display: none !important; }
+    .split { display: grid; grid-template-columns: minmax(280px, 420px) 1fr; gap: 18px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 10px; }
+    .form-grid label { display: grid; gap: 6px; font-size: 13px; color: #475569; }
+    .checkbox-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .checkbox-row label { display: inline-flex; gap: 6px; align-items: center; color: #334155; }
+    .facility-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+    .facility-tools input { min-width: 220px; }
+    .facility-create { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) 100px auto; gap: 8px; align-items: center; margin-top: 10px; padding: 12px; border: 1px solid #dbeafe; border-radius: 8px; background: #eff6ff; }
+    .facility-selected { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .facility-selected .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 12px; }
+    .facility-selected .chip button { border: 0; background: transparent; color: #166534; cursor: pointer; padding: 0; font-size: 14px; }
+    .profile-panel { margin-top: 18px; border-color: #bfdbfe; background: #f8fbff; }
+    .section-title { margin: 0 0 14px; font-size: 18px; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #e0f2fe; color: #0369a1; }
+    .field-hint { display: block; margin-top: 4px; color: #64748b; font-size: 12px; }
+    .quality-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 10px 0 14px; }
+    .quality-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; background: #fff; }
+    .quality-card strong { display: block; font-size: 22px; color: #0f172a; }
+    .quality-card span { color: #64748b; font-size: 12px; }
+    .risk-high { color: #dc2626; font-weight: 700; }
+    .risk-medium { color: #b45309; font-weight: 700; }
+    .risk-low { color: #0369a1; font-weight: 700; }
+    .wizard-nav button { background: #f1f5f9; color: #475569; }
+    .wizard-nav button.active { background: #1677ff; color: #fff; }
+    .wizard-step { animation: fadeIn 0.2s; }
+    .provider-note { margin: 12px 0; padding: 14px; border: 1px solid #bfdbfe; background: #eff6ff; border-radius: 8px; line-height: 1.7; }
+    .provider-note h3 { margin: 0 0 8px; font-size: 15px; color: #1d4ed8; }
+    .provider-note p { margin: 0 0 6px; }
+    .provider-note pre { white-space: pre-wrap; word-break: break-word; background: #fff; border: 1px solid #dbeafe; border-radius: 6px; padding: 10px; max-height: 220px; overflow: auto; }
+    .result-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; margin-top: 12px; }
+    .result-box h3 { margin: 0 0 8px; font-size: 15px; }
+    .secret-field { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
+    .secret-field button { align-self: end; border: 1px solid #cbd5e1; background: #fff; color: #334155; border-radius: 6px; padding: 9px 12px; cursor: pointer; }
+    .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .row-actions button { border: 0; border-radius: 6px; padding: 7px 10px; cursor: pointer; color: #fff; background: #1677ff; }
+    .modal-panel { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(15, 23, 42, .45); }
+    .modal-panel > .modal-body { width: min(980px, 96vw); max-height: 88vh; overflow: auto; background: #fff; border-radius: 8px; padding: 22px; box-shadow: 0 24px 80px rgba(15, 23, 42, .28); }
+    .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+    .modal-close { border: 1px solid #cbd5e1; background: #fff; color: #334155; border-radius: 6px; padding: 8px 12px; cursor: pointer; }
+    .config-value { max-width: 260px; word-break: break-all; }
+    .onboarding-preview { max-width: 360px; border-radius: 18px; padding: 18px; background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 12px 28px rgba(15, 23, 42, .08); }
+    .onboarding-preview h3 { margin: 0 0 12px; font-size: 16px; }
+    .onboarding-preview .chip { display: inline-block; margin: 4px 6px 0 0; padding: 6px 10px; border-radius: 999px; background: #eef2ff; color: #3730a3; font-size: 12px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .status-badge.excellent { background: #dcfce7; color: #166534; }
+    .status-badge.usable { background: #fef9c3; color: #854d0e; }
+    .status-badge.needs_improvement { background: #fee2e2; color: #991b1b; }
+
+    /* 新手引导流程图 */
+    .guide-flow { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; margin: 18px 0; }
+    .guide-step { flex: 1; min-width: 160px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; position: relative; }
+    .guide-step .num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: #1677ff; color: #fff; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+    .guide-step h4 { margin: 0 0 6px; font-size: 15px; color: #1e293b; }
+    .guide-step p { margin: 0; font-size: 13px; color: #64748b; line-height: 1.6; }
+    .guide-step .arrow { position: absolute; right: -14px; top: 50%; transform: translateY(-50%); color: #cbd5e1; font-size: 18px; z-index: 1; }
+    .param-table th { background: #eff6ff; color: #1e40af; }
+    .param-table td:first-child { font-weight: 500; color: #334155; white-space: nowrap; }
+    .quick-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .quick-links button { background: #fff; color: #1677ff; border: 1px solid #bfdbfe; }
+    .focus-pulse { outline: 2px solid #1677ff; outline-offset: 2px; border-radius: 4px; transition: outline 0.3s; }
+    @media (max-width: 900px) { .layout { display: block; } nav { width: auto; display: flex; overflow-x: auto; } nav button { width: auto; white-space: nowrap; } .split { grid-template-columns: 1fr; } .guide-step .arrow { display: none; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AI 推荐大脑 - 后台管理</h1>
+    <a href="/admin/dashboard">返回 CRMEB 后台</a>
+  </header>
+  <div class="layout">
+    <nav id="tabs">
+      <div class="nav-section">开始</div>
+      <button data-tab="guide" class="active">使用指南</button>
+      <div class="nav-section">资料准备</div>
+      <button data-tab="merchant">商户导入/维护</button>
+      <button data-tab="discounts">惠买单优惠规则</button>
+      <button data-tab="tags">AI 标签库</button>
+      <button data-tab="merchant_tags">商家标签管理</button>
+      <div class="nav-section">推荐配置</div>
+      <button data-tab="banners">Banner 配置</button>
+      <button data-tab="configs">AI 配置向导</button>
+      <button data-tab="onboarding">新手引导配置</button>
+      <div class="nav-section">运营复盘</div>
+      <button data-tab="logs">推荐日志</button>
+    </nav>
+    <main>
+      <!-- 新手引导 -->
+      <section id="tab-guide" class="card">
+        <h2 class="section-title">新手引导：从零开始配置惠买单 AI 推荐</h2>
+        <div class="guide" style="margin-bottom:18px">
+          <h3>配置总览</h3>
+          <p>整个业务流程是：先在 CRMEB 创建店铺基础资料 → 在 AI 大脑维护推荐展示资料和定位 → 配置惠买单优惠 → 建立标签词库 → 给店铺贴标签 → 配置首页 Banner → 配置大模型与推荐策略 → 用模拟测试和推荐日志迭代。请按顺序操作，漏配任何一步都会影响推荐效果。</p>
+        </div>
+
+        <div class="guide-flow">
+          <div class="guide-step">
+            <span class="num">1</span>
+            <h4>CRMEB 建店铺</h4>
+            <p>在 CRMEB「店铺 - 店铺列表」新增店铺，填写店铺名称、所属商户、分类、电话、地址、店铺状态、账号信息等基础资料。</p>
+            <span class="arrow">→</span>
+          </div>
+          <div class="guide-step">
+            <span class="num">2</span>
+            <h4>导入/维护商户</h4>
+            <p>在 AI 大脑维护经纬度、推荐头像/展示图、人均消费、营业时间、设施、标语、展示销量等推荐资料。</p>
+            <span class="arrow">→</span>
+          </div>
+          <div class="guide-step">
+            <span class="num">3</span>
+            <h4>配置优惠规则</h4>
+            <p>设置商家结算折扣和会员消费折扣，选择垫资池或提现结算模式。</p>
+            <span class="arrow">→</span>
+          </div>
+          <div class="guide-step">
+            <span class="num">4</span>
+            <h4>建立 AI 标签库</h4>
+            <p>维护品类、场景、口味、设施、价格、特色、餐段、优惠等全局标签词。</p>
+            <span class="arrow">→</span>
+          </div>
+          <div class="guide-step">
+            <span class="num">5</span>
+            <h4>给商户打标签</h4>
+            <p>为每个店铺贴上对应的 AI 标签并设置权重，让推荐能命中用户口语。</p>
+            <span class="arrow">→</span>
+          </div>
+          <div class="guide-step">
+            <span class="num">6</span>
+            <h4>配置 Banner</h4>
+            <p>按早餐/午餐/下午茶/晚餐/夜宵配置首页 Banner 文案和配色。</p>
+            <span class="arrow">→</span>
+          </div>
+          <div class="guide-step">
+            <span class="num">7</span>
+            <h4>AI 配置向导</h4>
+            <p>接入大模型、设置推荐策略、做健康检查、模拟测试、上线检查。</p>
+            <span class="arrow">→</span>
+          </div>
+          <div class="guide-step">
+            <span class="num">8</span>
+            <h4>看推荐日志迭代</h4>
+            <p>上线后查看用户输入、召回商户、排序结果、点击和反馈，持续优化。</p>
+          </div>
+        </div>
+
+        <div class="quick-links">
+          <button class="primary" onclick="showTab('merchant')">前往 商户导入/维护</button>
+          <button class="primary" onclick="showTab('discounts')">前往 优惠规则</button>
+          <button class="primary" onclick="showTab('tags')">前往 AI 标签库</button>
+          <button class="primary" onclick="showTab('configs')">前往 AI 配置向导</button>
+        </div>
+
+        <h3 style="margin:24px 0 12px">关键参数影响表</h3>
+        <table class="param-table">
+          <thead>
+            <tr><th>参数/字段</th><th>在哪里设置</th><th>影响什么</th><th>漏配/配错的后果</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>店铺名称 / 所属商户 / 分类 / 电话 / 地址 / 状态</td><td>CRMEB 店铺列表</td><td>基础资料、店铺是否可管理</td><td>基础资料缺失会导致店铺编辑、登录、展示异常</td></tr>
+            <tr><td>营业状态 / 城市 / 经纬度</td><td>AI 大脑 - 商户导入/维护 - 编辑展示资料</td><td>是否进入推荐池、距离计算、附近/最远/离我近</td><td>未营业或缺坐标不会被正常推荐，导航也会失败；建议用 GCJ-02 坐标系</td></tr>
+            <tr><td>推荐头像 / AI 推荐促销图</td><td>AI 大脑 - 商户导入/维护 - 编辑展示资料</td><td>AI 推荐卡片、详情页展示</td><td>卡片展示为空或不美观，点击率下降</td></tr>
+            <tr><td>人均消费</td><td>惠买单展示资料</td><td>便宜/最贵/预算类意图</td><td>用户说“人均 60 左右”时无法命中</td></tr>
+            <tr><td>营业时间</td><td>惠买单展示资料</td><td>现在营业/早餐/夜宵等时段意图</td><td>用户说“现在营业的店”召回不准</td></tr>
+            <tr><td>设施（大桌/包间/宝宝椅等）</td><td>惠买单展示资料</td><td>聚餐/亲子/请客等场景意图</td><td>用户问“适合聚餐有包间吗”无法命中</td></tr>
+            <tr><td>商家结算折扣</td><td>惠买单优惠规则 - 新增/编辑规则</td><td>平台与商户结算金额</td><td>结算金额错误，但不直接展示给用户</td></tr>
+            <tr><td>会员消费折扣</td><td>惠买单优惠规则 - 新增/编辑规则 - 会员消费折扣</td><td>小程序卡片展示、用户实际买单折扣、AI 优惠排序</td><td>用户看不到优惠，或买单金额不对</td></tr>
+            <tr><td>AI 标签 / 同义词</td><td>AI 标签库</td><td>品类/口味/场景等语义召回</td><td>用户说“火锅”“辣的”找不到对应店铺</td></tr>
+            <tr><td>商户标签权重</td><td>商家标签管理</td><td>同一标签下不同店铺的排序</td><td>想让某家店优先展示却排后面</td></tr>
+            <tr><td>召回半径 recall_radius_km</td><td>AI 配置向导 - 高级设置</td><td>“附近”推荐的范围</td><td>范围太小找不到店，太大失去本地意义</td></tr>
+            <tr><td>排序权重</td><td>AI 配置向导 - 高级设置</td><td>标签/距离/热度/优惠哪个更重要</td><td>推荐结果不符合业务预期</td></tr>
+            <tr><td>候选池/最终返回数量</td><td>AI 配置向导 - 推荐策略</td><td>LLM 排序质量和前端展示数量</td><td>太多耗时长，太少用户体验差</td></tr>
+          </tbody>
+        </table>
+
+        <div class="guide" style="margin-top:18px">
+          <h3>常见踩坑提醒</h3>
+          <ul>
+            <li><strong>坐标系：</strong>小程序使用腾讯地图 GCJ-02 坐标系，导入 Excel 时请确保经纬度格式为十进制小数，如 111.690894, 40.800861。</li>
+            <li><strong>会员等级：</strong>会员消费折扣按 CRMEB 会员等级配置，必须每个启用等级都填写折扣，否则优惠规则无法启用。</li>
+            <li><strong>结算模式：</strong>垫资池模式需要先在垫资池充值；提现模式需要商户是惠买单提现模式，否则无法启用优惠。</li>
+            <li><strong>商户状态：</strong>只有店铺状态=启用、营业状态=开启、城市/坐标/优惠/标签等关键资料完整时，才会稳定进入 AI 推荐候选池。</li>
+            <li><strong>标签权重：</strong>AI 标签库里的权重影响全局默认优先级；商家标签管理里的权重只影响当前店铺在该标签下的排名。</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="tab-merchant" class="card hidden">
+        <h2 class="section-title">商户导入/维护</h2>
+        <div class="toolbar">
+          <input id="merchantKeyword" placeholder="搜索商户名称 / ID / 电话" style="width:260px">
+          <button class="primary" onclick="loadMerchants()">查询商户</button>
+          <button class="plain" onclick="downloadTemplate()">下载商户导入模板</button>
+          <button class="warn" onclick="document.getElementById('merchantFile').click()">导入商户 Excel</button>
+          <input id="merchantFile" class="hidden" type="file" accept=".xlsx,.xls" onchange="importMerchantExcel(event)">
+        </div>
+        <div class="guide">
+          <h3>Excel 填写规则</h3>
+          <ol>
+            <li><strong>CRMEB 基础字段（必须）：</strong>商户名称、分类名称、省、市、区、详细地址、经度、纬度、头像URL、联系电话。这些会写入 CRMEB 店铺资料，导入后也可在 CRMEB「店铺 - 店铺列表」中修改。</li>
+            <li><strong>惠买单扩展字段（强烈建议填写）：</strong>人均消费、营业开始、营业结束、展示销量、会员消费折扣、AI标签。这些直接影响 AI 推荐效果。</li>
+            <li>新增商户时会自动补齐 CRMEB 必要字段：所属商户主体、店铺分组、店铺区域、商户管理员账号、默认密码等。</li>
+            <li>AI 标签不用写英文参数，直接写“火锅,聚餐,辣,包间,午餐”即可，系统会自动映射到 AI 标签库。</li>
+            <li>导入后再到“惠买单优惠规则”确认会员消费折扣，用户端推荐卡片展示的是会员消费折扣，不是商户结算折扣。</li>
+          </ol>
+        </div>
+        <div id="merchantStatus" class="status"></div>
+        <table>
+          <thead><tr><th>ID</th><th>商户名称</th><th>分类</th><th>电话</th><th>地址</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="merchantRows"><tr><td colspan="7" class="muted">点击查询商户查看数据</td></tr></tbody>
+        </table>
+        <div id="merchantProfilePanel" class="modal-panel hidden">
+          <div class="modal-body">
+          <div class="modal-header">
+            <div>
+              <h2 class="section-title" id="merchantProfileTitle">编辑商户展示资料</h2>
+              <p id="merchantProfileName" class="muted"></p>
+            </div>
+            <button class="modal-close" onclick="closeMerchantProfile()">关闭</button>
+          </div>
+
+          <div class="form-grid" style="margin-bottom:14px; background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:14px;">
+            <label style="grid-column: 1 / -1;">AI 推荐头像 URL
+              <div style="display:flex; gap:12px; align-items:center;">
+                <img id="profileAvatarPreview" src="" alt="头像" style="width:64px;height:64px;border-radius:8px;object-fit:cover;background:#f3f4f6; display:none;">
+                <input id="profileAvatar" style="flex:1" placeholder="https://example.com/avatar.jpg" oninput="updateAvatarPreview()">
+                <button class="plain" type="button" onclick="triggerProfileImageUpload('avatar')">上传头像</button>
+                <input type="file" id="profileAvatarFile" accept="image/*" class="hidden" onchange="uploadProfileImage(event, 'avatar')">
+              </div>
+              <span id="profileAvatarHint" class="field-hint">用于 AI 推荐卡片头像；可直接填图片 URL，留空则保持原头像。</span>
+              <span id="profileAvatarUploadStatus" class="field-hint"></span>
+            </label>
+            <label style="grid-column: 1 / -1;">门店 Banner（CRMEB 店铺资料）
+              <div style="display:flex; gap:12px; align-items:center;">
+                <img id="profileBannerPreview" src="" alt="门店 Banner" style="width:120px;height:64px;border-radius:8px;object-fit:cover;background:#f3f4f6; display:none;">
+                <input id="profileBanner" style="flex:1" placeholder="https://example.com/banner.jpg" oninput="updateBannerPreview()">
+                <button class="plain" type="button" onclick="triggerProfileImageUpload('banner')">上传 Banner</button>
+                <input type="file" id="profileBannerFile" accept="image/*" class="hidden" onchange="uploadProfileImage(event, 'banner')">
+              </div>
+              <span class="field-hint">影响小程序商户详情页顶部轮播图；推荐卡片头像不看这个字段，推荐卡片头像看上方“AI 推荐头像”。建议 750×400 或 16:9 图片。</span>
+              <span id="profileBannerHint" class="muted">暂无 Banner，详情页顶部会优先展示头像或其他图片。</span>
+              <span id="profileBannerUploadStatus" class="field-hint"></span>
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <label>分店名
+              <input id="profileBranchName" placeholder="例如 呼市总店，可不填">
+              <span class="field-hint">同一品牌多门店时用于区分，单店可留空。</span>
+            </label>
+            <label>人均消费
+              <input id="profilePerCapita" type="number" min="0" step="0.01" placeholder="例如 60">
+              <span class="field-hint">单位：元。影响“便宜/最贵/人均 60 左右”等预算类意图召回。</span>
+            </label>
+            <label>展示销量
+              <input id="profileSales" type="number" min="0" step="1" placeholder="例如 188" oninput="updateSalesPreview()">
+              <span class="field-hint">这里是“运营展示销量增量”，不是唯一销量。小程序显示 = 真实销量 + 这里填写的展示销量。</span>
+              <span id="profileSalesFormula" class="field-hint"></span>
+            </label>
+            <label>AI 推荐促销图 URL
+              <div style="display:flex; gap:12px; align-items:center;">
+                <input id="profilePromoImage" style="flex:1" placeholder="https://example.com/image.jpg" oninput="updatePromoImagePreview()">
+                <button class="plain" type="button" onclick="triggerProfileImageUpload('promo')">上传促销图</button>
+                <input type="file" id="profilePromoImageFile" accept="image/*" class="hidden" onchange="uploadProfileImage(event, 'promo')">
+              </div>
+              <span class="field-hint">用于小程序商家详情页顶部促销氛围图，不会替换店铺头像和 CRMEB 门店 Banner。建议 750×400（16:9），留空则不展示。</span>
+              <span id="profilePromoUploadStatus" class="field-hint"></span>
+            </label>
+            <label style="grid-column: 1 / -1;">促销图预览
+              <img id="profilePromoPreview" src="" alt="促销图预览" style="max-width:280px;max-height:150px;border-radius:8px;object-fit:cover;background:#f3f4f6; display:none;">
+              <span id="profilePromoPreviewHint" class="muted">输入 URL 后将在此处实时预览。</span>
+            </label>
+            <label style="grid-column: 1 / -1;">商户标语/优惠说明
+              <input id="profileSlogan" placeholder="例如 全场消费7.8折">
+              <span class="field-hint">显示在商户标题附近，也会参与推荐理由。适合写“日常优惠好店，适合附近用餐”这类品牌介绍，不建议写复杂折扣规则。</span>
+            </label>
+            <label style="grid-column: 1 / -1;">详情页商户介绍/优惠说明
+              <textarea id="profileMerInfo" placeholder="例如 全场消费7.8折"></textarea>
+              <span class="field-hint">影响小程序商户详情页折扣区下方的文字说明。你截图里的“全场消费7.8折”就是这个字段控制，不是会员折扣字段。</span>
+            </label>
+            <label style="grid-column: 1 / -1;">当前会员展示折扣
+              <div class="guide">
+                <p id="profileDiscountInfo" class="muted">读取中...</p>
+                <p class="muted">这个折扣来自“惠买单优惠规则”的会员消费折扣。它决定小程序里醒目的“8折/7.8折”和 AI 推荐卡片优惠标签；商家结算折扣只用于平台和商户结算，不作为用户侧主展示。</p>
+                <button class="plain" type="button" onclick="goDiscountRulesForCurrentMerchant()">去优惠规则维护</button>
+              </div>
+            </label>
+            <label>经度
+              <input id="profileLongitude" placeholder="例如 111.690894">
+              <span class="field-hint">GCJ-02 坐标系，-180 到 180。</span>
+            </label>
+            <label>纬度
+              <input id="profileLatitude" placeholder="例如 40.800861">
+              <span class="field-hint">GCJ-02 坐标系，-90 到 90。</span>
+            </label>
+            <label style="grid-column: 1 / -1;">
+              <button class="primary" type="button" onclick="openTencentMapPicker()">腾讯地图选点</button>
+              <button class="plain" type="button" onclick="openTencentMapKeyPage()">申请腾讯地图 Key</button>
+              <span class="field-hint">在地图上选点后自动回填地址、经度、纬度；地址仅做展示，不会覆盖 CRMEB 店铺资料。</span>
+            </label>
+            <label style="grid-column: 1 / -1;">营业时间
+              <textarea id="profileBusinessHours" placeholder="一行一条，例如：&#10;周一至周日 10:00-22:00&#10;节假日 11:00-21:00"></textarea>
+              <span class="field-hint">一行一条，格式“周一至周日 10:00-22:00”。影响“现在营业、早餐、夜宵”等时段意图。</span>
+            </label>
+          </div>
+
+          <div style="margin-top:14px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <strong style="font-size:14px; color:#334155;">设施标签：</strong>
+            <span class="muted">先勾选本店真实具备的设施；没有想要的标签时可在这里直接新增。</span>
+          </div>
+          <div class="facility-tools">
+            <input id="facilityKeyword" placeholder="搜索设施标签，例如 包间/停车/宝宝椅" oninput="renderFacilityTags()">
+            <button class="plain" type="button" onclick="refreshFacilityTags()">刷新标签</button>
+            <button class="success" type="button" onclick="toggleFacilityCreator()">新增设施标签</button>
+            <button class="plain" type="button" onclick="goToFacilityTags()">去 AI 标签库编辑/删除</button>
+          </div>
+          <div id="facilityCreator" class="facility-create hidden">
+            <input id="newFacilityLabel" placeholder="设施名称，例如 可停车">
+            <input id="newFacilitySynonyms" placeholder="同义词，可选，例如 停车位,车位">
+            <input id="newFacilityWeight" type="number" min="1" max="100" value="70" title="权重">
+            <button class="success" type="button" onclick="createFacilityTagFromProfile()">保存并选中</button>
+          </div>
+          <div id="facilityInlineStatus" class="status"></div>
+          <div id="profileSelectedFacilities" class="facility-selected"></div>
+          <div id="profileFacilityRow" class="checkbox-row" style="margin-top:10px">
+            <span class="muted">正在加载设施标签...</span>
+          </div>
+          <p class="field-hint" style="margin-top:8px">设施标签会影响用户问“适合聚餐吗、有包间吗、带娃方便吗、能电话预订吗”时的召回，请按实际情况勾选。</p>
+
+          <div class="guide" style="margin-top:14px">
+            <ol>
+              <li>这些资料会进入 AI 推荐卡片、小程序商户展示和推荐理由；人均、营业时间、设施请尽量填真实。</li>
+              <li>“包间/大桌/宝宝椅”等设施会影响用户问“适合聚餐吗、有包间吗、带娃方便吗”时的召回。</li>
+              <li>基础名称、电话、地址建议仍在 CRMEB 店铺资料里维护；AI 推荐头像、经纬度、人均、营业时间、设施可在此快速维护。</li>
+            </ol>
+          </div>
+          <div class="toolbar" style="margin-top:14px">
+            <button class="success" onclick="saveMerchantProfile()">保存展示资料</button>
+            <button class="plain" onclick="closeMerchantProfile()">取消</button>
+          </div>
+          <div id="merchantProfileStatus" class="status"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-discounts" class="card hidden">
+        <h2 class="section-title">惠买单优惠规则</h2>
+        <div class="toolbar">
+          <select id="discountMerId" style="width:280px"><option value="">全部商户</option></select>
+          <select id="discountStatus">
+            <option value="">全部状态</option>
+            <option value="1">启用</option>
+            <option value="0">禁用</option>
+          </select>
+          <button class="primary" onclick="loadDiscounts()">查询优惠规则</button>
+        </div>
+        <div class="guide">
+          <ol>
+            <li><strong>商家结算折扣：</strong>平台和商户结算用，例如 0.75 表示平台按 7.5 折与商户结算。这个折扣<strong>不会</strong>直接展示给用户。</li>
+            <li><strong>会员消费折扣：</strong>用户小程序看到并参与 AI 推荐展示的折扣，例如 0.80 展示 8 折。用户在支付时按此折扣计算实付金额。</li>
+            <li><strong>会员消费折扣在哪里填？</strong>点击下方“新增规则/编辑”，在表单中为每个会员等级填写对应折扣。如果提示“未配置所有启用等级”，请到 CRMEB「用户 - 会员等级」检查启用了哪些等级。</li>
+            <li><strong>结算模式：</strong>垫资池模式表示商户先在平台放一笔预算池，用户买单成功后从预算池扣结算金额；提现模式表示用户付款后进入商户余额，商户再申请提现。如果商户端财务页提示“当前商户不是惠买单提现模式”，到 CRMEB「店铺 - 店铺列表 - 编辑 - 经营信息 - 费用信息」，把“惠买单合作模式”改成“提现模式”。</li>
+          </ol>
+        </div>
+        <div class="toolbar" style="margin-top:14px">
+          <button class="success" onclick="openDiscountEditor(0)">新增优惠规则</button>
+        </div>
+        <div id="discountEditPanel" class="card profile-panel hidden" style="box-shadow:none">
+          <h2 class="section-title">编辑惠买单优惠规则</h2>
+          <div class="guide" style="margin-bottom:14px">
+            <p><strong>保存逻辑：</strong>商家结算折扣用于平台给商户结算；会员消费折扣用于用户端展示、AI 推荐排序和买单实付。每个启用会员等级都要填写会员消费折扣。</p>
+          </div>
+          <div class="form-grid">
+            <input id="discountEditId" type="hidden">
+            <label>所属商户<select id="discountEditMerId"><option value="">请选择商户</option></select></label>
+            <label>状态
+              <select id="discountEditStatus">
+                <option value="1">启用</option>
+                <option value="0">禁用</option>
+              </select>
+            </label>
+            <label>商家结算折扣<input id="discountEditMerchantRate" type="number" min="0.01" max="1" step="0.01" placeholder="例如 0.75"></label>
+            <label>垫资池 ID<input id="discountEditPoolId" type="number" min="0" placeholder="提现模式可留空"></label>
+            <label>开始时间<input id="discountEditStartTime" placeholder="YYYY-MM-DD HH:mm:ss，可留空"></label>
+            <label>结束时间<input id="discountEditEndTime" placeholder="YYYY-MM-DD HH:mm:ss，可留空"></label>
+            <label>排序<input id="discountEditSort" type="number" min="0" placeholder="数字越大越靠前"></label>
+            <label style="grid-column:1 / -1">备注<input id="discountEditRemark" placeholder="内部备注"></label>
+          </div>
+          <h3 class="section-title" style="margin-top:18px">会员消费折扣</h3>
+          <div id="discountMemberRows" class="form-grid"></div>
+          <div class="toolbar" style="margin-top:14px">
+            <button class="success" onclick="saveDiscountRule()">保存优惠规则</button>
+            <button class="plain" onclick="closeDiscountEditor()">取消</button>
+          </div>
+        </div>
+        <div id="discountStatusText" class="status"></div>
+        <table>
+          <thead><tr><th>ID</th><th>商户ID</th><th>商家结算折扣</th><th>会员消费折扣</th><th>状态</th><th>开始时间</th><th>结束时间</th><th>排序</th><th>备注</th><th>操作</th></tr></thead>
+          <tbody id="discountRows"><tr><td colspan="10" class="muted">点击查询优惠规则查看数据</td></tr></tbody>
+        </table>
+      </section>
+
+      <section id="tab-tags" class="card hidden">
+        <h2 class="section-title">AI 标签库</h2>
+        <div class="toolbar">
+          <select id="tagType"><option value="">全部类型</option></select>
+          <input id="tagKeyword" placeholder="标签值/名称">
+          <button class="primary" onclick="loadTags()">查询</button>
+          <button class="success" onclick="saveTag()">新增/保存标签</button>
+          <button class="plain" onclick="resetTagForm()">清空表单</button>
+          <button class="warn" onclick="loadTagQuality()">标签体检</button>
+          <button class="warn" onclick="filterTagQuality('test')">只看测试标签</button>
+          <button class="warn" onclick="filterTagQuality('duplicate')">只看重复标签</button>
+          <button class="warn" onclick="filterTagQuality('low_weight_facility')">只看低权重设施</button>
+          <button class="danger" onclick="batchDisableTestTags()">批量禁用测试标签</button>
+        </div>
+        <div class="guide">
+          <h3>标签字段说明</h3>
+          <ul>
+            <li><strong>类型：</strong>品类（火锅/烧烤）、场景（聚餐/约会）、口味（辣/清淡）、设施（包间/停车）、价格（便宜/高档）、特色（老字号/网红）、餐段（早餐/夜宵）、优惠（满减/折扣）。</li>
+            <li><strong>标签值：</strong>用于召回的原始词，尽量用用户口语，例如“火锅”。</li>
+            <li><strong>显示名称：</strong>用户侧可能看到的名称，一般与标签值相同，也可写更友好的说法。</li>
+            <li><strong>同义词：</strong>用逗号分隔，例如“涮肉,铜锅”。填写后用户说“我想吃涮肉”也能命中“火锅”。</li>
+            <li><strong>权重：</strong>1-100，默认 10。权重越大，该标签在召回排序中越被优先考虑。但不代表一定能排在最前。</li>
+            <li><strong>状态：</strong>禁用后该标签不再参与任何召回，已打的商户标签也会失效。</li>
+          </ul>
+        </div>
+        <div class="form-grid">
+          <label>类型<select id="tagFormType"></select></label>
+          <label>标签值<input id="tagValue" placeholder="例如 火锅"></label>
+          <label>显示名称<input id="tagLabel" placeholder="例如 火锅"></label>
+          <label>同义词<input id="tagSynonyms" placeholder="例如 涮肉,铜锅"></label>
+          <label>权重<input id="tagWeight" type="number" value="10">
+            <span class="field-hint">1-100，默认 10，越大全局默认优先级越高</span>
+          </label>
+          <label>状态<select id="tagStatus"><option value="1">启用</option><option value="0">禁用</option></select></label>
+        </div>
+        <input id="tagId" type="hidden">
+        <div id="tagStatusText" class="status"></div>
+        <div id="tagQualityPanel" class="guide hidden">
+          <h3>标签数据质量检查</h3>
+          <p class="muted">用于发现会影响 AI 召回的标签问题。体检只提示风险，不会自动修改数据。</p>
+          <div id="tagQualitySummary" class="quality-grid"></div>
+          <table>
+            <thead><tr><th>风险</th><th>标签</th><th>问题</th><th>建议</th><th>操作</th></tr></thead>
+            <tbody id="tagQualityRows"></tbody>
+          </table>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>类型</th><th>标签值</th><th>显示名</th><th>同义词</th><th>权重</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="tagRows"></tbody>
+        </table>
+      </section>
+
+      <section id="tab-merchant_tags" class="card hidden">
+        <h2 class="section-title">商家标签管理</h2>
+        <div class="split">
+          <div>
+            <div class="toolbar">
+              <select id="merchantTagMerId" style="width:320px"><option value="">请选择商户</option></select>
+              <button class="primary" onclick="loadMerchantTags()">读取标签</button>
+              <button class="success" onclick="saveMerchantTags()">保存商家标签</button>
+            </div>
+            <div class="toolbar">
+              <input id="merchantOptionKeyword" placeholder="搜索商户名称 / ID / 电话" style="width:220px">
+              <button class="plain" onclick="loadMerchantOptions()">刷新商户下拉</button>
+              <button class="plain" onclick="addMerchantTagRow()">新增一行</button>
+              <button class="warn" onclick="previewMerchantAutoTags()">预览自动标签</button>
+              <button class="warn" onclick="initMerchantTags(false)">一键自动生成并保存</button>
+              <button class="warn" onclick="initMerchantTags(true)">批量重建全部自动标签</button>
+            </div>
+            <p class="muted">直接从下拉选择商户即可；商户较多时先输入名称、ID 或电话，再刷新下拉。</p>
+          </div>
+          <div class="guide">
+            <h3>标签怎么填</h3>
+            <p>标签类型选择品类、场景、口味、设施、价格、特色、餐段、优惠。<strong>设施类型</strong>会自动从标签库下拉选择，显示中文名称并保存对应的英文键；其他类型直接填中文，例如：火锅、聚餐、辣、午餐、便宜。</p>
+            <h3>权重说明</h3>
+            <p>这里的权重只影响<strong>当前店铺</strong>在该标签下的排名，不是标签库的全局权重。例如两家店都有“火锅”标签，把 A 店权重调高，A 店在“火锅”意图下更容易排前面。</p>
+            <h3>来源说明</h3>
+            <p><strong>自动标签</strong>由系统根据商户分类、人均、设施、优惠、营业时间、销量/评分生成；<strong>人工标签</strong>由你在这里添加或修改，会覆盖或补充自动标签。建议先预览自动标签，确认合适后再加入列表保存。</p>
+          </div>
+        </div>
+        <div id="merchantTagSuggestPanel" class="result-box hidden">
+          <h3>自动标签建议</h3>
+          <p class="muted">勾选后点击“加入当前标签列表”，再点击“保存商家标签”生效。已经存在的同类型同值标签不会重复添加。</p>
+          <div class="toolbar">
+            <button class="primary" onclick="selectAllMerchantTagSuggestions(true)">全选建议</button>
+            <button class="plain" onclick="selectAllMerchantTagSuggestions(false)">取消全选</button>
+            <button class="success" onclick="applySelectedMerchantTagSuggestions()">加入当前标签列表</button>
+          </div>
+          <table>
+            <thead><tr><th>选择</th><th>类型</th><th>标签值</th><th>显示名</th><th>建议权重</th><th>生成原因</th></tr></thead>
+            <tbody id="merchantTagSuggestRows"></tbody>
+          </table>
+        </div>
+        <div id="merchantTagStatus" class="status"></div>
+        <table>
+          <thead><tr><th>类型</th><th>标签值</th><th>显示名</th><th>权重</th><th>来源</th><th>操作</th></tr></thead>
+          <tbody id="merchantTagRows"><tr><td colspan="6" class="muted">请先从下拉选择商户，然后点击“读取标签”。</td></tr></tbody>
+        </table>
+      </section>
+
+      <section id="tab-banners" class="card hidden">
+        <h2 class="section-title">Banner 配置</h2>
+        <div class="guide">
+          <ul>
+            <li><strong>餐段：</strong>按当前时间自动匹配。深夜（00-06 点）、早餐（06-09 点）、早午餐（09-11 点）、午餐（11-14 点）、下午茶（14-17 点）、晚餐（17-21 点）、夜宵（21-24 点）。</li>
+            <li><strong>标题/副标题：</strong>支持普通文本，可包含当前城市、餐段等占位符（具体以后端解析为准）。</li>
+            <li><strong>背景色/文字色：</strong>填写 HEX 色值，例如 <code>#1677ff</code>、<code>#ffffff</code>。</li>
+            <li><strong>状态：</strong>禁用后该餐段 Banner 不展示；启用后系统会根据当前餐段和位置自动推荐商户。</li>
+          </ul>
+        </div>
+        <div class="card profile-panel" style="box-shadow:none">
+          <h2 class="section-title" id="bannerFormTitle">新增 Banner</h2>
+          <div class="form-grid">
+            <input id="bannerConfigId" type="hidden">
+            <label>餐段
+              <select id="bannerMealType">
+                <option value="late_night">深夜食堂</option>
+                <option value="breakfast">早餐</option>
+                <option value="brunch">早午餐</option>
+                <option value="lunch">午餐</option>
+                <option value="tea">下午茶</option>
+                <option value="dinner">晚餐</option>
+                <option value="supper">夜宵</option>
+              </select>
+            </label>
+            <label>状态
+              <select id="bannerEnabled">
+                <option value="1">启用</option>
+                <option value="0">禁用</option>
+              </select>
+            </label>
+            <label>标题<input id="bannerTitle" placeholder="例如：午餐时间到！"></label>
+            <label>排序<input id="bannerSort" type="number" min="0" placeholder="数字越小越靠前"></label>
+            <label style="grid-column:1 / -1">副标题<input id="bannerSubtitle" placeholder="例如：为您推荐附近高分又有优惠的好店"></label>
+            <label>背景色<input id="bannerBgColor" placeholder="#FFF3E0"></label>
+            <label>文字色<input id="bannerTextColor" placeholder="#E65100"></label>
+          </div>
+          <div class="toolbar" style="margin-top:14px">
+            <button class="success" onclick="saveBannerConfig()">保存 Banner</button>
+            <button class="plain" onclick="resetBannerForm()">新增/清空</button>
+            <button class="primary" onclick="loadBanners()">刷新列表</button>
+          </div>
+        </div>
+        <div id="bannerStatus" class="status"></div>
+        <table>
+          <thead><tr><th>餐段</th><th>标题</th><th>副标题</th><th>背景色</th><th>文字色</th><th>状态</th><th>排序</th><th>操作</th></tr></thead>
+          <tbody id="bannerRows"></tbody>
+        </table>
+      </section>
+
+      <section id="tab-configs" class="card hidden">
+        <h2 class="section-title">AI 配置向导</h2>
+        <div id="aiStatusCard" class="guide" style="margin-bottom:14px">
+          <h3>当前 AI 推荐状态：<span id="aiStatusText">加载中...</span></h3>
+          <p id="aiStatusSuggestions" class="muted"></p>
+        </div>
+
+        <div class="wizard-nav" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
+          <button class="plain" id="wizardStep1Btn" onclick="showWizardStep(1)">1. 模型接入</button>
+          <button class="plain" id="wizardStep2Btn" onclick="showWizardStep(2)">2. 推荐策略</button>
+          <button class="plain" id="wizardStep3Btn" onclick="showWizardStep(3)">3. 商户资料健康检查</button>
+          <button class="plain" id="wizardStep4Btn" onclick="showWizardStep(4)">4. 模拟测试</button>
+          <button class="plain" id="wizardStep5Btn" onclick="showWizardStep(5)">5. 上线检查</button>
+        </div>
+
+        <!-- 第1步：模型接入 -->
+        <div id="wizardStep1" class="wizard-step">
+          <div class="card profile-panel">
+            <h2 class="section-title">模型接入</h2>
+            <div class="guide" style="margin-bottom:14px">
+              <ol>
+                <li>选择大模型驱动并填写必要字段。</li>
+                <li>API Key 默认隐藏，点击“显示”后可临时查看；输入框保持 ****** 时不会覆盖已保存密钥。</li>
+                <li>配置完成后点击“测试连接”验证模型是否可用。</li>
+              </ol>
+            </div>
+            <div class="form-grid">
+              <label>模型驱动
+                <select id="llmDriver" onchange="renderModelProviderFields()">
+                  <option value="bailian">阿里云百炼应用</option>
+                  <option value="deepseek">DeepSeek</option>
+                  <option value="claude">Claude</option>
+                </select>
+              </label>
+              <label id="bailianModeField">百炼调用模式
+                <select id="bailianMode" onchange="renderModelProviderFields()">
+                  <option value="app">百炼应用 API</option>
+                  <option value="compatible">OpenAI 兼容模式</option>
+                </select>
+              </label>
+            </div>
+            <div id="providerGuide" class="provider-note"></div>
+            <div id="bailianFields" class="form-grid">
+              <label>百炼应用 ID<input id="bailianAppId" placeholder="百炼控制台应用卡片上的 APP_ID"></label>
+              <label>百炼 Workspace<input id="bailianWorkspace" placeholder="子业务空间才需要填写"></label>
+              <label style="grid-column:1 / -1">百炼应用 API 地址<input id="bailianAppApiUrl" placeholder="https://dashscope.aliyuncs.com/api/v1/apps/{app_id}/completion"></label>
+              <label>百炼超时秒数<input id="bailianTimeout" type="number" min="1" placeholder="例如 60"></label>
+              <label class="bailian-compatible-only">兼容模式模型<input id="bailianModel" placeholder="例如 qwen-plus-latest"></label>
+              <label class="bailian-compatible-only">兼容模式 API 地址<input id="bailianCompatibleApiUrl" placeholder="https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"></label>
+              <label class="bailian-compatible-only">最大输出 Token<input id="bailianMaxTokens" type="number" min="1" placeholder="例如 512"></label>
+              <label class="bailian-compatible-only">温度 temperature<input id="bailianTemperature" type="number" min="0" max="2" step="0.01" placeholder="例如 0.1"></label>
+            </div>
+            <div id="deepseekFields" class="form-grid hidden">
+              <label style="grid-column:1 / -1">DeepSeek API 地址
+                <input id="deepseekApiUrl" placeholder="https://api.deepseek.com 或 https://api.deepseek.com/chat/completions">
+                <span class="field-hint">可只填写 base URL（https://api.deepseek.com），系统会自动补全 /chat/completions</span>
+              </label>
+              <label>DeepSeek 模型
+                <input id="deepseekModel" placeholder="例如 deepseek-v4-pro">
+                <span class="field-hint">模型名请与 DeepSeek 控制台一致，常见可选 deepseek-v4-pro / deepseek-v4-flash / deepseek-chat</span>
+              </label>
+              <label>Thinking
+                <select id="deepseekThinkingType">
+                  <option value="enabled">enabled</option>
+                  <option value="disabled">disabled</option>
+                </select>
+              </label>
+              <label>Reasoning Effort
+                <select id="deepseekReasoningEffort">
+                  <option value="high">high</option>
+                  <option value="medium">medium</option>
+                  <option value="low">low</option>
+                </select>
+              </label>
+              <label>DeepSeek 超时秒数<input id="deepseekTimeout" type="number" min="1" placeholder="例如 60"></label>
+            </div>
+            <div id="claudeFields" class="form-grid hidden">
+              <label>Claude API 地址<input id="claudeApiUrl" placeholder="https://api.anthropic.com/v1/messages"></label>
+              <label>Claude 模型<input id="claudeModel" placeholder="例如 claude-3-5-sonnet-latest"></label>
+              <label>Claude API Version<input id="claudeVersion" placeholder="例如 2023-06-01"></label>
+              <label>Claude 超时秒数<input id="claudeTimeout" type="number" min="1" placeholder="例如 60"></label>
+            </div>
+            <div class="card" style="margin-top:14px; box-shadow:none">
+              <h2 class="section-title">地图选点配置</h2>
+              <p class="muted">商户展示资料里的“腾讯地图选点”需要腾讯位置服务 WebService/JavaScript Key。填写后保存配置，再回到商户编辑弹窗点击选点。</p>
+              <div class="form-grid">
+                <label style="grid-column:1 / -1">腾讯地图 JS Key
+                  <input id="tencentMapJsKey" placeholder="请输入腾讯位置服务 Key">
+                  <span class="field-hint">配置键：tencent_map_js_key。用于后台商户经纬度选点，不会暴露给小程序用户。</span>
+                </label>
+              </div>
+              <div class="toolbar" style="margin-top:14px">
+                <button class="plain" type="button" onclick="openTencentMapKeyPage()">申请腾讯地图 Key</button>
+                <button class="primary" type="button" onclick="saveTencentMapKey()">保存地图 Key</button>
+                <button class="danger" type="button" onclick="deleteTencentMapKey()">删除地图 Key</button>
+              </div>
+            </div>
+            <div class="card" style="margin-top:14px; box-shadow:none">
+              <h2 class="section-title">密钥管理</h2>
+              <p class="muted">已保存的密钥默认脱敏显示为 ******，需要查看或替换时点击“显示”。保持 ****** 保存表示不修改原密钥；清空后保存会删除该密钥配置。</p>
+              <p id="secretConfigState" class="muted">密钥状态加载中...</p>
+              <div class="form-grid">
+                <div class="secret-field">
+                  <label>百炼 API Key<input id="bailianApiKey" type="password" autocomplete="new-password" placeholder="请输入百炼 API Key"></label>
+                  <button type="button" onclick="toggleSecretInput('bailianApiKey', this)">显示</button>
+                </div>
+                <div class="secret-field">
+                  <label>DeepSeek API Key<input id="deepseekApiKey" type="password" autocomplete="new-password" placeholder="请输入 DeepSeek API Key"></label>
+                  <button type="button" onclick="toggleSecretInput('deepseekApiKey', this)">显示</button>
+                </div>
+                <div class="secret-field">
+                  <label>Claude API Key<input id="claudeApiKey" type="password" autocomplete="new-password" placeholder="请输入 Claude API Key"></label>
+                  <button type="button" onclick="toggleSecretInput('claudeApiKey', this)">显示</button>
+                </div>
+              </div>
+              <div class="toolbar" style="margin-top:14px">
+                <button class="success" onclick="saveSecretConfigs()">保存密钥</button>
+                <button class="plain" onclick="clearSecretInputs()">清空三方密钥</button>
+              </div>
+            </div>
+            <div id="modelConfigStatus" class="status" style="margin-top:14px; word-break:break-word; white-space:pre-wrap;"></div>
+            <div class="toolbar" style="margin-top:14px">
+              <button class="success" onclick="saveModelConfigs()">保存模型配置</button>
+              <button class="success" onclick="saveAndTestConnection()">保存并测试连接</button>
+              <button class="primary" onclick="testSavedConnection()">仅测试已保存配置</button>
+              <button class="plain" onclick="resetCircuitBreaker()">清除 AI 熔断</button>
+              <button id="copyBailianPromptBtn" class="plain" onclick="copyBailianAppPrompt()">复制百炼应用 Prompt</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 第2步：推荐策略 -->
+        <div id="wizardStep2" class="wizard-step hidden">
+          <div class="card profile-panel">
+            <h2 class="section-title">推荐策略</h2>
+            <div class="guide" style="margin-bottom:14px">
+              <ol>
+                <li>开启 LLM 动态排序后，系统会先把候选商户交给大模型排序，失败时自动回退规则排序。</li>
+                <li>候选池数量越大，排序越精准，但成本和耗时越高；默认 12 家兼顾效果与速度。</li>
+                <li>最终返回数量即小程序对话页最多展示的商户卡片数，建议 5-6 家。</li>
+              </ol>
+            </div>
+            <div class="form-grid">
+              <label>启用 LLM 动态排序
+                <select id="llmRerankEnabled">
+                  <option value="1">启用</option>
+                  <option value="0">禁用</option>
+                </select>
+                <span class="field-hint">让大模型根据用户原话对候选商户动态排序</span>
+              </label>
+              <label>候选池数量
+                <input id="llmRerankCandidateLimit" type="number" min="5" max="100" placeholder="默认 12">
+                <span class="field-hint">传给 LLM 的商户候选池上限</span>
+              </label>
+              <label>最终返回商户数量
+                <input id="llmRerankResultLimit" type="number" min="1" max="10" placeholder="默认 5">
+                <span class="field-hint">小程序每次最多展示几家商户，建议 5-6 家</span>
+              </label>
+              <label>失败回退规则排序
+                <select id="llmRerankFallbackEnabled">
+                  <option value="1">启用</option>
+                  <option value="0">禁用</option>
+                </select>
+                <span class="field-hint">LLM 异常时仍返回规则排序结果</span>
+              </label>
+              <label>排序调用超时秒数
+                <input id="llmRerankTimeout" type="number" min="0" max="120" placeholder="0表示沿用模型超时">
+                <span class="field-hint">单独控制 LLM 排序接口超时，0 表示沿用模型配置</span>
+              </label>
+              <label>商户完整度提醒阈值
+                <input id="merchantAiHealthMinScore" type="number" min="0" max="100" placeholder="默认 70">
+                <span class="field-hint">低于此分数的商户会被标记为“待完善”</span>
+              </label>
+            </div>
+            <div class="toolbar" style="margin-top:14px">
+              <button class="success" onclick="saveRerankConfigs()">保存推荐策略</button>
+            </div>
+            <div class="guide" style="margin-top:14px">
+              <h3>推荐链路说明</h3>
+              <p>当前架构是：后端先按真实商户、城市、优惠、标签召回候选商户，再把候选商户交给大模型排序。大模型只能在候选商户里排序，不能编造店铺；失败时自动回退规则排序。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 第3步：商户资料健康检查 -->
+        <div id="wizardStep3" class="wizard-step hidden">
+          <div class="card profile-panel">
+            <h2 class="section-title">商户资料健康检查</h2>
+            <div class="guide" style="margin-bottom:14px">
+              <ol>
+                <li>检查商户是否缺少头像、地址、经纬度、人均、营业时间、设施、分类、AI 标签、优惠规则。</li>
+                <li>“待完善”商户不建议上线，补充资料后再启用。</li>
+              </ol>
+            </div>
+            <div class="toolbar">
+              <select id="merchantHealthMode">
+                <option value="all">全部商户</option>
+                <option value="needs_improvement">待完善商户</option>
+                <option value="usable">可推荐商户</option>
+                <option value="excellent">资料优秀商户</option>
+              </select>
+              <button class="primary" onclick="loadMerchantHealth()">刷新检查</button>
+            </div>
+            <div id="merchantHealthStatus" class="status"></div>
+            <table>
+              <thead><tr><th>ID</th><th>商户名称</th><th>完整度</th><th>状态</th><th>缺失项</th><th>建议</th></tr></thead>
+              <tbody id="merchantHealthRows"><tr><td colspan="6" class="muted">点击刷新检查查看数据</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 第4步：模拟测试 -->
+        <div id="wizardStep4" class="wizard-step hidden">
+          <div class="card profile-panel">
+            <h2 class="section-title">模拟用户问题</h2>
+            <div class="guide" style="margin-bottom:14px">
+              <ol>
+                <li>输入真实用户可能说的话，检查“规则召回”和“LLM排序后”的结果是否符合预期。</li>
+                <li>建议重点测试：最远的火锅、最贵的火锅、8折左右但口碑别太差、适合请客户吃饭。</li>
+                <li>默认城市坐标是呼和浩特，测试你所在城市时请替换为对应经纬度。</li>
+              </ol>
+            </div>
+            <div class="toolbar">
+              <input id="simulateMessage" style="width:320px" placeholder="例如：我要吃最远的火锅" value="我要吃最远的火锅">
+              <input id="simulateCityName" style="width:140px" placeholder="城市" value="呼和浩特">
+              <input id="simulateLongitude" style="width:140px" placeholder="经度" value="111.690894">
+              <input id="simulateLatitude" style="width:140px" placeholder="纬度" value="40.800861">
+              <button class="primary" onclick="runAiSimulation()">开始模拟</button>
+            </div>
+            <div id="simulateStatus" class="status"></div>
+            <div id="simulateResult" class="result-box hidden"></div>
+          </div>
+        </div>
+
+        <!-- 第5步：上线检查 -->
+        <div id="wizardStep5" class="wizard-step hidden">
+          <div class="card profile-panel">
+            <h2 class="section-title">上线检查</h2>
+            <div class="guide" style="margin-bottom:14px">
+              <p>所有关键项通过后即可联调小程序。如果有未通过项，请按建议修复。</p>
+            </div>
+            <div class="toolbar">
+              <button class="primary" onclick="loadAiStatus()">重新检测</button>
+            </div>
+            <div id="aiCheckStatus" class="status"></div>
+            <table>
+              <thead><tr><th>检查项</th><th>状态</th><th>说明</th></tr></thead>
+              <tbody id="aiCheckRows"><tr><td colspan="3" class="muted">点击重新检测查看结果</td></tr></tbody>
+            </table>
+            <div id="goLivePanel" class="hidden" style="margin-top:14px;padding:14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px">
+              <strong>可以联调小程序了！</strong> 请使用小程序 AI 对话页进行真实推荐测试。
+            </div>
+          </div>
+        </div>
+
+        <!-- 高级设置 -->
+        <div style="margin-top:18px">
+          <button class="plain" onclick="toggleAdvancedConfig()">高级设置（常用参数 / 专家模式）</button>
+          <div id="advancedConfigPanel" class="hidden">
+            <div class="guide" style="margin:12px 0">
+              <p><strong>常用关键参数</strong>适合日常运营调整；<strong>专家模式</strong>包含模型底层参数、系统阈值等，不确定时建议保持默认。</p>
+            </div>
+            <div class="toolbar">
+              <button class="primary" onclick="loadConfigs()">刷新全部参数</button>
+              <button class="success" onclick="openConfigCreator()">新增配置</button>
+              <button class="plain" onclick="toggleConfigSecrets()"><span id="configSecretToggleText">显示已保存密钥</span></button>
+              <button class="plain" onclick="toggleExpertConfigs()"><span id="expertConfigToggleText">展开专家模式</span></button>
+            </div>
+            <div id="configStatus" class="status"></div>
+            <h3>常用关键参数</h3>
+            <table>
+              <thead><tr><th>配置项</th><th>配置值</th><th>说明</th><th>运营说明</th><th>操作</th></tr></thead>
+              <tbody id="configRows"></tbody>
+            </table>
+            <div id="expertConfigPanel" class="hidden" style="margin-top:18px">
+              <h3>专家模式参数</h3>
+              <table>
+                <thead><tr><th>配置项</th><th>配置值</th><th>说明</th><th>运营说明</th><th>操作</th></tr></thead>
+                <tbody id="expertConfigRows"></tbody>
+              </table>
+            </div>
+            <div id="configEditPanel" class="card profile-panel hidden">
+              <h2 class="section-title">编辑推荐参数</h2>
+              <div class="form-grid">
+                <label>配置键<input id="editConfigKey" placeholder="例如 tencent_map_js_key"></label>
+                <label>排序<input id="editConfigSort" type="number" min="0"></label>
+                <label style="grid-column:1 / -1">配置值<textarea id="editConfigValue" placeholder="请输入配置值"></textarea></label>
+                <label style="grid-column:1 / -1">说明<input id="editConfigDesc" placeholder="给运营看的说明"></label>
+              </div>
+              <div class="toolbar" style="margin-top:14px">
+                <button class="success" onclick="saveConfigEditor()">保存参数</button>
+                <button class="plain" onclick="closeConfigEditor()">取消</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-onboarding" class="card hidden">
+        <h2 class="section-title">小程序 AI 对话新手引导配置</h2>
+        <div class="guide" style="margin-bottom:14px">
+          <ul>
+            <li>这里统一维护小程序 AI 入口文案：首页顶部说明、首页搜索提示、AI 对话欢迎语和首次进入引导浮层。</li>
+            <li>首页搜索提示只作为快捷引导展示，用户点击后直接进入 AI 对话页，不在首页输入。</li>
+            <li>首次进入小程序 AI 对话页时，会展示半透明引导浮层，介绍 AI 能力并列出一组示例问题。</li>
+            <li>用户点击“我知道了”后关闭浮层，并写入本地缓存；后台每次保存都会生成新版本，新版本会再次对用户展示。</li>
+            <li>能力说明和示例问题支持后台实时修改，保存后小程序下次进入生效。</li>
+          </ul>
+        </div>
+        <div class="form-grid">
+          <label>是否启用
+            <select id="onboardingEnabled">
+              <option value="1">启用</option>
+              <option value="0">禁用</option>
+            </select>
+          </label>
+          <label style="grid-column:1 / -1">引导标题
+            <input id="onboardingTitle" placeholder="例如：你好，我是惠买单 AI 助手" oninput="renderOnboardingPreview()">
+          </label>
+          <label style="grid-column:1 / -1">首页顶部说明
+            <textarea id="homeSubtitle" placeholder="例如：&#10;告诉我你的需求，&#10;我会给你适合的建议" oninput="renderOnboardingPreview()"></textarea>
+            <span class="field-hint">展示在首页 AI 小惠顶部图片旁边，支持换行。</span>
+          </label>
+          <label style="grid-column:1 / -1">首页搜索提示
+            <input id="homeSearchPlaceholder" placeholder="附近，均80，有小孩，可停车" oninput="renderOnboardingPreview()">
+            <span class="field-hint">展示在首页 AI 搜索框内；用户点击搜索框会直接进入 AI 对话页。</span>
+          </label>
+          <label style="grid-column:1 / -1">AI 智能精选说明
+            <input id="homeFeaturedSubtitle" placeholder="根据您的需求和实时情况，为您推荐" oninput="renderOnboardingPreview()">
+            <span class="field-hint">展示在首页“AI智能精选”标题右侧的小字。</span>
+          </label>
+          <label style="grid-column:1 / -1">AI 对话欢迎语
+            <textarea id="chatWelcomeText" placeholder="我是AI小惠，告诉我：你想吃什么？预算多少?距离优先还是折扣优先？和您同行的，有小孩或者老人吗？" oninput="renderOnboardingPreview()"></textarea>
+            <span class="field-hint">展示在 AI 对话页顶部第一条欢迎气泡。</span>
+          </label>
+          <label style="grid-column:1 / -1">能力说明（每行一条）
+            <textarea id="onboardingFeatures" placeholder="例如：&#10;智能推荐附近好店&#10;一句话找优惠&#10;根据口味、场景做选择" oninput="renderOnboardingPreview()"></textarea>
+            <span class="field-hint">在引导浮层中以列表形式展示。</span>
+          </label>
+          <label style="grid-column:1 / -1">示例问题（每行一条）
+            <textarea id="onboardingExamples" placeholder="例如：&#10;附近有什么好吃的？&#10;适合聚会的餐厅推荐&#10;今天有什么优惠活动？" oninput="renderOnboardingPreview()"></textarea>
+            <span class="field-hint">用户点击后自动填入输入框并发送。</span>
+          </label>
+        </div>
+        <div class="toolbar" style="margin-top:14px">
+          <button class="success" onclick="saveOnboardingConfig()">保存新手引导配置</button>
+          <button class="plain" onclick="loadOnboardingConfig()">重置为默认值</button>
+        </div>
+        <div class="split" style="margin-top:14px">
+          <div class="guide">
+            <p><strong>当前版本：</strong><span id="onboardingVersion">-</span></p>
+            <p class="muted">如果用户已关闭过旧版引导，保存新版后会自动使用新版本缓存键，用户重新进入 AI 对话页可看到新版内容。</p>
+          </div>
+          <div id="onboardingPreview" class="onboarding-preview"></div>
+        </div>
+        <div id="onboardingStatus" class="status"></div>
+      </section>
+
+      <section id="tab-logs" class="card hidden">
+        <h2 class="section-title">推荐日志</h2>
+        <div class="toolbar">
+          <input id="logUid" placeholder="用户ID">
+          <input id="logSession" placeholder="Session ID">
+          <input id="logKeyword" placeholder="用户输入关键词">
+          <select id="logDegraded">
+            <option value="">全部状态</option>
+            <option value="0">正常</option>
+            <option value="1">已降级</option>
+          </select>
+          <button class="primary" onclick="loadLogs()">查询</button>
+        </div>
+        <div class="guide">
+          <p>日志用于复盘推荐效果。重点关注：<strong>用户输入</strong>是否被正确理解、<strong>召回数量</strong>是否正常、<strong>推荐商户</strong>是否符合预期、<strong>排序来源</strong>是否为 LLM、<strong>是否降级</strong>（degraded=是说明 LLM 异常已回退规则排序）、<strong>耗时</strong>是否过高。如果推荐不准，优先检查商户城市、优惠、AI 标签，再调整权重。</p>
+        </div>
+        <div id="logSummaryPanel" class="guide hidden">
+          <h3>当前查询结果概览</h3>
+          <p class="muted">基于当前加载的日志计算，优先展示近 24 小时数据；如果当前查询结果里没有近 24 小时日志，则展示当前列表整体情况。</p>
+          <div id="logSummaryCards" class="quality-grid"></div>
+          <div id="logSummaryTips" class="status"></div>
+        </div>
+        <div id="logStatus" class="status"></div>
+        <table>
+          <thead><tr><th>ID</th><th>用户</th><th>用户输入</th><th>意图标签</th><th>召回</th><th>规则候选</th><th>LLM排序</th><th>排序来源</th><th>最终商户</th><th>降级</th><th>降级原因</th><th>诊断建议</th><th>耗时ms</th><th>时间</th><th>操作</th></tr></thead>
+          <tbody id="logRows"></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const tagTypes = [
+      ['category', '品类'], ['scene', '场景'], ['taste', '口味'], ['facility', '设施'],
+      ['price', '价格'], ['feature', '特色'], ['meal', '餐段'], ['promotion', '优惠']
+    ];
+    const builtinTagLabels = {
+      meal: {
+        breakfast: '早餐',
+        brunch: '早午餐',
+        lunch: '午餐',
+        tea: '下午茶',
+        dinner: '晚餐',
+        supper: '夜宵',
+        late_night: '深夜食堂',
+      },
+      price: {
+        '0-30': '人均30元以内',
+        '30-60': '人均30-60元',
+        '60-100': '人均60-100元',
+        '100-150': '人均100-150元',
+        '150+': '人均150元以上',
+      },
+    };
+
+    let merchantTagList = [];
+    let merchantTagSuggestions = [];
+    let merchantOptions = [];
+    let facilityTagOptions = [];
+    let currentProfileFacilities = {};
+    let currentTagRows = [];
+    let tagQualityRowsData = [];
+    let currentTagQualityFilter = '';
+    const aiTagMap = new Map(); // 标签值映射：key="类型:标签值"，value="显示名"
+    let currentProfileMerId = 0;
+    let configList = [];
+    let configSecretsVisible = false;
+    let expertConfigsVisible = false;
+    let bannerList = [];
+    let discountMemberLevels = [];
+    const bailianAppPrompt = `你是“惠买单”本地生活推荐排序助手。
+
+你的任务：
+1. 根据用户原话、历史上下文、意图标签和候选商户列表，对候选商户进行排序。
+2. 只能使用输入里的候选商户，绝对不能编造、新增或删除商户。
+3. 优先理解用户明确偏好，例如最近、最远、最贵、便宜、8折左右、评分高、适合聚餐、有包间、适合请客等。
+4. 推荐理由必须面向普通用户，简短自然，不要暴露内部字段、规则分、候选池、排序依据或模型推理过程。
+5. 严格输出 JSON，不要输出解释。
+
+输出格式：
+{"summary":"一句自然的用户可见回复","items":[{"mer_id":商户ID,"rank":1,"reason":"一句用户可见推荐理由"}]}`;
+
+    function cookie(name) {
+      return document.cookie.split('; ').find(row => row.startsWith(name + '='))?.split('=')[1] || '';
+    }
+
+    function token() {
+      return decodeURIComponent(cookie('Token') || localStorage.getItem('Token') || '');
+    }
+
+    async function request(path, options = {}) {
+      const headers = options.headers || {};
+      if (!(options.body instanceof FormData)) headers['Content-Type'] = 'application/json';
+      headers['X-Token'] = token();
+      headers['X-Source'] = '9ed24b559c4b4c3c';
+      const res = await fetch('/sys/' + path.replace(/^\/+/, ''), { ...options, headers });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || (data.status && Number(data.status) !== 200)) {
+        if (Number(data.status) === 40000) {
+          throw new Error('后台登录已过期，请返回 CRMEB 后台重新登录后再操作');
+        }
+        throw new Error(data.message || '请求失败');
+      }
+      return data;
+    }
+
+    function setStatus(id, message, isError = false) {
+      const el = document.getElementById(id);
+      el.textContent = message || '';
+      el.className = isError ? 'status error' : 'status';
+    }
+
+    function esc(value) {
+      return String(value ?? '').replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s]));
+    }
+
+    function typeLabel(value) {
+      return tagTypes.find(item => item[0] === value)?.[1] || value || '';
+    }
+
+    function fillTagSelects() {
+      for (const id of ['tagType', 'tagFormType']) {
+        const select = document.getElementById(id);
+        const prefix = id === 'tagType' ? '<option value="">全部类型</option>' : '';
+        select.innerHTML = prefix + tagTypes.map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
+      }
+    }
+
+    function normalizeTab(tab) {
+      const aliases = {
+        merchants: 'merchant',
+        merchant_import: 'merchant',
+        merchantImport: 'merchant',
+        merchantTags: 'merchant_tags'
+      };
+      return aliases[tab] || tab || 'guide';
+    }
+
+    function showTab(tab) {
+      tab = normalizeTab(tab);
+      let target = document.getElementById('tab-' + tab);
+      if (!target) {
+        tab = 'guide';
+        target = document.getElementById('tab-guide');
+      }
+      document.querySelectorAll('nav button').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+      document.querySelectorAll('main > section').forEach(section => section.classList.add('hidden'));
+      target.classList.remove('hidden');
+      history.replaceState(null, '', '?tab=' + encodeURIComponent(tab));
+      if (tab === 'merchant' || tab === 'discounts' || tab === 'merchant_tags') loadMerchantOptions();
+      if (tab === 'tags') loadTags();
+      if (tab === 'discounts') loadDiscounts();
+      if (tab === 'banners') loadBanners();
+      if (tab === 'configs') { loadConfigs(); loadAiStatus(); showWizardStep(1); }
+      if (tab === 'logs') loadLogs();
+      if (tab === 'onboarding') loadOnboardingConfig();
+    }
+
+    async function loadMerchants() {
+      setStatus('merchantStatus', '正在查询...');
+      try {
+        const keyword = document.getElementById('merchantKeyword').value.trim();
+        const res = await request(`huimaidan/ai/merchants?keyword=${encodeURIComponent(keyword)}&page=1&limit=200`);
+        const list = res.data?.list || res.data || [];
+        merchantOptions = list;
+        renderMerchantOptions();
+        document.getElementById('merchantRows').innerHTML = list.length ? list.map(row => {
+          const healthStatus = row.ai_health_status || 'needs_improvement';
+          const healthText = row.ai_health_status_text || '待完善';
+          const missing = Array.isArray(row.ai_health_missing) ? row.ai_health_missing : [];
+          const missingBadges = missing.length
+            ? `<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">${missing.map(m => `<button class="plain" type="button" style="padding:2px 8px;font-size:12px;" onclick="event.stopPropagation();editMerchantProfile(${Number(row.mer_id)}, '${esc(m.action || '')}')">${esc(m.label)}</button>`).join('')}</div>`
+            : '';
+          return `<tr><td>${esc(row.mer_id)}</td><td>${esc(row.display_name || row.mer_name || row.real_name || row.name)}</td><td>${esc(row.category_name || row.cate_name || row.category_id || '')}</td><td>${esc(row.display_phone || row.service_phone || row.mer_phone || row.tel || '')}</td><td>${esc(row.mer_address || row.address || row.coordinate || '')}</td><td><span class="status-badge ${esc(healthStatus)}">${esc(healthText)}</span>${missingBadges}</td><td><button class="plain" onclick="editMerchantProfile(${Number(row.mer_id)}, '')">编辑展示资料</button><button class="danger" onclick="deleteMerchantFromAi(${Number(row.mer_id)})">删除</button></td></tr>`;
+        }).join('') : '<tr><td colspan="7" class="muted">暂无商户</td></tr>';
+        setStatus('merchantStatus', `查询完成，共 ${list.length} 条`);
+      } catch (e) {
+        setStatus('merchantStatus', e.message, true);
+      }
+    }
+
+    function checked(id, value) {
+      document.getElementById(id).checked = Number(value || 0) === 1 || value === true;
+    }
+
+    function checkedValue(id) {
+      return document.getElementById(id).checked ? 1 : 0;
+    }
+
+    async function editMerchantProfile(merId, focusAction) {
+      currentProfileMerId = Number(merId || 0);
+      if (!currentProfileMerId) return;
+      document.getElementById('merchantProfilePanel').classList.remove('hidden');
+      setStatus('merchantProfileStatus', '正在读取资料...');
+      try {
+        const res = await request(`huimaidan/ai/merchant_profile/${currentProfileMerId}`);
+        const data = res.data || {};
+        document.getElementById('merchantProfileTitle').textContent = `编辑商户展示资料：${data.mer_name || ''}`;
+        document.getElementById('merchantProfileName').textContent = `${data.mer_name || ''}（ID:${data.mer_id || currentProfileMerId}）｜电话：${data.mer_phone || '-'}｜地址：${data.mer_address || '-'}`;
+        document.getElementById('profileBranchName').value = data.branch_name || '';
+        document.getElementById('profilePerCapita').value = data.per_capita || '0.00';
+        document.getElementById('profileSales').value = data.configured_sales || 0;
+        document.getElementById('profileSales').dataset.realSales = String(data.real_sales || 0);
+        document.getElementById('profilePromoImage').value = data.promo_image || '';
+        document.getElementById('profileSlogan').value = data.slogan || '';
+        document.getElementById('profileMerInfo').value = data.mer_info || '';
+        document.getElementById('profileDiscountInfo').textContent = data.discount_label
+          ? `当前用户侧展示折扣：${data.discount_label}。如需修改，请到“惠买单优惠规则”维护会员消费折扣。`
+          : '当前没有启用的会员展示折扣。AI 推荐和小程序详情页不会显示醒目的折扣标签。';
+        document.getElementById('profileBusinessHours').value = data.business_hours || '';
+        document.getElementById('profileLongitude').value = data.longitude || '';
+        document.getElementById('profileLatitude').value = data.latitude || '';
+        document.getElementById('profileAvatar').value = data.mer_avatar || '';
+        document.getElementById('profileBanner').value = data.mer_banner || '';
+
+        updateAvatarPreview();
+        updateBannerPreview();
+        updateSalesPreview();
+        updatePromoImagePreview();
+        await loadFacilityTagOptions(true);
+        await renderFacilityTags(data);
+
+        setStatus('merchantProfileStatus', '资料已加载，可直接编辑保存');
+        if (focusAction) handleProfileFocus(String(focusAction));
+      } catch (e) {
+        setStatus('merchantProfileStatus', e.message, true);
+      }
+    }
+
+    function focusField(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus({ preventScroll: true });
+      el.classList.add('focus-pulse');
+      setTimeout(() => el.classList.remove('focus-pulse'), 1500);
+    }
+
+    async function handleProfileFocus(action) {
+      action = String(action || '').trim();
+      const merId = currentProfileMerId;
+      const focusActions = {
+        avatar: () => focusField('profileAvatar'),
+        coordinate: () => {
+          focusField('profileLongitude');
+          focusField('profileLatitude');
+        },
+        per_capita: () => focusField('profilePerCapita'),
+        business_hours: () => focusField('profileBusinessHours'),
+        facility: () => {
+          const row = document.getElementById('profileFacilityRow');
+          if (row) {
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            row.classList.add('focus-pulse');
+            setTimeout(() => row.classList.remove('focus-pulse'), 1500);
+          }
+        },
+        tags: async () => {
+          closeMerchantProfile();
+          showTab('merchant_tags');
+          const select = document.getElementById('merchantTagMerId');
+          if (select) {
+            select.value = String(merId);
+            await loadMerchantTags();
+            document.getElementById('merchantTagRows').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        },
+        discount: async () => {
+          closeMerchantProfile();
+          showTab('discounts');
+          const select = document.getElementById('discountMerId');
+          if (select) {
+            select.value = String(merId);
+            await loadDiscounts();
+            document.getElementById('discountRows').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        },
+      };
+      const handler = focusActions[action];
+      if (handler) await handler();
+    }
+
+    function updateAvatarPreview() {
+      const url = document.getElementById('profileAvatar').value.trim();
+      const preview = document.getElementById('profileAvatarPreview');
+      if (url) {
+        preview.src = url;
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+      }
+    }
+
+    function updateBannerPreview() {
+      const url = document.getElementById('profileBanner').value.trim();
+      const preview = document.getElementById('profileBannerPreview');
+      const hint = document.getElementById('profileBannerHint');
+      if (url) {
+        preview.src = url;
+        preview.style.display = 'block';
+        hint.textContent = `当前 Banner：${url}`;
+      } else {
+        preview.style.display = 'none';
+        hint.textContent = '暂无 Banner，详情页顶部会优先展示头像或其他图片。';
+      }
+    }
+
+    function updateSalesPreview() {
+      const input = document.getElementById('profileSales');
+      const realSales = Math.max(0, Number(input.dataset.realSales || 0));
+      const configuredSales = Math.max(0, Number(input.value || 0));
+      const total = realSales + configuredSales;
+      document.getElementById('profileSalesFormula').textContent = `当前公式：真实销量 ${realSales} + 运营展示销量 ${configuredSales} = 小程序显示“半年售${total}”。真实销量来自 CRMEB 店铺基础销量/商城订单统计；当前惠买单买单成功不会自动增加该字段，运营展示销量是手动加权值。`;
+    }
+
+    function updatePromoImagePreview() {
+      const url = document.getElementById('profilePromoImage').value.trim();
+      const preview = document.getElementById('profilePromoPreview');
+      const hint = document.getElementById('profilePromoPreviewHint');
+      if (url) {
+        preview.src = url;
+        preview.style.display = 'block';
+        hint.style.display = 'none';
+      } else {
+        preview.style.display = 'none';
+        hint.style.display = 'inline';
+      }
+    }
+
+    /**
+     * 触发商户资料图片上传（头像/Banner/促销图）
+     * @param {string} target - 'avatar' 表示头像，'banner' 表示门店 Banner，'promo' 表示促销图
+     */
+    function triggerProfileImageUpload(target) {
+      const inputId = target === 'avatar'
+        ? 'profileAvatarFile'
+        : (target === 'banner' ? 'profileBannerFile' : 'profilePromoImageFile');
+      document.getElementById(inputId).click();
+    }
+
+    /**
+     * 上传商户资料图片并回填到对应输入框
+     * @param {Event} event - 文件选择事件
+     * @param {string} target - 'avatar' 表示头像，'banner' 表示门店 Banner，'promo' 表示促销图
+     */
+    async function uploadProfileImage(event, target) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const statusId = target === 'avatar'
+        ? 'profileAvatarUploadStatus'
+        : (target === 'banner' ? 'profileBannerUploadStatus' : 'profilePromoUploadStatus');
+      setStatus(statusId, '正在上传...');
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await request('upload/image/0/file', { method: 'POST', body: formData });
+        const url = res.data?.src || res.data;
+        if (!url) throw new Error('上传成功但未返回图片地址');
+        applyUploadedProfileImage(target, url);
+        setStatus(statusId, '上传成功');
+      } catch (e) {
+        setStatus(statusId, '上传失败：' + e.message, true);
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    /**
+     * 将上传后的图片地址写入对应输入框并刷新预览
+     * @param {string} target - 'avatar' 表示头像，'banner' 表示门店 Banner，'promo' 表示促销图
+     * @param {string} url - 图片访问地址
+     */
+    function applyUploadedProfileImage(target, url) {
+      if (target === 'avatar') {
+        document.getElementById('profileAvatar').value = url;
+        updateAvatarPreview();
+      } else if (target === 'banner') {
+        document.getElementById('profileBanner').value = url;
+        updateBannerPreview();
+      } else {
+        document.getElementById('profilePromoImage').value = url;
+        updatePromoImagePreview();
+      }
+    }
+
+    function goDiscountRulesForCurrentMerchant() {
+      const merId = currentProfileMerId;
+      closeMerchantProfile();
+      showTab('discounts');
+      setFieldValue('discountMerId', String(merId || ''));
+      loadDiscounts();
+      setStatus('discountStatusText', '已跳转到当前商户的惠买单优惠规则。会员消费折扣控制用户看到的折扣，商家结算折扣只用于平台和商户结算。');
+    }
+
+    async function loadFacilityTagOptions(force = false) {
+      if (facilityTagOptions.length && !force) return;
+      const res = await request('huimaidan/ai/tags?tag_type=facility&status=1&page=1&limit=100');
+      facilityTagOptions = res.data?.list || [];
+      facilityTagOptions.sort((a, b) => {
+        const aw = Number(a.tag_weight || 0);
+        const bw = Number(b.tag_weight || 0);
+        if (bw !== aw) return bw - aw;
+        return String(a.tag_label || a.tag_value || '').localeCompare(String(b.tag_label || b.tag_value || ''), 'zh-Hans-CN');
+      });
+      facilityTagOptions.forEach(tag => aiTagMap.set(`facility:${tag.tag_value}`, tag.tag_label || tag.tag_value));
+    }
+
+    async function ensureAiTagMap() {
+      if (aiTagMap.size) return;
+      try {
+        const res = await request('huimaidan/ai/tags?status=1&page=1&limit=1000');
+        const list = res.data?.list || [];
+        list.forEach(tag => {
+          aiTagMap.set(`${tag.tag_type}:${tag.tag_value}`, tag.tag_label || tag.tag_value);
+        });
+      } catch (e) {
+        console.error('加载标签库映射失败', e);
+      }
+    }
+
+    function tagLabel(type, value) {
+      return aiTagMap.get(`${type}:${value}`) || builtinTagLabels[type]?.[value] || '';
+    }
+
+    async function renderFacilityTags(selectedData) {
+      const container = document.getElementById('profileFacilityRow');
+      const selectedContainer = document.getElementById('profileSelectedFacilities');
+      if (selectedData) {
+        currentProfileFacilities = {};
+        facilityTagOptions.forEach(tag => {
+          const key = tag.tag_value || '';
+          if (selectedData[key] === 1 || selectedData[key] === true) currentProfileFacilities[key] = 1;
+        });
+        Object.keys(selectedData).forEach(key => {
+          if (selectedData[key] === 1 || selectedData[key] === true) currentProfileFacilities[key] = 1;
+        });
+      }
+      try {
+        await loadFacilityTagOptions();
+        const keyword = (document.getElementById('facilityKeyword')?.value || '').trim().toLowerCase();
+        const selectedKeys = Object.keys(currentProfileFacilities).filter(key => currentProfileFacilities[key]);
+        const labelOf = key => facilityTagOptions.find(tag => tag.tag_value === key)?.tag_label || key;
+        selectedContainer.innerHTML = selectedKeys.length
+          ? selectedKeys.map(key => `<span class="chip">${esc(labelOf(key))}<button type="button" title="取消选择" data-key="${esc(key)}" onclick="setFacilityChecked(this.dataset.key, false)">×</button></span>`).join('')
+          : '<span class="muted">暂未选择设施标签。</span>';
+        const list = facilityTagOptions.filter(tag => {
+          if (!keyword) return true;
+          const text = [tag.tag_value, tag.tag_label, Array.isArray(tag.synonyms) ? tag.synonyms.join(',') : tag.synonyms].join(' ').toLowerCase();
+          return text.includes(keyword);
+        });
+        if (!list.length) {
+          container.innerHTML = facilityTagOptions.length
+            ? '<span class="muted">没有匹配的设施标签，可清空搜索或直接新增。</span>'
+            : '<span class="muted">暂无设施标签，请点击“新增设施标签”添加。</span>';
+          return;
+        }
+        container.innerHTML = list.map(tag => {
+          const key = tag.tag_value || '';
+          const checked = currentProfileFacilities[key] === 1 || currentProfileFacilities[key] === true;
+          return `<label><input type="checkbox" class="facility-tag-check" data-key="${esc(key)}" onchange="setFacilityChecked(this.dataset.key, this.checked)" ${checked ? 'checked' : ''}> ${esc(tag.tag_label || key)}</label>`;
+        }).join('');
+      } catch (e) {
+        container.innerHTML = `<span class="muted">设施标签加载失败：${esc(e.message)}</span>`;
+      }
+    }
+
+    function setFacilityChecked(key, isChecked) {
+      currentProfileFacilities[key] = isChecked ? 1 : 0;
+      renderFacilityTags();
+    }
+
+    async function refreshFacilityTags() {
+      try {
+        await loadFacilityTagOptions(true);
+        renderFacilityTags();
+        setStatus('facilityInlineStatus', '设施标签已刷新');
+      } catch (e) {
+        setStatus('facilityInlineStatus', e.message, true);
+      }
+    }
+
+    function collectFacilityPayload() {
+      const payload = {};
+      facilityTagOptions.forEach(tag => {
+        const key = tag.tag_value || '';
+        payload[key] = currentProfileFacilities[key] ? 1 : 0;
+      });
+      return payload;
+    }
+
+    function goToFacilityTags() {
+      showTab('tags');
+      document.getElementById('tagType').value = 'facility';
+      document.getElementById('tagFormType').value = 'facility';
+      loadTags();
+    }
+
+    function toggleFacilityCreator() {
+      document.getElementById('facilityCreator').classList.toggle('hidden');
+      setStatus('facilityInlineStatus', '');
+    }
+
+    function normalizeTagValue(label) {
+      return String(label || '').trim().replace(/\s+/g, '');
+    }
+
+    async function createFacilityTagFromProfile() {
+      const label = document.getElementById('newFacilityLabel').value.trim();
+      const synonyms = document.getElementById('newFacilitySynonyms').value.trim();
+      const weight = Number(document.getElementById('newFacilityWeight').value || 70);
+      const value = normalizeTagValue(label);
+      if (!value) return setStatus('facilityInlineStatus', '请填写设施名称，例如 可停车、儿童餐具、独立包间', true);
+      try {
+        await request('huimaidan/ai/tag/save', {
+          method: 'POST',
+          body: JSON.stringify({
+            tag_type: 'facility',
+            tag_value: value,
+            tag_label: label || value,
+            synonyms,
+            tag_weight: weight,
+            status: 1,
+          }),
+        });
+        facilityTagOptions = [];
+        currentProfileFacilities[value] = 1;
+        document.getElementById('newFacilityLabel').value = '';
+        document.getElementById('newFacilitySynonyms').value = '';
+        document.getElementById('facilityKeyword').value = '';
+        await loadFacilityTagOptions(true);
+        renderFacilityTags();
+        setStatus('facilityInlineStatus', `设施标签“${label || value}”已新增并自动选中，记得保存商户展示资料`);
+      } catch (e) {
+        setStatus('facilityInlineStatus', e.message, true);
+      }
+    }
+
+    function openTencentMapKeyPage() {
+      window.open('https://lbs.qq.com/dev/console/key/manage', '_blank', 'noopener,noreferrer');
+    }
+
+    // 腾讯地图选点消息处理器引用，用于避免重复监听
+    let tencentMapPickerHandler = null;
+
+    function parseTencentPickerData(data) {
+      // 支持腾讯地图 locpicker 多种返回格式
+      if (!data) return null;
+
+      // 1. 标准 JSON 对象：{ module:'locationPicker', latlng:{lat,lng}, poiaddress, poiname }
+      if (typeof data === 'object') {
+        // 新版 picker 有时会包一层 data
+        const loc = data.module === 'locationPicker' ? data : (data.data || data.detail || data.result || data);
+        if (!loc || typeof loc !== 'object') return null;
+        const poi = loc.poi || loc.poiInfo || loc.selectedPoi || {};
+        const latlng = loc.latlng || loc.location || loc.latLng || poi.latlng || poi.location || poi.latLng || {};
+        const lat = latlng.lat ?? latlng.latitude ?? loc.lat ?? loc.latitude ?? poi.lat ?? poi.latitude;
+        const lng = latlng.lng ?? latlng.longitude ?? loc.lng ?? loc.longitude ?? poi.lng ?? poi.longitude;
+        if (Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))) {
+          return {
+            lat: Number(lat),
+            lng: Number(lng),
+            name: loc.poiname || loc.name || poi.name || loc.poiaddress || loc.address || poi.address || ''
+          };
+        }
+      }
+
+      // 2. JSON 字符串
+      if (typeof data === 'string' && data.trim().startsWith('{')) {
+        try {
+          return parseTencentPickerData(JSON.parse(data));
+        } catch (err) {
+          return null;
+        }
+      }
+
+      // 3. qqmap://selectedLocation?lat=...&lng=... 协议串，或普通 query/hash 字符串
+      if (typeof data === 'string' && (data.includes('lat=') || data.includes('latitude='))) {
+        const query = data.includes('?') ? data.split('?')[1] : data.replace(/^#/, '');
+        const params = new URLSearchParams(query);
+        const lat = parseFloat(params.get('lat') || params.get('latitude') || '');
+        const lng = parseFloat(params.get('lng') || params.get('longitude') || '');
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          return {
+            lat,
+            lng,
+            name: params.get('name') || params.get('poiname') || params.get('address') || ''
+          };
+        }
+      }
+
+      return null;
+    }
+
+    function setInputValueAndNotify(id, value) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const normalized = Number.isFinite(Number(value)) ? String(Number(value).toFixed(6)) : String(value ?? '');
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+      if (setter) {
+        setter.call(el, normalized);
+      } else {
+        el.value = normalized;
+      }
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function applyTencentLocation(data) {
+      const result = parseTencentPickerData(data);
+      if (!result) return null;
+      setInputValueAndNotify('profileLatitude', result.lat);
+      setInputValueAndNotify('profileLongitude', result.lng);
+      window.__lastTencentMapLocation = result;
+      return result;
+    }
+
+    function correctHttpAdminUrl() {
+      const preferredOrigin = localStorage.getItem('huimaidanAdminOrigin') || 'http://127.0.0.1:8324';
+      return `${preferredOrigin}/huimaidan_ai_admin.html${location.search || '?tab=merchant'}`;
+    }
+
+    function ensureTencentMapPickerPanel() {
+      let panel = document.getElementById('tencentMapPickerPanel');
+      if (panel) return panel;
+      panel = document.createElement('div');
+      panel.id = 'tencentMapPickerPanel';
+      panel.className = 'modal-panel hidden';
+      panel.innerHTML = `
+        <div class="modal-body" style="width:min(1100px,96vw);height:88vh;display:flex;flex-direction:column;">
+          <div class="modal-header">
+            <div>
+              <h2 class="section-title">腾讯地图选点</h2>
+              <p class="muted">在地图中搜索或点击位置，确认后会自动回填经纬度。</p>
+            </div>
+            <button class="modal-close" type="button" onclick="closeTencentMapPicker()">关闭</button>
+          </div>
+          <iframe id="tencentMapPickerFrame" title="腾讯地图选点" style="flex:1;width:100%;border:1px solid #e5e7eb;border-radius:8px;background:#f8fafc;"></iframe>
+        </div>
+      `;
+      document.body.appendChild(panel);
+      return panel;
+    }
+
+    function closeTencentMapPicker() {
+      const panel = document.getElementById('tencentMapPickerPanel');
+      const frame = document.getElementById('tencentMapPickerFrame');
+      if (frame) frame.src = 'about:blank';
+      if (panel) panel.classList.add('hidden');
+      if (tencentMapPickerHandler) {
+        window.removeEventListener('message', tencentMapPickerHandler);
+        tencentMapPickerHandler = null;
+      }
+    }
+
+    async function openTencentMapPicker() {
+      if (location.protocol === 'file:') {
+        const url = correctHttpAdminUrl();
+        return setStatus('merchantProfileStatus', `当前页面是 file:// 本地文件方式打开，腾讯地图选点无法把经纬度回传到后台页面。\n请改用后台地址打开：${url}`, true);
+      }
+      if (!configList.length) {
+        try {
+          const res = await request('huimaidan/ai/configs?show_secrets=1');
+          configList = res.data || [];
+        } catch (e) {
+          return setStatus('merchantProfileStatus', '读取腾讯地图 Key 失败：' + e.message, true);
+        }
+      }
+      const key = configValue('tencent_map_js_key', '').trim();
+      if (!key) {
+        return setStatus('merchantProfileStatus', '未配置腾讯地图 JS Key。请点击旁边“申请腾讯地图 Key”，申请后到 AI 配置向导填写 tencent_map_js_key 并保存。', true);
+      }
+
+      // 移除旧监听器，防止重复绑定
+      if (tencentMapPickerHandler) {
+        window.removeEventListener('message', tencentMapPickerHandler);
+        tencentMapPickerHandler = null;
+      }
+      const panel = ensureTencentMapPickerPanel();
+      const frame = document.getElementById('tencentMapPickerFrame');
+
+      tencentMapPickerHandler = function handler(event) {
+        if (frame && event.source && event.source !== frame.contentWindow) {
+          return;
+        }
+        const result = parseTencentPickerData(event.data);
+        if (!result) {
+          // 未识别出的数据格式，调试用；正式上线可删除 console
+          if (event.data) {
+            console.log('[腾讯地图选点] 收到未识别消息：', event.origin, event.data);
+          }
+          return;
+        }
+
+        // 校验来源，忽略非腾讯地图域名的消息
+        try {
+          if (event.origin) {
+            const host = new URL(event.origin).hostname;
+            if (!host.endsWith('map.qq.com') && !host.endsWith('qq.com')) {
+              console.log('[腾讯地图选点] 忽略非腾讯来源消息：', event.origin);
+              return;
+            }
+          }
+        } catch (err) {
+          console.log('[腾讯地图选点] origin 解析失败，仍继续处理：', event.origin);
+        }
+
+        applyTencentLocation(result);
+        if (result.name && result.name !== '我的位置') {
+          // 仅提示，不覆盖 CRMEB 店铺地址
+          setStatus('merchantProfileStatus', `已选点：${result.name}，经纬度 ${Number(result.lng).toFixed(6)}, ${Number(result.lat).toFixed(6)} 已回填，请核对后保存`);
+        } else {
+          setStatus('merchantProfileStatus', `经纬度 ${Number(result.lng).toFixed(6)}, ${Number(result.lat).toFixed(6)} 已回填，请核对后保存`);
+        }
+        closeTencentMapPicker();
+      };
+
+      window.addEventListener('message', tencentMapPickerHandler);
+      // type=1 表示返回经纬度；policy=1 表示返回 POI 名称和地址
+      const url = `https://apis.map.qq.com/tools/locpicker?search=1&type=1&key=${encodeURIComponent(key)}&referer=huimaidan_admin&policy=1`;
+      frame.src = url;
+      panel.classList.remove('hidden');
+      setStatus('merchantProfileStatus', '地图选点窗口已打开，请在地图中选择位置');
+    }
+
+    async function saveMerchantProfile() {
+      if (!currentProfileMerId) return setStatus('merchantProfileStatus', '请先选择商户', true);
+      const payload = {
+        branch_name: document.getElementById('profileBranchName').value.trim(),
+        per_capita: document.getElementById('profilePerCapita').value || 0,
+        configured_sales: document.getElementById('profileSales').value || 0,
+        promo_image: document.getElementById('profilePromoImage').value.trim(),
+        slogan: document.getElementById('profileSlogan').value.trim(),
+        mer_info: document.getElementById('profileMerInfo').value.trim(),
+        business_hours: document.getElementById('profileBusinessHours').value.trim(),
+        longitude: document.getElementById('profileLongitude').value.trim(),
+        latitude: document.getElementById('profileLatitude').value.trim(),
+        mer_avatar: document.getElementById('profileAvatar').value.trim(),
+        mer_banner: document.getElementById('profileBanner').value.trim(),
+        ...collectFacilityPayload(),
+      };
+      try {
+        await request(`huimaidan/ai/merchant_profile/${currentProfileMerId}`, { method: 'POST', body: JSON.stringify(payload) });
+        setStatus('merchantProfileStatus', '保存成功，这些资料会用于 AI 推荐卡片和小程序展示');
+        await loadMerchants();
+      } catch (e) {
+        setStatus('merchantProfileStatus', e.message, true);
+      }
+    }
+
+    function closeMerchantProfile() {
+      currentProfileMerId = 0;
+      document.getElementById('merchantProfilePanel').classList.add('hidden');
+      setStatus('merchantProfileStatus', '');
+    }
+
+    async function deleteMerchantFromAi(merId) {
+      merId = Number(merId || 0);
+      if (!merId) return;
+      if (!confirm(`确定删除商户 ID ${merId} 吗？删除后该商户不会再参与 AI 推荐，请谨慎操作。`)) return;
+      try {
+        await request(`huimaidan/ai/merchant/${merId}`, { method: 'DELETE' });
+        setStatus('merchantStatus', `商户 ${merId} 已删除`);
+        await loadMerchants();
+      } catch (e) {
+        setStatus('merchantStatus', e.message, true);
+      }
+    }
+
+    async function loadMerchantOptions() {
+      try {
+        const keywordEl = document.getElementById('merchantOptionKeyword');
+        const merchantKeywordEl = document.getElementById('merchantKeyword');
+        const keyword = (keywordEl?.value || merchantKeywordEl?.value || '').trim();
+        const res = await request(`huimaidan/ai/merchants?keyword=${encodeURIComponent(keyword)}&page=1&limit=200`);
+        merchantOptions = res.data?.list || res.data || [];
+        renderMerchantOptions();
+        if (document.getElementById('merchantTagStatus')) {
+          setStatus('merchantTagStatus', merchantOptions.length ? `商户下拉已加载 ${merchantOptions.length} 个商户` : '暂无可选商户', merchantOptions.length === 0);
+        }
+      } catch (e) {
+        if (document.getElementById('merchantTagStatus')) setStatus('merchantTagStatus', e.message, true);
+      }
+    }
+
+    function renderMerchantOptions() {
+      const options = merchantOptions.map(row => {
+        const name = row.display_name || `${row.mer_name || row.real_name || '未命名商户'}（ID:${row.mer_id}）`;
+        const phone = row.display_phone ? ` / ${row.display_phone}` : '';
+        return `<option value="${esc(row.mer_id)}">${esc(name + phone)}</option>`;
+      }).join('');
+      const tagSelect = document.getElementById('merchantTagMerId');
+      if (tagSelect) {
+        const current = tagSelect.value;
+        tagSelect.innerHTML = `<option value="">请选择商户</option>${options}`;
+        if (current) tagSelect.value = current;
+      }
+      const discountSelect = document.getElementById('discountMerId');
+      if (discountSelect) {
+        const current = discountSelect.value;
+        discountSelect.innerHTML = `<option value="">全部商户</option>${options}`;
+        if (current) discountSelect.value = current;
+      }
+      const discountEditSelect = document.getElementById('discountEditMerId');
+      if (discountEditSelect) {
+        const current = discountEditSelect.value;
+        discountEditSelect.innerHTML = `<option value="">请选择商户</option>${options}`;
+        if (current) discountEditSelect.value = current;
+      }
+    }
+
+    function downloadTemplate() {
+      location.href = `/sys/huimaidan/ai/merchant_import/template?token=${encodeURIComponent(token())}`;
+    }
+
+    async function importMerchantExcel(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const form = new FormData();
+      form.append('file', file);
+      setStatus('merchantStatus', '正在导入...');
+      try {
+        const res = await request('huimaidan/ai/merchant_import', { method: 'POST', body: form, headers: { 'X-Token': token(), 'X-Source': '9ed24b559c4b4c3c' } });
+        const data = res.data || {};
+        const health = data.health_report || {};
+        const healthMsg = health.merchants?.length
+          ? `；资料报告：优秀 ${health.excellent || 0} 家，可用 ${health.usable || 0} 家，待完善 ${health.needs_improvement || 0} 家，缺失字段 ${health.missing_field_count || 0} 处`
+          : '';
+        setStatus('merchantStatus', `导入完成：新增 ${data.created || 0}，更新 ${data.updated || 0}，失败 ${data.failed || 0}${data.errors?.length ? '；' + data.errors.slice(0, 3).join('；') : ''}${healthMsg}`);
+        loadMerchants();
+      } catch (e) {
+        setStatus('merchantStatus', e.message, true);
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    async function loadTags() {
+      setStatus('tagStatusText', '正在加载...');
+      try {
+        const type = document.getElementById('tagType').value;
+        const keyword = document.getElementById('tagKeyword').value.trim();
+        const res = await request(`huimaidan/ai/tags?tag_type=${encodeURIComponent(type)}&keyword=${encodeURIComponent(keyword)}&page=1&limit=50`);
+        const list = res.data?.list || res.list || [];
+        currentTagRows = list;
+        document.getElementById('tagRows').innerHTML = list.length ? list.map((row, index) => `<tr><td>${esc(row.tag_id)}</td><td><span class="pill">${esc(typeLabel(row.tag_type))}</span></td><td>${esc(row.tag_value)}</td><td>${esc(row.tag_label)}</td><td>${esc(Array.isArray(row.synonyms) ? row.synonyms.join(', ') : row.synonyms)}</td><td>${esc(row.tag_weight)}</td><td>${Number(row.status) === 1 ? '启用' : '禁用'}</td><td><button class="plain" onclick="editTag(${index})">编辑</button> <button class="danger" onclick="deleteTag(${Number(row.tag_id)}, '${esc(row.tag_type)}')">删除</button></td></tr>`).join('') : '<tr><td colspan="8" class="muted">暂无标签</td></tr>';
+        setStatus('tagStatusText', `已加载 ${list.length} 条`);
+      } catch (e) {
+        setStatus('tagStatusText', e.message, true);
+      }
+    }
+
+    async function loadTagQuality() {
+      const panel = document.getElementById('tagQualityPanel');
+      panel.classList.remove('hidden');
+      document.getElementById('tagQualitySummary').innerHTML = '<div class="quality-card"><strong>...</strong><span>正在体检</span></div>';
+      document.getElementById('tagQualityRows').innerHTML = '<tr><td colspan="5" class="muted">正在读取标签库...</td></tr>';
+      setStatus('tagStatusText', '正在检查标签数据质量...');
+      try {
+        const res = await request('huimaidan/ai/tags?page=1&limit=1000');
+        const list = res.data?.list || res.list || [];
+        tagQualityRowsData = list;
+        renderTagQuality(list);
+        setStatus('tagStatusText', `标签体检完成：共检查 ${list.length} 条标签`);
+      } catch (e) {
+        document.getElementById('tagQualityRows').innerHTML = `<tr><td colspan="5" class="error">${esc(e.message)}</td></tr>`;
+        setStatus('tagStatusText', e.message, true);
+      }
+    }
+
+    function normalizeSynonyms(value) {
+      if (Array.isArray(value)) return value.filter(Boolean);
+      return String(value || '').split(/[,，\n]/).map(item => item.trim()).filter(Boolean);
+    }
+
+    function renderTagQuality(list, filter) {
+      const active = list.filter(row => Number(row.status) === 1);
+      let issues = [];
+      const seen = new Map();
+      for (const row of list) {
+        const type = row.tag_type || '';
+        const value = String(row.tag_value || '').trim();
+        const label = String(row.tag_label || '').trim();
+        const synonyms = normalizeSynonyms(row.synonyms);
+        const text = [value, label, synonyms.join(',')].join(' ');
+        const key = `${type}:${value}`;
+        if (!value) {
+          issues.push(tagIssue('high', row, '标签值为空', '补充标签值，否则用户意图无法命中这个标签。'));
+        }
+        if (Number(row.status) === 1 && /测试|test|啦啦|demo/i.test(text)) {
+          issues.push(tagIssue('high', row, '疑似测试标签仍处于启用状态', '禁用或删除测试标签，避免污染正式推荐结果。'));
+        }
+        if (type === 'facility' && Number(row.status) === 1 && Number(row.tag_weight || 0) < 30) {
+          issues.push(tagIssue('medium', row, '设施标签权重偏低', '设施会影响“包间、停车、亲子、聚餐”等召回，建议权重设置为 40-80。'));
+        }
+        if (Number(row.status) === 1 && !label) {
+          issues.push(tagIssue('medium', row, '缺少显示名称', '补充用户能看懂的中文名称，方便后台维护和商户勾选。'));
+        }
+        if (['category', 'taste', 'facility'].includes(type) && Number(row.status) === 1 && synonyms.length === 0) {
+          issues.push(tagIssue('low', row, '缺少同义词', '补充用户常用说法，例如“火锅”的同义词可写“涮肉,铜锅”。'));
+        }
+        if (seen.has(key)) {
+          issues.push(tagIssue('medium', row, '存在重复标签值', `与标签 #${seen.get(key)} 类型和值相同，建议合并后保留一个。`));
+        } else if (value) {
+          seen.set(key, row.tag_id);
+        }
+      }
+      if (filter) {
+        issues = issues.filter(issue => {
+          if (filter === 'test') return issue.problem.includes('测试');
+          if (filter === 'duplicate') return issue.problem.includes('重复');
+          if (filter === 'low_weight_facility') return issue.problem.includes('设施标签权重偏低');
+          return true;
+        });
+      }
+      const high = issues.filter(item => item.level === 'high').length;
+      const medium = issues.filter(item => item.level === 'medium').length;
+      const low = issues.filter(item => item.level === 'low').length;
+      const filterText = filter
+        ? { test: '只看测试标签', duplicate: '只看重复标签', low_weight_facility: '只看低权重设施' }[filter]
+        : '';
+      document.getElementById('tagQualitySummary').innerHTML = `
+        <div class="quality-card"><strong>${esc(list.length)}</strong><span>全部标签</span></div>
+        <div class="quality-card"><strong>${esc(active.length)}</strong><span>启用标签</span></div>
+        <div class="quality-card"><strong class="risk-high">${esc(high)}</strong><span>高风险</span></div>
+        <div class="quality-card"><strong class="risk-medium">${esc(medium)}</strong><span>中风险</span></div>
+        <div class="quality-card"><strong class="risk-low">${esc(low)}</strong><span>可优化</span></div>
+        ${filterText ? `<div class="quality-card" style="grid-column:1 / -1;text-align:left;padding-top:0;"><span class="muted">当前筛选：${esc(filterText)}，共 ${esc(issues.length)} 条问题</span></div>` : ''}
+      `;
+      document.getElementById('tagQualityRows').innerHTML = issues.length ? issues.map(issue => `
+        <tr>
+          <td><span class="${esc(riskClass(issue.level))}">${esc(riskLabel(issue.level))}</span></td>
+          <td>#${esc(issue.row.tag_id)} ${esc(typeLabel(issue.row.tag_type))} / ${esc(issue.row.tag_label || issue.row.tag_value || '-')}</td>
+          <td>${esc(issue.problem)}</td>
+          <td>${esc(issue.suggestion)}</td>
+          <td><button class="plain" onclick="editTagFromQuality(${Number(issue.row.tag_id)})">编辑</button></td>
+        </tr>
+      `).join('') : '<tr><td colspan="5" class="muted">暂未发现明显问题，标签库状态良好。</td></tr>';
+    }
+
+    function filterTagQuality(filter) {
+      currentTagQualityFilter = filter;
+      const panel = document.getElementById('tagQualityPanel');
+      panel.classList.remove('hidden');
+      if (!tagQualityRowsData.length) {
+        loadTagQuality();
+        return;
+      }
+      renderTagQuality(tagQualityRowsData, filter);
+    }
+
+    async function batchDisableTestTags() {
+      const testTags = tagQualityRowsData.filter(row => {
+        if (Number(row.status) !== 1) return false;
+        const text = [row.tag_value, row.tag_label, (Array.isArray(row.synonyms) ? row.synonyms.join(',') : row.synonyms)].join(' ');
+        return /测试|test|啦啦|demo/i.test(text);
+      });
+      if (!testTags.length) return setStatus('tagStatusText', '未发现启用的测试标签', true);
+      if (!confirm(`确认批量禁用 ${testTags.length} 个疑似测试标签吗？禁用后它们不再参与 AI 召回。`)) return;
+      setStatus('tagStatusText', `正在禁用 ${testTags.length} 个测试标签...`);
+      try {
+        for (const row of testTags) {
+          await request('huimaidan/ai/tag/save', {
+            method: 'POST',
+            body: JSON.stringify({
+              tag_id: row.tag_id,
+              tag_type: row.tag_type,
+              tag_value: row.tag_value,
+              tag_label: row.tag_label || row.tag_value,
+              synonyms: Array.isArray(row.synonyms) ? row.synonyms.join(',') : (row.synonyms || ''),
+              tag_weight: Number(row.tag_weight || 10),
+              status: 0,
+            }),
+          });
+        }
+        setStatus('tagStatusText', `已禁用 ${testTags.length} 个测试标签`);
+        loadTags();
+        loadTagQuality();
+      } catch (e) {
+        setStatus('tagStatusText', e.message, true);
+      }
+    }
+
+    function tagIssue(level, row, problem, suggestion) {
+      return { level, row, problem, suggestion };
+    }
+
+    function riskLabel(level) {
+      return { high: '高风险', medium: '中风险', low: '可优化' }[level] || '提示';
+    }
+
+    function riskClass(level) {
+      return { high: 'risk-high', medium: 'risk-medium', low: 'risk-low' }[level] || 'risk-low';
+    }
+
+    async function loadDiscounts() {
+      setStatus('discountStatusText', '正在加载...');
+      try {
+        const merId = document.getElementById('discountMerId').value.trim();
+        const status = document.getElementById('discountStatus').value;
+        const res = await request(`huimaidan/discount/lst?mer_id=${encodeURIComponent(merId)}&status=${encodeURIComponent(status)}&page=1&limit=50`);
+        const data = res.data || {};
+        const list = data.list || data.data || [];
+        document.getElementById('discountRows').innerHTML = list.length ? list.map(row => `
+          <tr>
+            <td>${esc(row.discount_id)}</td>
+            <td>${esc(row.mer_id)}</td>
+            <td>${esc(row.merchant_discount)}</td>
+            <td>${esc(discountMemberSummary(row))}</td>
+            <td>${Number(row.status) === 1 ? '启用' : '禁用'}</td>
+            <td>${esc(row.start_time || '-')}</td>
+            <td>${esc(row.end_time || '-')}</td>
+            <td>${esc(row.sort || 0)}</td>
+            <td>${esc(row.remark || '')}</td>
+            <td><div class="row-actions"><button onclick="openDiscountEditor(${Number(row.discount_id || 0)})">编辑</button></div></td>
+          </tr>
+        `).join('') : '<tr><td colspan="10" class="muted">暂无优惠规则</td></tr>';
+        setStatus('discountStatusText', `已加载 ${list.length} 条，共 ${data.count ?? list.length} 条`);
+      } catch (e) {
+        setStatus('discountStatusText', e.message, true);
+      }
+    }
+
+    function discountMemberSummary(row) {
+      const rows = row.memberDiscounts || row.member_discounts || [];
+      if (!rows.length) return '未配置';
+      return rows.map(item => {
+        const level = item.level?.brokerage_name || item.member_level_name || `等级${item.member_level}`;
+        return `${level}:${formatDiscountRate(item.member_discount)}`;
+      }).join(' / ');
+    }
+
+    function formatDiscountRate(value) {
+      const rate = Number(value || 0);
+      if (!rate) return '-';
+      return `${Number((rate * 10).toFixed(2))}折`;
+    }
+
+    async function ensureDiscountMemberLevels() {
+      if (discountMemberLevels.length) return discountMemberLevels;
+      const res = await request('huimaidan/discount/member_levels');
+      discountMemberLevels = res.data || [];
+      return discountMemberLevels;
+    }
+
+    function renderDiscountMemberInputs(existingRows = []) {
+      const existing = {};
+      existingRows.forEach(row => {
+        existing[Number(row.member_level)] = row;
+      });
+      const html = discountMemberLevels.map(level => {
+        const levelValue = Number(level.brokerage_level || level.member_level || level.level || 0);
+        const levelName = level.brokerage_name || level.name || `等级${levelValue}`;
+        const current = existing[levelValue] || {};
+        const discount = current.member_discount || '';
+        const status = String(current.status ?? 1);
+        return `
+          <label>${esc(levelName)}（等级 ${esc(levelValue)}）
+            <input class="discount-member-rate" data-level="${esc(levelValue)}" type="number" min="0.01" max="1" step="0.01" value="${esc(discount)}" placeholder="例如 0.80">
+            <span class="field-hint">用户端展示为 ${discount ? formatDiscountRate(discount) : '填写后自动换算'}，例如 0.80 = 8折</span>
+          </label>
+          <label>${esc(levelName)} 状态
+            <select class="discount-member-status" data-level="${esc(levelValue)}">
+              <option value="1" ${status === '1' ? 'selected' : ''}>启用</option>
+              <option value="0" ${status === '0' ? 'selected' : ''}>禁用</option>
+            </select>
+          </label>
+        `;
+      }).join('');
+      document.getElementById('discountMemberRows').innerHTML = html || '<p class="muted">暂无启用会员等级，请先到 CRMEB 用户会员等级里配置。</p>';
+    }
+
+    async function openDiscountEditor(discountId = 0) {
+      document.getElementById('discountEditPanel').classList.remove('hidden');
+      setStatus('discountStatusText', '正在准备优惠规则表单...');
+      try {
+        await loadMerchantOptions();
+        await ensureDiscountMemberLevels();
+        const currentMerId = document.getElementById('discountMerId').value || '';
+        setFieldValue('discountEditId', '');
+        setFieldValue('discountEditMerId', currentMerId);
+        setFieldValue('discountEditStatus', '1');
+        setFieldValue('discountEditMerchantRate', '');
+        setFieldValue('discountEditPoolId', '');
+        setFieldValue('discountEditStartTime', '');
+        setFieldValue('discountEditEndTime', '');
+        setFieldValue('discountEditSort', '0');
+        setFieldValue('discountEditRemark', '');
+        renderDiscountMemberInputs([]);
+
+        if (Number(discountId) > 0) {
+          const res = await request(`huimaidan/discount/detail/${Number(discountId)}`);
+          const data = res.data || {};
+          setFieldValue('discountEditId', data.discount_id || discountId);
+          setFieldValue('discountEditMerId', data.mer_id || '');
+          setFieldValue('discountEditStatus', Number(data.status) === 1 ? '1' : '0');
+          setFieldValue('discountEditMerchantRate', data.merchant_discount || '');
+          setFieldValue('discountEditPoolId', data.pool_id || '');
+          setFieldValue('discountEditStartTime', data.start_time || '');
+          setFieldValue('discountEditEndTime', data.end_time || '');
+          setFieldValue('discountEditSort', data.sort || '0');
+          setFieldValue('discountEditRemark', data.remark || '');
+          renderDiscountMemberInputs(data.memberDiscounts || data.member_discounts || []);
+          setStatus('discountStatusText', '规则已加载，可编辑会员消费折扣');
+        } else {
+          setStatus('discountStatusText', '正在新增优惠规则，请选择商户并填写折扣');
+        }
+        document.getElementById('discountEditPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (e) {
+        setStatus('discountStatusText', e.message, true);
+      }
+    }
+
+    function closeDiscountEditor() {
+      document.getElementById('discountEditPanel').classList.add('hidden');
+    }
+
+    function collectMemberDiscounts() {
+      return Array.from(document.querySelectorAll('.discount-member-rate')).map(input => {
+        const level = Number(input.dataset.level);
+        const status = document.querySelector(`.discount-member-status[data-level="${level}"]`)?.value || '1';
+        return {
+          member_level: level,
+          member_discount: input.value,
+          status: Number(status)
+        };
+      }).filter(row => row.member_level > 0 && row.member_discount !== '');
+    }
+
+    async function saveDiscountRule() {
+      const id = Number(document.getElementById('discountEditId').value || 0);
+      const payload = {
+        mer_id: document.getElementById('discountEditMerId').value,
+        pool_id: document.getElementById('discountEditPoolId').value,
+        merchant_discount: document.getElementById('discountEditMerchantRate').value,
+        status: document.getElementById('discountEditStatus').value,
+        start_time: document.getElementById('discountEditStartTime').value.trim(),
+        end_time: document.getElementById('discountEditEndTime').value.trim(),
+        sort: document.getElementById('discountEditSort').value || 0,
+        remark: document.getElementById('discountEditRemark').value.trim(),
+        member_discounts: collectMemberDiscounts()
+      };
+      if (!payload.mer_id) return setStatus('discountStatusText', '请选择商户', true);
+      if (!payload.merchant_discount) return setStatus('discountStatusText', '请填写商家结算折扣', true);
+      if (!payload.member_discounts.length) return setStatus('discountStatusText', '请填写会员消费折扣', true);
+      setStatus('discountStatusText', '正在保存优惠规则...');
+      try {
+        const path = id > 0 ? `huimaidan/discount/update/${id}` : 'huimaidan/discount/create';
+        await request(path, { method: 'POST', body: JSON.stringify(payload) });
+        await loadDiscounts();
+        setStatus('discountStatusText', '优惠规则保存成功');
+      } catch (e) {
+        setStatus('discountStatusText', e.message, true);
+      }
+    }
+
+    async function saveTag() {
+      const payload = {
+        tag_id: document.getElementById('tagId').value,
+        tag_type: document.getElementById('tagFormType').value,
+        tag_value: document.getElementById('tagValue').value.trim(),
+        tag_label: document.getElementById('tagLabel').value.trim(),
+        synonyms: document.getElementById('tagSynonyms').value.trim(),
+        tag_weight: Number(document.getElementById('tagWeight').value || 10),
+        status: Number(document.getElementById('tagStatus').value)
+      };
+      if (!payload.tag_value) return setStatus('tagStatusText', '请填写标签值', true);
+      try {
+        await request('huimaidan/ai/tag/save', { method: 'POST', body: JSON.stringify(payload) });
+        setStatus('tagStatusText', '保存成功');
+        if (payload.tag_type === 'facility') facilityTagOptions = [];
+        resetTagForm(false);
+        loadTags();
+        refreshTagQualityIfVisible();
+      } catch (e) {
+        setStatus('tagStatusText', e.message, true);
+      }
+    }
+
+    function editTag(index) {
+      const row = currentTagRows[index];
+      if (!row) return;
+      fillTagForm(row);
+    }
+
+    function editTagFromQuality(tagId) {
+      const row = tagQualityRowsData.find(item => Number(item.tag_id) === Number(tagId));
+      if (!row) return setStatus('tagStatusText', '没有找到这条标签，请重新体检后再试', true);
+      fillTagForm(row);
+      document.getElementById('tagFormType').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function fillTagForm(row) {
+      document.getElementById('tagId').value = row.tag_id || '';
+      document.getElementById('tagFormType').value = row.tag_type || '';
+      document.getElementById('tagValue').value = row.tag_value || '';
+      document.getElementById('tagLabel').value = row.tag_label || '';
+      document.getElementById('tagSynonyms').value = Array.isArray(row.synonyms) ? row.synonyms.join(', ') : (row.synonyms || '');
+      document.getElementById('tagWeight').value = row.tag_weight || 10;
+      document.getElementById('tagStatus').value = Number(row.status) === 0 ? '0' : '1';
+      setStatus('tagStatusText', `正在编辑标签 #${row.tag_id}，修改后点击“新增/保存标签”`);
+    }
+
+    function resetTagForm(clearStatus = true) {
+      document.getElementById('tagId').value = '';
+      document.getElementById('tagFormType').value = document.getElementById('tagType').value || 'category';
+      document.getElementById('tagValue').value = '';
+      document.getElementById('tagLabel').value = '';
+      document.getElementById('tagSynonyms').value = '';
+      document.getElementById('tagWeight').value = 10;
+      document.getElementById('tagStatus').value = '1';
+      if (clearStatus) setStatus('tagStatusText', '表单已清空，可新增标签');
+    }
+
+    async function deleteTag(tagId, tagType) {
+      if (!tagId) return;
+      if (!confirm('确认删除这个标签吗？删除后它不再参与 AI 召回，已勾选该标签的商户也会失去这个设施/标签能力。')) return;
+      try {
+        await request(`huimaidan/ai/tag/delete/${tagId}`, { method: 'DELETE' });
+        if (tagType === 'facility') facilityTagOptions = [];
+        setStatus('tagStatusText', '删除成功');
+        loadTags();
+        refreshTagQualityIfVisible();
+      } catch (e) {
+        setStatus('tagStatusText', e.message, true);
+      }
+    }
+
+    function refreshTagQualityIfVisible() {
+      const panel = document.getElementById('tagQualityPanel');
+      if (panel && !panel.classList.contains('hidden')) loadTagQuality();
+    }
+
+    async function loadMerchantTags() {
+      const merId = Number(document.getElementById('merchantTagMerId').value);
+      if (!merId) return setStatus('merchantTagStatus', '请先从下拉选择商户', true);
+      setStatus('merchantTagStatus', '正在读取...');
+      try {
+        await ensureAiTagMap();
+        await loadFacilityTagOptions();
+        const res = await request(`huimaidan/ai/merchant_tags/${merId}`);
+        merchantTagList = (res.data || []).map(item => ({
+          tag_type: item.tag_type,
+          tag_value: item.tag_value,
+          tag_weight: Number(item.tag_weight || 10),
+          is_auto: Number(item.is_auto || 0)
+        }));
+        renderMerchantTags();
+        setStatus('merchantTagStatus', `已读取 ${merchantTagList.length} 个标签`);
+      } catch (e) {
+        setStatus('merchantTagStatus', e.message, true);
+      }
+    }
+
+    function renderMerchantTags() {
+      document.getElementById('merchantTagRows').innerHTML = merchantTagList.length ? merchantTagList.map((row, index) => {
+        const label = tagLabel(row.tag_type, row.tag_value);
+        const isFacility = row.tag_type === 'facility';
+        const valueCell = isFacility
+          ? `<select onchange="merchantTagList[${index}].tag_value=this.value;renderMerchantTags()">
+              ${facilityTagOptions.length ? facilityTagOptions.map(tag => `<option value="${esc(tag.tag_value)}" ${row.tag_value === tag.tag_value ? 'selected' : ''}>${esc(tag.tag_label || tag.tag_value)}</option>`).join('') : '<option value="">请先维护设施标签</option>'}
+            </select>`
+          : `<input value="${esc(row.tag_value)}" onchange="merchantTagList[${index}].tag_value=this.value" title="存储值：${esc(row.tag_value)}">`;
+        return `
+          <tr>
+            <td><select onchange="merchantTagList[${index}].tag_type=this.value;renderMerchantTags()">${tagTypes.map(([v, l]) => `<option value="${v}" ${row.tag_type === v ? 'selected' : ''}>${l}</option>`).join('')}</select></td>
+            <td>${valueCell}</td>
+            <td class="muted" title="存储值：${esc(row.tag_value)}">${label ? esc(label) : '-'}</td>
+            <td><input type="number" value="${esc(row.tag_weight)}" onchange="merchantTagList[${index}].tag_weight=Number(this.value||10)"></td>
+            <td>${row.is_auto ? '自动' : '人工'}</td>
+            <td><button class="plain" onclick="merchantTagList.splice(${index},1);renderMerchantTags()">删除</button></td>
+          </tr>
+        `;
+      }).join('') : '<tr><td colspan="6" class="muted">暂无标签</td></tr>';
+    }
+
+    function addMerchantTagRow() {
+      merchantTagList.push({ tag_type: 'category', tag_value: '', tag_weight: 10, is_auto: 0 });
+      renderMerchantTags();
+      const inputs = document.querySelectorAll('#merchantTagRows select');
+      const lastSelect = inputs[inputs.length - 1];
+      if (lastSelect) lastSelect.focus();
+    }
+
+    async function saveMerchantTags() {
+      const merId = Number(document.getElementById('merchantTagMerId').value);
+      if (!merId) return setStatus('merchantTagStatus', '请先从下拉选择商户', true);
+      const tags = merchantTagList.filter(item => !item.is_auto).map(({ tag_type, tag_value, tag_weight }) => ({ tag_type, tag_value, tag_weight }));
+      try {
+        await request(`huimaidan/ai/merchant_tags/${merId}`, { method: 'POST', body: JSON.stringify({ tags }) });
+        setStatus('merchantTagStatus', '保存成功');
+        loadMerchantTags();
+      } catch (e) {
+        setStatus('merchantTagStatus', e.message, true);
+      }
+    }
+
+    async function previewMerchantAutoTags() {
+      const merId = Number(document.getElementById('merchantTagMerId').value);
+      if (!merId) return setStatus('merchantTagStatus', '请先从下拉选择商户', true);
+      setStatus('merchantTagStatus', '正在生成自动标签建议...');
+      try {
+        await ensureAiTagMap();
+        await loadFacilityTagOptions();
+        const res = await request(`huimaidan/ai/merchant_tags/suggest/${merId}`);
+        merchantTagSuggestions = (res.data || []).map(item => ({
+          tag_type: item.tag_type,
+          tag_value: item.tag_value,
+          tag_weight: Number(item.tag_weight || 10),
+          reason: item.reason || '',
+          checked: true,
+        }));
+        renderMerchantTagSuggestions();
+        document.getElementById('merchantTagSuggestPanel').classList.remove('hidden');
+        setStatus('merchantTagStatus', merchantTagSuggestions.length ? `已生成 ${merchantTagSuggestions.length} 个建议标签，请勾选后加入列表` : '暂未生成建议标签，请先完善商户分类、人均、设施、优惠或营业时间');
+      } catch (e) {
+        setStatus('merchantTagStatus', e.message, true);
+      }
+    }
+
+    function renderMerchantTagSuggestions() {
+      const rows = document.getElementById('merchantTagSuggestRows');
+      rows.innerHTML = merchantTagSuggestions.length ? merchantTagSuggestions.map((row, index) => `
+        <tr>
+          <td><input type="checkbox" ${row.checked ? 'checked' : ''} onchange="merchantTagSuggestions[${index}].checked=this.checked"></td>
+          <td><span class="pill">${esc(typeLabel(row.tag_type))}</span></td>
+          <td>${esc(row.tag_value)}</td>
+          <td>${esc(tagLabel(row.tag_type, row.tag_value) || row.tag_value)}</td>
+          <td><input type="number" value="${esc(row.tag_weight)}" onchange="merchantTagSuggestions[${index}].tag_weight=Number(this.value||10)" style="width:90px"></td>
+          <td>${esc(row.reason || '')}</td>
+        </tr>
+      `).join('') : '<tr><td colspan="6" class="muted">暂无建议标签</td></tr>';
+    }
+
+    function selectAllMerchantTagSuggestions(checked) {
+      merchantTagSuggestions.forEach(item => { item.checked = checked; });
+      renderMerchantTagSuggestions();
+    }
+
+    function applySelectedMerchantTagSuggestions() {
+      const selected = merchantTagSuggestions.filter(item => item.checked);
+      if (!selected.length) return setStatus('merchantTagStatus', '请至少勾选一个自动标签建议', true);
+      let added = 0;
+      selected.forEach(item => {
+        const exists = merchantTagList.some(row => row.tag_type === item.tag_type && row.tag_value === item.tag_value);
+        if (exists) return;
+        merchantTagList.push({
+          tag_type: item.tag_type,
+          tag_value: item.tag_value,
+          tag_weight: Number(item.tag_weight || 10),
+          is_auto: 0,
+        });
+        added++;
+      });
+      renderMerchantTags();
+      setStatus('merchantTagStatus', added ? `已加入 ${added} 个建议标签，请检查后点击“保存商家标签”` : '选中的建议标签已在列表中，无需重复添加');
+    }
+
+    async function initMerchantTags(all) {
+      const merId = all ? 0 : Number(document.getElementById('merchantTagMerId').value);
+      if (!all && !merId) return setStatus('merchantTagStatus', '请先从下拉选择商户', true);
+      try {
+        const res = await request('huimaidan/ai/merchant_tags/init', { method: 'POST', body: JSON.stringify({ mer_id: merId }) });
+        const data = res.data || {};
+        setStatus('merchantTagStatus', `初始化完成：${data.merchant_count || 0} 个商户，${data.tag_count || 0} 个标签`);
+        if (!all) loadMerchantTags();
+      } catch (e) {
+        setStatus('merchantTagStatus', e.message, true);
+      }
+    }
+
+    async function loadBanners() {
+      setStatus('bannerStatus', '正在加载...');
+      try {
+        const res = await request('huimaidan/ai/banners');
+        bannerList = res.data || [];
+        document.getElementById('bannerRows').innerHTML = bannerList.length ? bannerList.map((row, index) => `
+          <tr>
+            <td>${esc(mealLabel(row.meal_type))}</td>
+            <td>${esc(row.title_template)}</td>
+            <td>${esc(row.subtitle_template)}</td>
+            <td>${esc(row.bg_color)}</td>
+            <td>${esc(row.text_color)}</td>
+            <td>${Number(row.is_enabled) === 1 ? '启用' : '禁用'}</td>
+            <td>${esc(row.sort || 0)}</td>
+            <td>
+              <div class="row-actions">
+                <button onclick="editBannerConfig(${Number(row.config_id || 0)})">编辑</button>
+                <button class="plain" style="background:#64748b" onclick="moveBannerConfig(${Number(row.config_id || 0)}, -1)">上移</button>
+                <button class="plain" style="background:#64748b" onclick="moveBannerConfig(${Number(row.config_id || 0)}, 1)">下移</button>
+                <button class="plain" style="background:#dc2626" onclick="deleteBannerConfig(${Number(row.config_id || 0)})">删除</button>
+              </div>
+            </td>
+          </tr>
+        `).join('') : '<tr><td colspan="8" class="muted">暂无 Banner 配置，请在上方新增</td></tr>';
+        setStatus('bannerStatus', `已加载 ${bannerList.length} 条`);
+      } catch (e) {
+        setStatus('bannerStatus', e.message, true);
+      }
+    }
+
+    function mealLabel(value) {
+      const map = {
+        late_night: '深夜食堂',
+        breakfast: '早餐',
+        brunch: '早午餐',
+        lunch: '午餐',
+        tea: '下午茶',
+        dinner: '晚餐',
+        supper: '夜宵'
+      };
+      return map[value] || value || '';
+    }
+
+    function resetBannerForm() {
+      setFieldValue('bannerConfigId', '');
+      setFieldValue('bannerMealType', 'lunch');
+      setFieldValue('bannerTitle', '');
+      setFieldValue('bannerSubtitle', '');
+      setFieldValue('bannerBgColor', '#FFF3E0');
+      setFieldValue('bannerTextColor', '#E65100');
+      setFieldValue('bannerSort', '0');
+      setFieldValue('bannerEnabled', '1');
+      document.getElementById('bannerFormTitle').textContent = '新增 Banner';
+      setStatus('bannerStatus', '已清空表单，可以新增 Banner');
+    }
+
+    function editBannerConfig(configId) {
+      const row = bannerList.find(item => Number(item.config_id) === Number(configId));
+      if (!row) return setStatus('bannerStatus', '未找到该 Banner 配置，请刷新后重试', true);
+      setFieldValue('bannerConfigId', row.config_id || '');
+      setFieldValue('bannerMealType', row.meal_type || 'lunch');
+      setFieldValue('bannerTitle', row.title_template || '');
+      setFieldValue('bannerSubtitle', row.subtitle_template || '');
+      setFieldValue('bannerBgColor', row.bg_color || '#FFF3E0');
+      setFieldValue('bannerTextColor', row.text_color || '#E65100');
+      setFieldValue('bannerSort', row.sort || '0');
+      setFieldValue('bannerEnabled', Number(row.is_enabled) === 1 ? '1' : '0');
+      document.getElementById('bannerFormTitle').textContent = `编辑 Banner：${mealLabel(row.meal_type)}`;
+      setStatus('bannerStatus', `正在编辑：${mealLabel(row.meal_type)}`);
+      document.getElementById('bannerTitle')?.focus();
+    }
+
+    async function deleteBannerConfig(configId) {
+      if (!confirm('确定删除该 Banner 配置吗？删除后不可恢复。')) return;
+      setStatus('bannerStatus', '正在删除...');
+      try {
+        await request(`huimaidan/ai/banner/delete/${Number(configId)}`, { method: 'DELETE' });
+        await loadBanners();
+        if (Number(document.getElementById('bannerConfigId').value) === Number(configId)) {
+          resetBannerForm();
+        }
+        setStatus('bannerStatus', 'Banner 删除成功');
+      } catch (e) {
+        setStatus('bannerStatus', e.message, true);
+      }
+    }
+
+    async function moveBannerConfig(configId, direction) {
+      const index = bannerList.findIndex(item => Number(item.config_id) === Number(configId));
+      if (index < 0) return setStatus('bannerStatus', '未找到该 Banner 配置，请刷新后重试', true);
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= bannerList.length) return;
+      const current = bannerList[index];
+      const target = bannerList[targetIndex];
+      const currentSort = Number(current.sort || 0);
+      const targetSort = Number(target.sort || 0);
+      try {
+        await request('huimaidan/ai/banner/save', {
+          method: 'POST',
+          body: JSON.stringify({ config_id: current.config_id, sort: targetSort })
+        });
+        await request('huimaidan/ai/banner/save', {
+          method: 'POST',
+          body: JSON.stringify({ config_id: target.config_id, sort: currentSort })
+        });
+        await loadBanners();
+        setStatus('bannerStatus', '排序调整成功');
+      } catch (e) {
+        setStatus('bannerStatus', e.message, true);
+      }
+    }
+
+    async function saveBannerConfig() {
+      const payload = {
+        config_id: document.getElementById('bannerConfigId').value,
+        meal_type: document.getElementById('bannerMealType').value,
+        title_template: document.getElementById('bannerTitle').value.trim(),
+        subtitle_template: document.getElementById('bannerSubtitle').value.trim(),
+        bg_color: document.getElementById('bannerBgColor').value.trim(),
+        text_color: document.getElementById('bannerTextColor').value.trim(),
+        sort: document.getElementById('bannerSort').value || 0,
+        is_enabled: document.getElementById('bannerEnabled').value
+      };
+      if (!payload.title_template || !payload.subtitle_template) {
+        return setStatus('bannerStatus', '请填写 Banner 标题和副标题', true);
+      }
+      const isNew = !payload.config_id;
+      setStatus('bannerStatus', '正在保存 Banner...');
+      try {
+        await request('huimaidan/ai/banner/save', { method: 'POST', body: JSON.stringify(payload) });
+        await loadBanners();
+        if (isNew) {
+          resetBannerForm();
+        }
+        setStatus('bannerStatus', 'Banner 保存成功');
+      } catch (e) {
+        setStatus('bannerStatus', e.message, true);
+      }
+    }
+
+    async function loadConfigs() {
+      setStatus('configStatus', '正在加载...');
+      try {
+        const res = await request(`huimaidan/ai/configs?show_secrets=${configSecretsVisible ? 1 : 0}`);
+        configList = res.data || [];
+        const toggleText = document.getElementById('configSecretToggleText');
+        if (toggleText) toggleText.textContent = configSecretsVisible ? '隐藏已保存密钥' : '显示已保存密钥';
+        fillModelConfigForm();
+        renderConfigRows();
+        setStatus('configStatus', `已加载 ${configList.length} 条`);
+      } catch (e) {
+        setStatus('configStatus', e.message, true);
+      }
+    }
+
+    function configValue(key, defaultValue = '') {
+      const row = configList.find(item => item.config_key === key);
+      return row ? String(row.config_value ?? '') : defaultValue;
+    }
+
+    function configRow(key, value, desc, sort) {
+      const existed = configList.find(item => item.config_key === key) || {};
+      return {
+        config_id: existed.config_id || 0,
+        config_key: key,
+        config_value: value,
+        config_desc: existed.config_desc || desc,
+        sort: existed.sort || sort,
+      };
+    }
+
+    function setFieldValue(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.value = value ?? '';
+    }
+
+    function fillModelConfigForm() {
+      setFieldValue('llmDriver', configValue('llm_driver', 'bailian'));
+      setFieldValue('bailianMode', configValue('bailian_mode', 'app'));
+      setFieldValue('bailianAppId', configValue('bailian_app_id', ''));
+      setFieldValue('bailianWorkspace', configValue('bailian_workspace', ''));
+      setFieldValue('bailianAppApiUrl', configValue('bailian_app_api_url', 'https://dashscope.aliyuncs.com/api/v1/apps/{app_id}/completion'));
+      setFieldValue('bailianModel', configValue('bailian_model', 'qwen-plus-latest'));
+      setFieldValue('bailianCompatibleApiUrl', configValue('bailian_compatible_api_url', configValue('bailian_api_url', 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions')));
+      setFieldValue('bailianTimeout', configValue('bailian_timeout', '60'));
+      setFieldValue('bailianMaxTokens', configValue('bailian_max_tokens', '512'));
+      setFieldValue('bailianTemperature', configValue('bailian_temperature', '0.1'));
+      setFieldValue('deepseekApiUrl', configValue('deepseek_api_url', 'https://api.deepseek.com/chat/completions'));
+      setFieldValue('deepseekModel', configValue('deepseek_model', 'deepseek-v4-pro'));
+      setFieldValue('deepseekThinkingType', configValue('deepseek_thinking_type', 'disabled'));
+      setFieldValue('deepseekReasoningEffort', configValue('deepseek_reasoning_effort', 'high'));
+      setFieldValue('deepseekTimeout', configValue('deepseek_timeout', '60'));
+      setFieldValue('claudeApiUrl', configValue('claude_api_url', 'https://api.anthropic.com/v1/messages'));
+      setFieldValue('claudeModel', configValue('claude_model', 'claude-3-5-sonnet-latest'));
+      setFieldValue('claudeVersion', configValue('claude_version', '2023-06-01'));
+      setFieldValue('claudeTimeout', configValue('claude_timeout', '60'));
+      setFieldValue('tencentMapJsKey', configValue('tencent_map_js_key', ''));
+      setFieldValue('bailianApiKey', configValue('bailian_api_key', ''));
+      setFieldValue('deepseekApiKey', configValue('deepseek_api_key', ''));
+      setFieldValue('claudeApiKey', configValue('claude_api_key', ''));
+      setFieldValue('llmRerankEnabled', configValue('llm_rerank_enabled', '1'));
+      setFieldValue('llmRerankCandidateLimit', configValue('llm_rerank_candidate_limit', '12'));
+      setFieldValue('llmRerankResultLimit', configValue('llm_rerank_result_limit', '5'));
+      setFieldValue('llmRerankFallbackEnabled', configValue('llm_rerank_fallback_enabled', '1'));
+      setFieldValue('llmRerankTimeout', configValue('llm_rerank_timeout', '0'));
+      setFieldValue('merchantAiHealthMinScore', configValue('merchant_ai_health_min_score', '70'));
+      renderSecretConfigState();
+      renderModelProviderFields();
+    }
+
+    function renderSecretConfigState() {
+      const stateEl = document.getElementById('secretConfigState');
+      if (!stateEl) return;
+      const rows = [
+        ['百炼', configValue('bailian_api_key', '')],
+        ['DeepSeek', configValue('deepseek_api_key', '')],
+        ['Claude', configValue('claude_api_key', '')]
+      ];
+      stateEl.textContent = rows.map(item => `${item[0]}：${item[1] ? '已配置' : '未配置'}`).join('；');
+    }
+
+    function renderModelProviderFields() {
+      const driver = document.getElementById('llmDriver')?.value || 'bailian';
+      const bailianMode = document.getElementById('bailianMode')?.value || 'app';
+      document.getElementById('bailianModeField').classList.toggle('hidden', driver !== 'bailian');
+      document.getElementById('bailianFields').classList.toggle('hidden', driver !== 'bailian');
+      document.getElementById('deepseekFields').classList.toggle('hidden', driver !== 'deepseek');
+      document.getElementById('claudeFields').classList.toggle('hidden', driver !== 'claude');
+      document.getElementById('copyBailianPromptBtn').classList.toggle('hidden', driver !== 'bailian' || bailianMode !== 'app');
+      document.querySelectorAll('.bailian-compatible-only').forEach(el => {
+        el.classList.toggle('hidden', driver !== 'bailian' || bailianMode !== 'compatible');
+      });
+      renderProviderGuide(driver, bailianMode);
+    }
+
+    function renderProviderGuide(driver, bailianMode) {
+      const el = document.getElementById('providerGuide');
+      if (!el) return;
+      if (driver === 'bailian' && bailianMode === 'app') {
+        el.innerHTML = `
+          <h3>百炼应用 API 配置方式</h3>
+          <p>适合当前默认方案：在百炼控制台创建应用，把“百炼应用 Prompt”粘贴到应用提示词里；本页面只填写 App ID、API Key、API 地址和超时。</p>
+          <p>后端每次会把用户输入、候选商户、标签和上下文传给百炼应用，所以这里不要再写固定商户或固定排序规则。</p>
+        `;
+        return;
+      }
+      if (driver === 'bailian' && bailianMode === 'compatible') {
+        el.innerHTML = `
+          <h3>百炼 OpenAI 兼容模式</h3>
+          <p>适合不使用百炼应用编排的情况。系统 Prompt 由后端自动发送，你只需要填写模型、兼容模式 API 地址、API Key 和超时。</p>
+        `;
+        return;
+      }
+      if (driver === 'deepseek') {
+        el.innerHTML = `
+          <h3>DeepSeek 配置方式</h3>
+          <p>填写 API 地址、模型名和 API Key 即可。默认模型可用 deepseek-v4-pro；thinking 和 reasoning_effort 已预设，通常不用改。</p>
+          <p>DeepSeek 没有百炼应用内 Prompt，排序提示词由后端自动发送。</p>
+        `;
+        return;
+      }
+      el.innerHTML = `
+        <h3>Claude 配置方式</h3>
+        <p>填写 API 地址、模型名、API Version 和 API Key 即可。Claude 没有应用内 Prompt，排序提示词由后端自动发送。</p>
+      `;
+    }
+
+    async function copyBailianAppPrompt() {
+      try {
+        await navigator.clipboard.writeText(bailianAppPrompt);
+        setStatus('modelConfigStatus', '已复制百炼应用 Prompt，请粘贴到百炼控制台应用提示词中');
+      } catch (e) {
+        setStatus('modelConfigStatus', '复制失败，请手动复制：' + bailianAppPrompt, true);
+      }
+    }
+
+    function visibleConfigRows() {
+      const hiddenPrefixes = ['prompt_'];
+      return configList.filter(row => {
+        const key = String(row.config_key || '');
+        return !hiddenPrefixes.some(prefix => key.startsWith(prefix));
+      });
+    }
+
+    function keyConfigKeys() {
+      return [
+        'recall_radius_km',
+        'result_limit',
+        'llm_rerank_enabled',
+        'llm_rerank_candidate_limit',
+        'llm_rerank_result_limit',
+        'score_weight_tag',
+        'score_weight_distance',
+        'score_weight_heat',
+        'score_weight_promo',
+      ];
+    }
+
+    function isKeyConfig(row) {
+      return keyConfigKeys().includes(String(row.config_key || ''));
+    }
+
+    function configOperationDesc(key) {
+      const map = {
+        recall_radius_km: '附近召回半径，单位公里。范围太小会找不到店，太大失去本地意义。',
+        recall_max_candidates: '召回候选商户上限，影响规则和 LLM 排序的输入池大小。',
+        result_limit: 'AI 对话页最终返回并展示的商户数量。',
+        score_weight_tag: '标签匹配在规则排序中的权重。想“火锅/辣”更准就提高。',
+        score_weight_distance: '距离在规则排序中的权重。想“附近/最远”更明显就提高。',
+        score_weight_heat: '热度（销量/评分/精选）在规则排序中的权重。',
+        score_weight_promo: '优惠力度在规则排序中的权重。想让有优惠的店更靠前就提高。',
+        daily_chat_limit: '单个用户每日最多可使用 AI 对话推荐的次数。',
+        input_max_length: '用户输入最大允许长度，超过会被截断。',
+        llm_rerank_enabled: '是否启用大模型动态排序。',
+        llm_rerank_candidate_limit: '传给 LLM 排序的候选商户数量上限。',
+        llm_rerank_result_limit: 'LLM 排序后最终返回的商户数量。',
+        llm_rerank_fallback_enabled: 'LLM 异常时是否回退到规则排序。',
+        llm_rerank_timeout: 'LLM 排序接口独立超时秒数。',
+        merchant_ai_health_min_score: '商户资料完整度提醒阈值，低于此分数会被标记为待完善。',
+        tencent_map_js_key: '腾讯位置服务 Key，用于后台商户经纬度选点。',
+      };
+      return map[key] || '高级参数，请谨慎修改；不确定时请保持默认值。';
+    }
+
+    function displayConfigValue(row) {
+      const value = String(row.config_value ?? '');
+      if (value.length > 120) return esc(value.slice(0, 120)) + '...';
+      return esc(value);
+    }
+
+    function configValueWarning(row) {
+      const key = String(row.config_key || '');
+      const value = Number(row.config_value || 0);
+      if (key === 'recall_radius_km') {
+        if (value > 30) return '当前半径偏大，容易让“附近”推荐失真，建议 5-10 公里。';
+        if (value > 0 && value < 3) return '当前半径偏小，商户较少时可能空召回。';
+      }
+      if (['result_limit', 'llm_rerank_result_limit'].includes(key)) {
+        if (value > 0 && value < 5) return '当前展示数量偏少，新商户曝光较窄；对话页建议 5-6 家。';
+        if (value > 8) return '当前展示数量偏多，小程序卡片会变长，建议控制在 5-6 家。';
+      }
+      if (key === 'llm_rerank_candidate_limit') {
+        if (value > 20) return '候选池偏大，LLM 成本和耗时会上升；建议 10-15 家。';
+        if (value > 0 && value < 6) return '候选池偏小，复杂偏好可选空间不足。';
+      }
+      if (key === 'llm_rerank_enabled' && String(row.config_value) !== '1') {
+        return '未启用时大模型不会参与排序，只会走规则排序。';
+      }
+      return '';
+    }
+
+    function renderConfigRows() {
+      const rows = visibleConfigRows();
+      const keyRows = rows.filter(isKeyConfig);
+      const expertRows = rows.filter(row => !isKeyConfig(row));
+      const renderRows = list => list.length ? list.map(row => {
+        const deleteBtn = Number(row.config_id || 0) > 0 ? `<button class="plain" style="background:#dc2626" onclick="deleteConfigRow(${Number(row.config_id)}, '${esc(row.config_key)}')">删除</button>` : '';
+        const warning = configValueWarning(row);
+        const operation = `${configOperationDesc(row.config_key)}${warning ? `\n注意：${warning}` : ''}`;
+        return `<tr><td>${esc(row.config_key)}</td><td class="config-value">${displayConfigValue(row)}</td><td>${esc(row.config_desc)}</td><td>${esc(operation)}</td><td><div class="row-actions"><button class="primary" onclick="openConfigEditor('${esc(row.config_key)}')">编辑</button>${deleteBtn}</div></td></tr>`;
+      }).join('') : '<tr><td colspan="5" class="muted">暂无可维护参数</td></tr>';
+      document.getElementById('configRows').innerHTML = renderRows(keyRows);
+      document.getElementById('expertConfigRows').innerHTML = renderRows(expertRows);
+    }
+
+    async function toggleConfigSecrets() {
+      configSecretsVisible = !configSecretsVisible;
+      await loadConfigs();
+      setStatus('configStatus', configSecretsVisible ? '已显示已保存密钥，请注意不要截图外传' : '已隐藏已保存密钥');
+    }
+
+    async function deleteConfigRow(configId, key) {
+      if (!confirm(`确认删除配置「${key}」吗？删除后相关功能可能无法使用。`)) return;
+      setStatus('configStatus', '正在删除配置...');
+      try {
+        await request(`huimaidan/ai/config/delete/${Number(configId)}`, { method: 'DELETE' });
+        await loadConfigs();
+        setStatus('configStatus', '配置已删除');
+      } catch (e) {
+        setStatus('configStatus', e.message, true);
+      }
+    }
+
+    function openConfigEditor(key) {
+      const row = configList.find(item => item.config_key === key);
+      if (!row) return;
+      setFieldValue('editConfigKey', row.config_key);
+      document.getElementById('editConfigKey').readOnly = true;
+      setFieldValue('editConfigValue', row.config_value);
+      setFieldValue('editConfigDesc', row.config_desc);
+      setFieldValue('editConfigSort', row.sort || 0);
+      document.getElementById('configEditPanel').classList.remove('hidden');
+    }
+
+    function openConfigCreator() {
+      setFieldValue('editConfigKey', '');
+      document.getElementById('editConfigKey').readOnly = false;
+      setFieldValue('editConfigValue', '');
+      setFieldValue('editConfigDesc', '');
+      setFieldValue('editConfigSort', '500');
+      document.getElementById('configEditPanel').classList.remove('hidden');
+      document.getElementById('editConfigKey').focus();
+    }
+
+    function closeConfigEditor() {
+      document.getElementById('configEditPanel').classList.add('hidden');
+    }
+
+    async function saveConfigEditor() {
+      const key = document.getElementById('editConfigKey').value.trim();
+      if (!key) return setStatus('configStatus', '请填写配置键', true);
+      const existed = configList.find(item => item.config_key === key) || {};
+      const row = {
+        config_id: existed.config_id || 0,
+        config_key: key,
+        config_value: document.getElementById('editConfigValue').value.trim(),
+        config_desc: document.getElementById('editConfigDesc').value.trim(),
+        sort: Number(document.getElementById('editConfigSort').value || existed.sort || 0),
+      };
+      setStatus('configStatus', '正在保存参数...');
+      try {
+        await saveOneConfig(row);
+        closeConfigEditor();
+        await loadConfigs();
+        setStatus('configStatus', '参数保存成功');
+      } catch (e) {
+        setStatus('configStatus', e.message, true);
+      }
+    }
+
+    async function saveOneConfig(row) {
+      return request('huimaidan/ai/config/save', { method: 'POST', body: JSON.stringify(row) });
+    }
+
+    async function saveTencentMapKey() {
+      const key = document.getElementById('tencentMapJsKey').value.trim();
+      if (!key) {
+        return setStatus('modelConfigStatus', '请先填写腾讯地图 Key。若想删除已保存 Key，请点击“删除地图 Key”。', true);
+      }
+      try {
+        setStatus('modelConfigStatus', '正在保存腾讯地图 Key...');
+        await saveOneConfig(configRow('tencent_map_js_key', key, '腾讯地图选点 Key', 140));
+        await loadConfigs();
+        setStatus('modelConfigStatus', '腾讯地图 Key 已保存，商户编辑弹窗可直接使用地图选点');
+      } catch (e) {
+        setStatus('modelConfigStatus', e.message, true);
+      }
+    }
+
+    async function deleteTencentMapKey() {
+      const row = configList.find(item => item.config_key === 'tencent_map_js_key');
+      if (!row || !row.config_id) {
+        setFieldValue('tencentMapJsKey', '');
+        return setStatus('modelConfigStatus', '当前没有已保存的腾讯地图 Key');
+      }
+      if (!confirm('确认删除腾讯地图 Key 吗？删除后商户编辑里的地图选点将不可用。')) return;
+      try {
+        setStatus('modelConfigStatus', '正在删除腾讯地图 Key...');
+        await request(`huimaidan/ai/config/delete/${Number(row.config_id)}`, { method: 'DELETE' });
+        setFieldValue('tencentMapJsKey', '');
+        await loadConfigs();
+        setStatus('modelConfigStatus', '腾讯地图 Key 已删除');
+      } catch (e) {
+        setStatus('modelConfigStatus', e.message, true);
+      }
+    }
+
+    function collectModelConfigRows() {
+      return [
+        configRow('llm_driver', document.getElementById('llmDriver').value, 'LLM驱动:bailian|deepseek|claude', 110),
+        configRow('bailian_mode', document.getElementById('bailianMode').value, '百炼调用模式:app|compatible', 111),
+        configRow('bailian_app_id', document.getElementById('bailianAppId').value.trim(), '百炼应用ID，应用API模式必填', 112),
+        configRow('bailian_workspace', document.getElementById('bailianWorkspace').value.trim(), '百炼子业务空间，可选', 113),
+        configRow('bailian_app_api_url', document.getElementById('bailianAppApiUrl').value.trim(), '百炼应用API地址', 114),
+        configRow('bailian_timeout', document.getElementById('bailianTimeout').value || '60', '百炼请求超时时间秒', 115),
+        configRow('bailian_model', document.getElementById('bailianModel').value.trim(), '百炼兼容模式模型名称', 111),
+        configRow('bailian_compatible_api_url', document.getElementById('bailianCompatibleApiUrl').value.trim(), '百炼兼容模式API地址', 116),
+        configRow('bailian_max_tokens', document.getElementById('bailianMaxTokens').value || '512', '百炼兼容模式最大输出Token', 117),
+        configRow('bailian_temperature', document.getElementById('bailianTemperature').value || '0.1', '百炼兼容模式温度', 118),
+        configRow('deepseek_api_url', document.getElementById('deepseekApiUrl').value.trim(), 'DeepSeek Chat Completions API地址', 120),
+        configRow('deepseek_model', document.getElementById('deepseekModel').value.trim(), 'DeepSeek模型名称', 121),
+        configRow('deepseek_thinking_type', document.getElementById('deepseekThinkingType').value, 'DeepSeek thinking.type', 122),
+        configRow('deepseek_reasoning_effort', document.getElementById('deepseekReasoningEffort').value, 'DeepSeek reasoning_effort', 123),
+        configRow('deepseek_timeout', document.getElementById('deepseekTimeout').value || '60', 'DeepSeek请求超时时间秒', 124),
+        configRow('claude_api_url', document.getElementById('claudeApiUrl').value.trim(), 'Claude API地址', 130),
+        configRow('claude_model', document.getElementById('claudeModel').value.trim(), 'Claude模型名称', 131),
+        configRow('claude_version', document.getElementById('claudeVersion').value.trim(), 'Claude API版本', 132),
+        configRow('claude_timeout', document.getElementById('claudeTimeout').value || '60', 'Claude请求超时时间秒', 133),
+        configRow('tencent_map_js_key', document.getElementById('tencentMapJsKey').value.trim(), '腾讯地图选点 Key', 140),
+      ];
+    }
+
+    function collectSecretConfigRows() {
+      return [
+        configRow('bailian_api_key', document.getElementById('bailianApiKey').value.trim(), '百炼/通义千问 API Key', 101),
+        configRow('deepseek_api_key', document.getElementById('deepseekApiKey').value.trim(), 'DeepSeek API Key', 102),
+        configRow('claude_api_key', document.getElementById('claudeApiKey').value.trim(), 'Claude API Key', 103),
+      ];
+    }
+
+    async function saveRows(rows) {
+      for (const row of rows) {
+        await saveOneConfig(row);
+      }
+    }
+
+    async function saveRowsWithEmptySecretDelete(rows) {
+      for (const row of rows) {
+        const isSecret = String(row.config_key || '').endsWith('_api_key');
+        if (isSecret && String(row.config_value || '').trim() === '') {
+          if (Number(row.config_id || 0) > 0) {
+            await request(`huimaidan/ai/config/delete/${Number(row.config_id)}`, { method: 'DELETE' });
+          }
+          continue;
+        }
+        await saveOneConfig(row);
+      }
+    }
+
+    async function saveModelConfigs() {
+      const rows = collectModelConfigRows();
+      setStatus('modelConfigStatus', '正在保存大模型配置...');
+      try {
+        await saveRows(rows);
+        setStatus('modelConfigStatus', '大模型配置保存成功');
+        await loadConfigs();
+      } catch (e) {
+        setStatus('modelConfigStatus', e.message, true);
+      }
+    }
+
+    async function testConnection() {
+      setStatus('modelConfigStatus', '正在测试模型连接...');
+      try {
+        const res = await request('huimaidan/ai/test_connection', { method: 'POST', body: JSON.stringify(collectModelTestPayload()) });
+        const data = res.data || {};
+        setStatus('modelConfigStatus', `连接成功：${data.driver || ''}${data.mode ? '/' + data.mode : ''}，返回：${data.sample || ''}`);
+      } catch (e) {
+        setStatus('modelConfigStatus', e.message, true);
+      }
+    }
+
+    async function testSavedConnection() {
+      setStatus('modelConfigStatus', '正在测试已保存配置...');
+      try {
+        const res = await request('huimaidan/ai/test_connection', { method: 'POST', body: JSON.stringify({}) });
+        const data = res.data || {};
+        setStatus('modelConfigStatus', `连接成功：${data.driver || ''}${data.mode ? '/' + data.mode : ''}，返回：${data.sample || ''}`);
+      } catch (e) {
+        setStatus('modelConfigStatus', e.message, true);
+      }
+    }
+
+    async function resetCircuitBreaker() {
+      setStatus('modelConfigStatus', '正在清除 AI 服务熔断状态...');
+      try {
+        await request('huimaidan/ai/reset_circuit_breaker', { method: 'POST' });
+        setStatus('modelConfigStatus', 'AI 服务熔断状态已清除，可立即重新测试连接');
+      } catch (e) {
+        setStatus('modelConfigStatus', e.message, true);
+      }
+    }
+
+    function collectModelTestPayload() {
+      const secretValue = id => {
+        const value = document.getElementById(id).value.trim();
+        return value === '******' ? '' : value;
+      };
+      return {
+        llm_driver: document.getElementById('llmDriver').value,
+        bailian_mode: document.getElementById('bailianMode').value,
+        bailian_app_id: document.getElementById('bailianAppId').value.trim(),
+        bailian_api_key: secretValue('bailianApiKey'),
+        bailian_app_api_url: document.getElementById('bailianAppApiUrl').value.trim(),
+        bailian_model: document.getElementById('bailianModel').value.trim(),
+        bailian_compatible_api_url: document.getElementById('bailianCompatibleApiUrl').value.trim(),
+        deepseek_api_key: secretValue('deepseekApiKey'),
+        deepseek_api_url: document.getElementById('deepseekApiUrl').value.trim(),
+        deepseek_model: document.getElementById('deepseekModel').value.trim(),
+        claude_api_key: secretValue('claudeApiKey'),
+        claude_api_url: document.getElementById('claudeApiUrl').value.trim(),
+        claude_model: document.getElementById('claudeModel').value.trim(),
+      };
+    }
+
+    async function saveAndTestConnection() {
+      setStatus('modelConfigStatus', '正在保存配置和密钥...');
+      const rows = [...collectModelConfigRows(), ...collectSecretConfigRows()];
+      try {
+        await saveRowsWithEmptySecretDelete(rows);
+        await loadConfigs();
+        await testConnection();
+      } catch (e) {
+        setStatus('modelConfigStatus', e.message, true);
+      }
+    }
+
+    async function saveRerankConfigs() {
+      const rows = [
+        configRow('llm_rerank_enabled', document.getElementById('llmRerankEnabled').value, '是否启用LLM动态排序：1启用0禁用', 180),
+        configRow('llm_rerank_candidate_limit', document.getElementById('llmRerankCandidateLimit').value || '12', 'LLM排序候选池上限，建议 8-15，过大会明显变慢', 181),
+        configRow('llm_rerank_result_limit', document.getElementById('llmRerankResultLimit').value || '5', 'LLM动态排序最终返回商户数量', 182),
+        configRow('llm_rerank_fallback_enabled', document.getElementById('llmRerankFallbackEnabled').value, 'LLM排序失败是否回退规则排序：1是0否', 183),
+        configRow('llm_rerank_timeout', document.getElementById('llmRerankTimeout').value || '0', 'LLM排序调用超时秒数，0表示沿用模型默认超时', 184),
+        configRow('merchant_ai_health_min_score', document.getElementById('merchantAiHealthMinScore').value || '70', '商户AI完整度提醒阈值，低于此分数提示待完善', 185),
+      ];
+      setStatus('configStatus', '正在保存推荐策略...');
+      try {
+        for (const row of rows) {
+          await saveOneConfig(row);
+        }
+        setStatus('configStatus', '推荐策略保存成功');
+        await loadConfigs();
+      } catch (e) {
+        setStatus('configStatus', e.message, true);
+      }
+    }
+
+    async function loadOnboardingConfig() {
+      setStatus('onboardingStatus', '正在加载...');
+      try {
+        const res = await request('huimaidan/ai/onboarding_config');
+        const data = res.data || {};
+        document.getElementById('onboardingEnabled').value = Number(data.enabled ?? 1) === 1 ? '1' : '0';
+        document.getElementById('onboardingTitle').value = data.title || '';
+        document.getElementById('homeSubtitle').value = data.home_subtitle || "告诉我你的需求，\n我会给你适合的建议";
+        document.getElementById('homeSearchPlaceholder').value = data.home_search_placeholder || '附近，均80，有小孩，可停车';
+        document.getElementById('homeFeaturedSubtitle').value = data.home_featured_subtitle || '根据您的需求和实时情况，为您推荐';
+        document.getElementById('chatWelcomeText').value = data.chat_welcome_text || '我是AI小惠，告诉我：你想吃什么？预算多少?距离优先还是折扣优先？和您同行的，有小孩或者老人吗？';
+        document.getElementById('onboardingFeatures').value = (data.features || []).join('\n');
+        document.getElementById('onboardingExamples').value = (data.examples || []).join('\n');
+        document.getElementById('onboardingVersion').textContent = data.version || data.updated_at || 'default';
+        renderOnboardingPreview();
+        setStatus('onboardingStatus', '新手引导配置已加载');
+      } catch (e) {
+        setStatus('onboardingStatus', e.message, true);
+      }
+    }
+
+    async function saveOnboardingConfig() {
+      const features = document.getElementById('onboardingFeatures').value.split('\n').map(s => s.trim()).filter(s => s);
+      const examples = document.getElementById('onboardingExamples').value.split('\n').map(s => s.trim()).filter(s => s);
+      const payload = {
+        enabled: Number(document.getElementById('onboardingEnabled').value),
+        title: document.getElementById('onboardingTitle').value.trim(),
+        home_subtitle: document.getElementById('homeSubtitle').value.trim(),
+        home_search_placeholder: document.getElementById('homeSearchPlaceholder').value.trim(),
+        home_featured_subtitle: document.getElementById('homeFeaturedSubtitle').value.trim(),
+        chat_welcome_text: document.getElementById('chatWelcomeText').value.trim(),
+        features,
+        examples,
+      };
+      if (!payload.title) return setStatus('onboardingStatus', '请填写引导标题', true);
+      if (!payload.home_subtitle) return setStatus('onboardingStatus', '请填写首页顶部说明', true);
+      if (!payload.home_search_placeholder) return setStatus('onboardingStatus', '请填写首页搜索提示', true);
+      if (!payload.home_featured_subtitle) return setStatus('onboardingStatus', '请填写 AI 智能精选说明', true);
+      if (!payload.chat_welcome_text) return setStatus('onboardingStatus', '请填写 AI 对话欢迎语', true);
+      if (!features.length) return setStatus('onboardingStatus', '请至少填写一项能力说明', true);
+      if (!examples.length) return setStatus('onboardingStatus', '请至少填写一个示例问题', true);
+      setStatus('onboardingStatus', '正在保存...');
+      try {
+        await request('huimaidan/ai/onboarding_config', { method: 'POST', body: JSON.stringify(payload) });
+        await loadOnboardingConfig();
+        setStatus('onboardingStatus', '新手引导配置保存成功');
+      } catch (e) {
+        setStatus('onboardingStatus', e.message, true);
+      }
+    }
+
+    function renderOnboardingPreview() {
+      const title = document.getElementById('onboardingTitle').value.trim() || '你好，我是惠买单 AI 助手';
+      const homeSubtitle = document.getElementById('homeSubtitle').value.trim() || "告诉我你的需求，\n我会给你适合的建议";
+      const homeSearchPlaceholder = document.getElementById('homeSearchPlaceholder').value.trim() || '附近，均80，有小孩，可停车';
+      const homeFeaturedSubtitle = document.getElementById('homeFeaturedSubtitle').value.trim() || '根据您的需求和实时情况，为您推荐';
+      const chatWelcomeText = document.getElementById('chatWelcomeText').value.trim() || '我是AI小惠，告诉我：你想吃什么？预算多少?距离优先还是折扣优先？和您同行的，有小孩或者老人吗？';
+      const features = document.getElementById('onboardingFeatures').value.split('\n').map(s => s.trim()).filter(Boolean);
+      const examples = document.getElementById('onboardingExamples').value.split('\n').map(s => s.trim()).filter(Boolean);
+      const preview = document.getElementById('onboardingPreview');
+      if (!preview) return;
+      preview.innerHTML = `
+        <h3>${esc(title)}</h3>
+        <p class="muted"><strong>首页顶部：</strong>${esc(homeSubtitle).replace(/\n/g, '<br>')}</p>
+        <p class="muted"><strong>首页搜索提示：</strong>${esc(homeSearchPlaceholder)}</p>
+        <p class="muted"><strong>AI智能精选说明：</strong>${esc(homeFeaturedSubtitle)}</p>
+        <p class="muted"><strong>对话欢迎语：</strong>${esc(chatWelcomeText)}</p>
+        <p class="muted">我可以帮你：</p>
+        <ul>${features.map(item => `<li>${esc(item)}</li>`).join('') || '<li>暂无能力说明</li>'}</ul>
+        <p class="muted">试试这样问：</p>
+        <div>${examples.map(item => `<span class="chip">${esc(item)}</span>`).join('') || '<span class="muted">暂无示例问题</span>'}</div>
+      `;
+    }
+
+    async function loadMerchantHealth(onlyNeedsImprovement = false) {
+      setStatus('merchantHealthStatus', '正在检查...');
+      try {
+        const mode = onlyNeedsImprovement ? 'needs_improvement' : (document.getElementById('merchantHealthMode')?.value || 'all');
+        const url = `huimaidan/ai/merchant_health?page=1&limit=200&mode=${encodeURIComponent(mode)}`;
+        const res = await request(url);
+        const data = res.data || {};
+        const list = data.list || [];
+        document.getElementById('merchantHealthRows').innerHTML = list.length
+          ? list.map(row => `
+            <tr>
+              <td>${esc(row.mer_id)}</td>
+              <td>${esc(row.mer_name)}</td>
+              <td>${esc(row.score)}</td>
+              <td><span class="status-badge ${esc(row.status)}">${esc(row.status_text)}</span></td>
+              <td>${esc((row.missing_items || []).join('、'))}</td>
+              <td>${esc((row.suggestions || []).slice(0, 2).join('；'))}</td>
+            </tr>
+          `).join('')
+          : '<tr><td colspan="6" class="muted">当前筛选下暂无商户</td></tr>';
+        setStatus('merchantHealthStatus', `当前显示 ${list.length} 家，商户总数 ${data.count || 0} 家`);
+      } catch (e) {
+        setStatus('merchantHealthStatus', e.message, true);
+      }
+    }
+
+    async function runAiSimulation() {
+      setStatus('simulateStatus', '正在模拟推荐...');
+      document.getElementById('simulateResult').classList.add('hidden');
+      try {
+        const payload = {
+          message: document.getElementById('simulateMessage').value.trim(),
+          city_name: document.getElementById('simulateCityName').value.trim(),
+          longitude: document.getElementById('simulateLongitude').value.trim(),
+          latitude: document.getElementById('simulateLatitude').value.trim(),
+        };
+        const res = await request('huimaidan/ai/simulate', { method: 'POST', body: JSON.stringify(payload) });
+        const data = res.data || {};
+        const before = (data.candidate_mer_ids_before || []).join(' → ') || '无';
+        const after = (data.candidate_mer_ids_after || []).join(' → ') || '无/已降级';
+        const finalRows = (data.final_merchants || []).map((row, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${esc(row.mer_id)}</td>
+            <td>${esc(row.mer_name)}</td>
+            <td>${esc(row.distance || row.distance_text || '')}</td>
+            <td>${esc(row.price_per_person_text || row.per_capita || '')}</td>
+            <td>${esc(row.discount_label || '')}</td>
+            <td>${esc(row.recommend_reason || '')}</td>
+          </tr>
+        `).join('');
+        document.getElementById('simulateResult').innerHTML = `
+          <h3>模拟结果</h3>
+          <p><strong>识别标签：</strong>${esc(JSON.stringify(data.intent_tags || {}, null, 0))}</p>
+          <p><strong>解析城市 ID：</strong>${esc(data.resolved_city_id || '未解析')}</p>
+          <p><strong>规则召回顺序：</strong>${esc(before)}</p>
+          <p><strong>LLM排序顺序：</strong>${esc(after)}</p>
+          <p><strong>LLM状态：</strong>${data.rerank_degraded ? '已降级：' + esc(data.rerank_error || '') : '已参与排序'}</p>
+          <p><strong>用户可见回复：</strong>${esc(data.summary || '无')}</p>
+          <table>
+            <thead><tr><th>排序</th><th>ID</th><th>商户</th><th>距离</th><th>人均</th><th>优惠</th><th>理由</th></tr></thead>
+            <tbody>${finalRows || '<tr><td colspan="7" class="muted">暂无推荐结果</td></tr>'}</tbody>
+          </table>
+        `;
+        document.getElementById('simulateResult').classList.remove('hidden');
+        setStatus('simulateStatus', `模拟完成：召回 ${data.recall_count || 0} 家`);
+      } catch (e) {
+        setStatus('simulateStatus', e.message, true);
+      }
+    }
+
+    async function loadAiStatus() {
+      setStatus('aiCheckStatus', '正在检测...');
+      try {
+        const res = await request('huimaidan/ai/status');
+        const data = res.data || {};
+        const statusMap = {
+          normal: ['正常', '#166534', '#dcfce7'],
+          model_error: ['模型异常', '#991b1b', '#fee2e2'],
+          merchant_insufficient: ['商户资料不足', '#854d0e', '#fef9c3'],
+          config_missing: ['部分配置缺失', '#0369a1', '#e0f2fe'],
+        };
+        const [text, color, bg] = statusMap[data.status] || ['未知', '#374151', '#f3f4f6'];
+        const card = document.getElementById('aiStatusCard');
+        card.style.background = bg;
+        card.style.borderColor = color;
+        document.getElementById('aiStatusText').textContent = text;
+        document.getElementById('aiStatusText').style.color = color;
+        document.getElementById('aiStatusSuggestions').textContent = (data.suggestions || []).join(' ');
+
+        document.getElementById('aiCheckRows').innerHTML = (data.checks || []).map(check => `
+          <tr>
+            <td>${esc(check.name)}</td>
+            <td>${check.passed ? '<span style="color:#16a34a">通过</span>' : '<span style="color:#dc2626">未通过</span>'}</td>
+            <td>${esc(check.message)}</td>
+          </tr>
+        `).join('');
+        document.getElementById('goLivePanel').classList.toggle('hidden', !data.can_go_live);
+        setStatus('aiCheckStatus', data.can_go_live ? '所有关键项已通过' : '存在未通过项，请按建议修复');
+      } catch (e) {
+        setStatus('aiCheckStatus', e.message, true);
+      }
+    }
+
+    function toggleAdvancedConfig() {
+      document.getElementById('advancedConfigPanel').classList.toggle('hidden');
+    }
+
+    function toggleExpertConfigs() {
+      expertConfigsVisible = !expertConfigsVisible;
+      document.getElementById('expertConfigPanel').classList.toggle('hidden', !expertConfigsVisible);
+      const text = document.getElementById('expertConfigToggleText');
+      if (text) text.textContent = expertConfigsVisible ? '收起专家模式' : '展开专家模式';
+    }
+
+    function showWizardStep(step) {
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById('wizardStep' + i).classList.toggle('hidden', i !== step);
+        document.getElementById('wizardStep' + i + 'Btn').classList.toggle('active', i === step);
+      }
+      if (step === 3) loadMerchantHealth();
+      if (step === 5) loadAiStatus();
+    }
+
+    function clearSecretInputs() {
+      ['bailianApiKey', 'deepseekApiKey', 'claudeApiKey'].forEach(id => setFieldValue(id, ''));
+    }
+
+    function toggleSecretInput(id, button) {
+      const input = document.getElementById(id);
+      if (!input) return;
+      const visible = input.type === 'text';
+      input.type = visible ? 'password' : 'text';
+      if (button) button.textContent = visible ? '显示' : '隐藏';
+    }
+
+    async function saveSecretConfigs(silent = false) {
+      const secrets = collectSecretConfigRows();
+      if (!silent) setStatus('modelConfigStatus', '正在保存密钥...');
+      try {
+        await saveRowsWithEmptySecretDelete(secrets);
+        await loadConfigs();
+        if (!silent) setStatus('modelConfigStatus', '密钥保存成功，已在页面回显当前配置');
+      } catch (e) {
+        if (!silent) setStatus('modelConfigStatus', e.message, true);
+      }
+    }
+
+    async function loadLogs() {
+      setStatus('logStatus', '正在加载...');
+      try {
+        const uid = document.getElementById('logUid').value.trim();
+        const session = document.getElementById('logSession').value.trim();
+        const keyword = document.getElementById('logKeyword').value.trim();
+        const degraded = document.getElementById('logDegraded').value;
+        const query = `uid=${encodeURIComponent(uid)}&session_id=${encodeURIComponent(session)}&keyword=${encodeURIComponent(keyword)}&degraded=${encodeURIComponent(degraded)}`;
+        const [logsRes, summaryRes] = await Promise.all([
+          request(`huimaidan/ai/logs?${query}&page=1&limit=50`),
+          request(`huimaidan/ai/logs/summary?${query}`).catch(() => null),
+        ]);
+        const list = logsRes.data?.list || logsRes.list || [];
+        renderLogSummary(list, summaryRes?.data);
+        document.getElementById('logRows').innerHTML = list.map(row => `
+          <tr>
+            <td>${esc(row.log_id)}</td>
+            <td>${esc(row.uid)}</td>
+            <td>${esc(row.query_text)}</td>
+            <td class="config-value">${esc(shortJson(row.intent_tags))}</td>
+            <td>${esc(row.recall_count)}</td>
+            <td class="config-value">${esc(shortJson(row.candidate_mer_ids_before))}</td>
+            <td class="config-value">${esc(shortJson(row.candidate_mer_ids_after))}</td>
+            <td>${esc(row.rerank_source || '')}</td>
+            <td>${esc(row.result_mer_ids)}</td>
+            <td>${Number(row.degraded) === 1 ? '是' : '否'}</td>
+            <td class="config-value">${esc(row.fallback_reason || row.error_message || '')}</td>
+            <td class="config-value">${esc(logDiagnosis(row))}</td>
+            <td>${esc(row.response_time_ms)}</td>
+            <td>${esc(row.create_time)}</td>
+            <td><button class="primary" data-query="${esc(row.query_text || '')}" onclick="replayLog(this.dataset.query)">复现</button></td>
+          </tr>
+        `).join('');
+        setStatus('logStatus', `已加载 ${list.length} 条`);
+      } catch (e) {
+        setStatus('logStatus', e.message, true);
+      }
+    }
+
+    function renderLogSummary(list, backendSummary) {
+      const panel = document.getElementById('logSummaryPanel');
+      const cards = document.getElementById('logSummaryCards');
+      const tips = document.getElementById('logSummaryTips');
+      if (!list.length && (!backendSummary || !backendSummary.total)) {
+        panel.classList.add('hidden');
+        return;
+      }
+
+      let title, scopeLength, avgTime, degradedRate, emptyRecallRate, llmRate, topReasons = [];
+      if (backendSummary && backendSummary.total > 0) {
+        title = '近 24 小时全库统计';
+        scopeLength = backendSummary.total;
+        avgTime = Math.round(backendSummary.avg_response_time_ms || 0);
+        degradedRate = Math.round((backendSummary.degraded_rate || 0) * 100);
+        emptyRecallRate = Math.round((backendSummary.empty_recall_rate || 0) * 100);
+        llmRate = Math.round((backendSummary.llm_rerank_rate || 0) * 100);
+        topReasons = backendSummary.top_fallback_reasons || [];
+      } else {
+        const now = Date.now();
+        const recent = list.filter(row => {
+          const time = parseLogTime(row.create_time);
+          return time && now - time <= 24 * 60 * 60 * 1000;
+        });
+        const scope = recent.length ? recent : list;
+        const degraded = scope.filter(row => Number(row.degraded) === 1).length;
+        const emptyRecall = scope.filter(row => Number(row.recall_count || 0) === 0).length;
+        const llm = scope.filter(row => String(row.rerank_source || '').toLowerCase() === 'llm').length;
+        title = recent.length ? '近 24 小时日志（当前列表）' : '当前列表日志';
+        scopeLength = scope.length;
+        avgTime = Math.round(scope.reduce((sum, row) => sum + Number(row.response_time_ms || 0), 0) / Math.max(1, scope.length));
+        degradedRate = Math.round((degraded / scope.length) * 100);
+        emptyRecallRate = Math.round((emptyRecall / scope.length) * 100);
+        llmRate = Math.round((llm / scope.length) * 100);
+        topReasons = topLogReasons(scope, 3);
+      }
+
+      cards.innerHTML = `
+        <div class="quality-card"><strong>${esc(scopeLength)}</strong><span>${title}</span></div>
+        <div class="quality-card"><strong>${esc(avgTime)}</strong><span>平均耗时 ms</span></div>
+        <div class="quality-card"><strong class="${degradedRate > 10 ? 'risk-high' : 'risk-low'}">${esc(degradedRate)}%</strong><span>降级率</span></div>
+        <div class="quality-card"><strong class="${emptyRecallRate > 10 ? 'risk-medium' : 'risk-low'}">${esc(emptyRecallRate)}%</strong><span>空召回率</span></div>
+        <div class="quality-card"><strong class="${llmRate < 80 ? 'risk-medium' : 'risk-low'}">${esc(llmRate)}%</strong><span>LLM 排序占比</span></div>
+      `;
+      const suggestions = [];
+      if (degradedRate > 10) suggestions.push('降级率偏高：优先测试模型连接，并检查 API Key、模型名、超时和 max_tokens。');
+      if (emptyRecallRate > 10) suggestions.push('空召回偏高：优先检查商户城市、坐标、启用状态、优惠规则和 AI 标签。');
+      if (llmRate < 80) suggestions.push('LLM 排序占比偏低：检查是否启用动态排序，以及 LLM 是否持续超时或返回格式错误。');
+      if (avgTime > 8000) suggestions.push('平均耗时偏高：可降低候选商户上限，或切换更快模型。');
+      if (topReasons.length) suggestions.push(`常见失败原因：${topReasons.map(r => `${r.reason}（${r.count} 次）`).join('、')}`);
+      tips.textContent = suggestions.length ? suggestions.join('\n') : '当前日志整体健康，可以点击单条“复现”做调参对比。';
+      panel.classList.remove('hidden');
+    }
+
+    function topLogReasons(list, limit = 5) {
+      const counts = new Map();
+      for (const row of list) {
+        const reason = String(row.fallback_reason || row.error_message || '').trim();
+        if (!reason) continue;
+        counts.set(reason, (counts.get(reason) || 0) + 1);
+      }
+      return [...counts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit)
+        .map(([reason, count]) => ({ reason, count }));
+    }
+
+    function logDiagnosis(row) {
+      if (Number(row.degraded) === 1) {
+        return 'LLM 调用失败，已回退规则排序；建议先测试模型连接，再检查模型名、Key、超时和 max_tokens。';
+      }
+      if (Number(row.recall_count || 0) === 0) {
+        return '未召回商户；优先检查城市、坐标、商户状态、优惠规则和 AI 标签。';
+      }
+      const before = parseMaybeArray(row.candidate_mer_ids_before);
+      const after = parseMaybeArray(row.candidate_mer_ids_after);
+      const result = parseMaybeArray(row.result_mer_ids);
+      if (before.length && !after.length && row.rerank_source !== 'llm') {
+        return '有规则候选但未完成 LLM 排序；建议检查是否启用 LLM 动态排序。';
+      }
+      if (after.length && result.length && String(after[0]) !== String(result[0])) {
+        return 'LLM 排序与最终展示不一致；建议检查 result_limit、后端校验和商户可用状态。';
+      }
+      if (Number(row.response_time_ms || 0) > 8000) {
+        return '耗时偏高；建议降低候选池数量或检查模型响应速度。';
+      }
+      return '本次链路正常，可点击“复现”做调参对比。';
+    }
+
+    function parseMaybeArray(value) {
+      if (Array.isArray(value)) return value;
+      if (value === null || value === undefined || value === '') return [];
+      if (typeof value === 'number') return [value];
+      const text = String(value).trim();
+      try {
+        const parsed = JSON.parse(text);
+        return Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);
+      } catch (e) {
+        return text.split(/[,\s→]+/).map(item => item.trim()).filter(Boolean);
+      }
+    }
+
+    function replayLog(query) {
+      showTab('configs');
+      showWizardStep(4);
+      setFieldValue('simulateMessage', query || '');
+      setStatus('simulateStatus', '已从推荐日志回填用户输入，可点击“开始模拟”复现。');
+      document.getElementById('simulateResult').classList.add('hidden');
+    }
+
+    function shortJson(value) {
+      const text = typeof value === 'string' ? value : JSON.stringify(value || '');
+      return text.length > 80 ? `${text.slice(0, 80)}...` : text;
+    }
+
+    document.querySelectorAll('nav button').forEach(btn => btn.addEventListener('click', () => showTab(btn.dataset.tab)));
+    fillTagSelects();
+    const initial = new URLSearchParams(location.search).get('tab') || 'guide';
+    showTab(initial);
+  </script>
+</body>
+</html>

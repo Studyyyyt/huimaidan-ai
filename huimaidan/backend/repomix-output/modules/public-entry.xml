@@ -1,0 +1,109 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: **/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+index.php
+router.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="index.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | ThinkPHP [ WE CAN DO IT JUST THINK ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2006-2019 http://thinkphp.cn All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: liu21st <liu21st@gmail.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: // [ 应用入口文件 ]
+13: namespace think;
+14: 
+15: exit('只支持通过 swoole 服务运行项目');
+16: 
+17: //检测是否已安装CRMEB系统
+18: 
+19: require __DIR__ . '/../vendor/autoload.php';
+20: 
+21: 
+22: // 执行HTTP应用并响应
+23: $http = (new App())->http;
+24: 
+25: $response = $http->run();
+26: 
+27: $response->send();
+28: 
+29: $http->end($response);
+</file>
+
+<file path="router.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | ThinkPHP [ WE CAN DO IT JUST THINK ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2006~2019 http://thinkphp.cn All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: liu21st <liu21st@gmail.com>
+10: // +----------------------------------------------------------------------
+11: // $Id$
+12: 
+13: if (is_file($_SERVER["DOCUMENT_ROOT"] . $_SERVER["SCRIPT_NAME"])) {
+14:     return false;
+15: } else {
+16:     $_SERVER["SCRIPT_FILENAME"] = __DIR__ . '/index.php';
+17: 
+18:     require __DIR__ . "/index.php";
+19: }
+</file>
+
+</files>

@@ -1,0 +1,821 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: **/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+CategoresDao.php
+CategoresRepository.php
+ErrorTrait.php
+Macro.php
+SpecialConfig.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="CategoresDao.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace crmeb\traits;
+ 14: 
+ 15: trait CategoresDao
+ 16: {
+ 17:     public $path = 'path';
+ 18:     public $pathTag = '/';
+ 19:     public $level = 'level';
+ 20:     public $maxLevel = 3;
+ 21:     public $parentId = 'pid';
+ 22:     public $status = 'is_show';
+ 23: 
+ 24:     /**
+ 25:      * @return mixed
+ 26:      * @author Qinii
+ 27:      */
+ 28:     public function getPath():string
+ 29:     {
+ 30:         return $this->path;
+ 31:     }
+ 32: 
+ 33:     /**
+ 34:      * @return mixed
+ 35:      * @author Qinii
+ 36:      */
+ 37:     public function getPathTag():string
+ 38:     {
+ 39:         return $this->pathTag;
+ 40:     }
+ 41: 
+ 42:     /**
+ 43:      * @return mixed
+ 44:      */
+ 45:     public function getLevel():string
+ 46:     {
+ 47:         return $this->level;
+ 48:     }
+ 49: 
+ 50:     /**
+ 51:      * @return int
+ 52:      * @author Qinii
+ 53:      */
+ 54:     public function getMaxLevel():int
+ 55:     {
+ 56:         return $this->maxLevel;
+ 57:     }
+ 58: 
+ 59:     /**
+ 60:      * @return int
+ 61:      * @return string
+ 62:      */
+ 63:     public function getParentId(): string
+ 64:     {
+ 65:         return $this->parentId;
+ 66:     }
+ 67: 
+ 68:     /**
+ 69:      * @return int
+ 70:      * @return string
+ 71:      */
+ 72:     public function getStatus(): string
+ 73:     {
+ 74:         return $this->status;
+ 75:     }
+ 76:     /**
+ 77:      * 获取所有分类
+ 78:      * @param int $mer_id
+ 79:      * @return mixed
+ 80:      * @author Qinii
+ 81:      */
+ 82:     public function getAll($mer_id = 0,$status = null, $type = 0)
+ 83:     {
+ 84:         return $this->getModel()::getDB()->where('mer_id', $mer_id)->when(($status !== null),function($query)use($status){
+ 85:                 $query->where($this->getStatus(),$status);
+ 86:             })->order('sort DESC,'.$this->getPk().' DESC')->select();
+ 87:     }
+ 88: 
+ 89:     /**
+ 90:      * 通过id 获取path
+ 91:      * @param int $id 需要检测的数据
+ 92:      * @return string
+ 93:      * @author Qinii
+ 94:      * @date 2020-03-30
+ 95:      */
+ 96:     public function getPathById($id)
+ 97:     {
+ 98:         return ($this->getModel())::getDB()->where($this->getPk(), $id)->value($this->getPath());
+ 99:     }
+100: 
+101:     /**
+102:      * 根据id 获取 等级
+103:      * @param $id
+104:      * @return mixed
+105:      * @author Qinii
+106:      */
+107:     public function getLevelById($id)
+108:     {
+109:         return ($this->getModel())::getDB()->where($this->getPk(), $id)->value(($this->getLevel()));
+110:     }
+111: 
+112:     /**
+113:      * 根据 字段名查询
+114:      * @param int $merId
+115:      * @param $field
+116:      * @param $value
+117:      * @param null $except
+118:      * @return bool
+119:      * @author Qinii
+120:      */
+121:     public function merFieldExists(int $merId, $field, $value, $except = null)
+122:     {
+123:         return ($this->getModel())::getDB()
+124:                 ->when($except, function ($query, $except) use ($field) {
+125:                     $query->where($field, '<>', $except);
+126:                 })
+127:                 ->where('mer_id', $merId)
+128:                 ->where($field, $value)->count() > 0;
+129:     }
+130: 
+131:     /**
+132:      *  获取子集 等级 数组
+133:      * @param $id
+134:      * @return array
+135:      * @author Qinii
+136:      */
+137:     public function getChildLevelById($id)
+138:     {
+139:         $level = ($this->getModel()::getDB())->where($this->getPath(),'like',$this->getPathById($id).$id.$this->getPathTag().'%')->column($this->getLevel());
+140:         return (is_array($level) && !empty($level))  ? $level : [0];
+141:     }
+142: 
+143:     /**
+144:      * 查询修改目标是否为自己到子集
+145:      * @param int $id
+146:      * @param int $pid
+147:      * @return mixed
+148:      * @author Qinii
+149:      */
+150:     public function checkChangeToChild(int $id,int $pid)
+151:     {
+152:         return ($this->getModel()::getDB())
+153:             ->where($this->getPath(),'like',$this->getPathById($id).$id.$this->getPathTag().'%')
+154:             ->where($this->getPk(),$pid)
+155:             ->count();
+156:     }
+157: 
+158:     /**
+159:      * 是否存在子集
+160:      * @param int $id
+161:      * @return mixed
+162:      * @author Qinii
+163:      */
+164:     public function hasChild(int $id)
+165:     {
+166:         return ($this->getModel()::getDB())->where($this->getPath(),'like',$this->getPathById($id).$id.$this->getPathTag().'%')->count();
+167:     }
+168: 
+169:     /**
+170:      * 编辑
+171:      * @param int $id
+172:      * @param array $data
+173:      * @author Qinii
+174:      */
+175:     public function updateParent(int $id,array $data)
+176:     {
+177:         ($this->getModel()::getDB())->transaction(function()use($id,$data){
+178:             $change = $data['change'];
+179:             unset($data['change']);
+180:             ($this->getModel()::getDB())->where($this->getPk(),$id)->update($data);
+181: 
+182:             $this->updateChild($change['oldPath'],$change['newPath'],$change['changeLevel']);
+183:        });
+184:     }
+185: 
+186:     /**
+187:      * 修改子类
+188:      * @param string $oldPath
+189:      * @param string $newPath
+190:      * @param $changeLevel
+191:      * @author Qinii
+192:      */
+193:     public function updateChild(string $oldPath,string $newPath, $changeLevel)
+194:     {
+195:         $query = ($this->getModel()::getDB())->where($this->getPath(),'like',$oldPath.'%')
+196:             ->select();
+197:         if ($query) {
+198:             $query->each(function ($item) use ($oldPath, $newPath, $changeLevel) {
+199:                 $child = ($this->getModel()::getDB())->find($item[$this->getPk()]);
+200:                 $child->path = str_replace($oldPath, $newPath, $child->path);
+201:                 $child->level = $child->level + $changeLevel;
+202:                 $child->save();
+203:             });
+204:         }
+205:     }
+206: 
+207:     /**
+208:      * 修改状态
+209:      * @param int $id
+210:      * @param int $status
+211:      * @return mixed
+212:      * @author Qinii
+213:      */
+214:     public function switchStatus(int $id,int $status)
+215:     {
+216:        return  ($this->getModel()::getDB())->where($this->getPk(),$id)->update([
+217:             $this->getStatus() => $status
+218:         ]);
+219:     }
+220: 
+221: 
+222:     /**
+223:      * 获取列表 -- 筛选用
+224:      * @Author:Qinii
+225:      * @Date: 2020/5/16
+226:      * @param int|null $mer_id
+227:      * @return mixed
+228:      */
+229:     public function getAllOptions($mer_id = null,$status = null,$level = null,$type = null)
+230:     {
+231:         $field = $this->getParentId().',cate_name';
+232:         $query = ($this->getModel()::getDB());
+233:         $query->when(($mer_id !== null),function($query)use($mer_id){
+234:                 $query->where('mer_id', $mer_id);
+235:             })
+236:             ->when($status,function($query)use($status){
+237:                 $query->where($this->getStatus(),$status);
+238:             })
+239:             ->when(($level != '' && $level != null),function($query)use($level){
+240:                 $query->where($this->getLevel(),'<',$level);
+241:             });
+242:         $query->when(!is_null($type),function ($query) use($type){
+243:             $query->where('type',$type);
+244:         });
+245:         return $query->order('sort DESC,'.$this->getPk().' DESC')->column($field, $this->getPk());
+246:     }
+247: 
+248:     public function switchStatusAndChild(int $id,$status)
+249:     {
+250:         $parent = $this->getModel()::find($id);
+251:         ($this->getModel()::getDB())->where($this->getPk(),$id)->update([$this->getStatus() => $status]);
+252:         return ($this->getModel()::getDB())->where('path','like',$parent->path.$id.'/%')->update([$this->getStatus() => $status]);
+253:     }
+254: }
+</file>
+
+<file path="CategoresRepository.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace crmeb\traits;
+ 14: 
+ 15: trait CategoresRepository
+ 16: {
+ 17: 
+ 18:     /**
+ 19:      * 获得分级 列表
+ 20:      * @param $merID
+ 21:      * @return array
+ 22:      * @author Qinii
+ 23:      */
+ 24:     public function getFormatList($merID,$status = null,$type = 0)
+ 25:     {
+ 26:         return formatCategory($this->dao->getAll($merID,$status,$type)->hidden(['path'])->toArray(), $this->dao->getPk());
+ 27:     }
+ 28: 
+ 29:     /**
+ 30:      * @Author:Qinii
+ 31:      * @Date: 2020/5/28
+ 32:      * @param $merID
+ 33:      * @param null $status
+ 34:      * @return array
+ 35:      */
+ 36:     public function getApiFormatList($merID,$status = null,$type = 0)
+ 37:     {
+ 38:         return formatCategory($this->dao->getAll($merID,$status,$type)->hidden(['path','level','mer_id','create_time'])->toArray(), $this->dao->getPk());
+ 39:     }
+ 40: 
+ 41:     /**
+ 42:      * 筛选用
+ 43:      * @Author:Qinii
+ 44:      * @Date: 2020/5/16
+ 45:      * @param int $merId
+ 46:      * @return array
+ 47:      */
+ 48:     public function getTreeList(int $merId = 0,$status = 0,$type = 0)
+ 49:     {
+ 50:         $data = $this->dao->getAllOptions($merId,$status,$type);
+ 51:         return formatCascaderData($data,'cate_name');
+ 52:     }
+ 53: 
+ 54:     /**
+ 55:      * 提交的pid 是否等于当前pid
+ 56:      * @param int $id
+ 57:      * @param int $pid
+ 58:      * @author Qinii
+ 59:      */
+ 60:     public function checkUpdate(int $id,int $pid)
+ 61:     {
+ 62:        return  (($this->dao->get($id))[$this->dao->getParentId()] == $pid) ? true : false;
+ 63:     }
+ 64: 
+ 65:     /**
+ 66:      * 检测是否超过最低等级限制
+ 67:      * @param int $id
+ 68:      * @param int $level
+ 69:      * @return bool
+ 70:      * @author Qinii
+ 71:      */
+ 72:     public function checkLevel(int $id,int $level = 0)
+ 73:     {
+ 74: 
+ 75:         $check = $this->getLevelById($id);
+ 76:         if($level) $check = $level;
+ 77:         return ($check < $this->dao->getMaxLevel()) ? true : false;
+ 78:     }
+ 79: 
+ 80: 
+ 81:     /**
+ 82:      * 根据ID 查询是否存在
+ 83:      * @param int $merId
+ 84:      * @param int $id
+ 85:      * @param null $except
+ 86:      * @return mixed
+ 87:      * @author Qinii
+ 88:      */
+ 89:     public function merExists(int $merId, int $id, $except = null)
+ 90:     {
+ 91:         return ($this->dao->merFieldExists($merId, $this->getPk(), $id, $except));
+ 92:     }
+ 93: 
+ 94:     /**
+ 95:      * 通过id获取 path
+ 96:      * @param int $id
+ 97:      * @return string
+ 98:      * @throws DataNotFoundException
+ 99:      * @throws DbException
+100:      * @throws ModelNotFoundException
+101:      * @author Qinii
+102:      */
+103:     public function getPathById(int $id)
+104:     {
+105:         $path = $this->dao->getPathById($id);
+106:         if ($path) $path = $path.$id.$this->dao->getPathTag();
+107:         return $path ?? $this->dao->getPathTag();
+108:     }
+109: 
+110:     /**
+111:      * 通过id获取 + 1等级
+112:      * @param int $id
+113:      * @return int|mixed
+114:      * @throws DataNotFoundException
+115:      * @throws DbException
+116:      * @throws ModelNotFoundException
+117:      * @author Qinii
+118:      */
+119:     public function getLevelById(int $id)
+120:     {
+121:         $level = 0;
+122:         if(($parentLevel = $this->dao->getLevelById($id)) !== null)
+123:             $level = $parentLevel + 1;
+124:         return $level;
+125:     }
+126: 
+127: 
+128:     /**
+129:      * 编辑时 子集是否 超过最低限制
+130:      * @param int $id
+131:      * @param int $pid
+132:      * @return bool
+133:      * @throws DataNotFoundException
+134:      * @throws DbException
+135:      * @throws ModelNotFoundException
+136:      * @author Qinii
+137:      */
+138:     public function checkChildLevel(int $id,int $pid)
+139:     {
+140:         //计算子集最大的数组等级
+141:         $childLevel = max($this->dao->getChildLevelById($id)); //1
+142:         $changLevel = $childLevel + ($this->changeLevel($id,$pid)); //2
+143:         return $this->checkLevel($id, $changLevel);
+144:     }
+145: 
+146:     /**
+147:      * 变动等级差
+148:      * @param int $id
+149:      * @param int $pid
+150:      * @return int|mixed
+151:      * @author Qinii
+152:      *  0->1  1-> 2  2-> 3
+153:      *  3->2  2-> 1  1-> 0
+154:      */
+155:     public  function  changeLevel(int $id,int $pid)
+156:     {
+157:         $level = $this->dao->getLevelById($pid);
+158:         return  $level ?  ($level + 1 ) - ($level) : $level;
+159:     }
+160: 
+161:     /**
+162:      * 检测 是否修改到 子集
+163:      * @param int $id
+164:      * @param int $pid
+165:      * @throws DataNotFoundException
+166:      * @throws DbException
+167:      * @throws ModelNotFoundException
+168:      * @author Qinii
+169:      */
+170:     public function checkChangeToChild(int $id, int $pid)
+171:     {
+172:         return ($this->dao->checkChangeToChild($id,$pid) > 0) ? false : true;
+173:     }
+174: 
+175:     /**
+176:      * 子集是否存在
+177:      * @param int $id
+178:      * @return bool
+179:      * @author Qinii
+180:      */
+181:     public function hasChild(int $id)
+182:     {
+183:         return (($this->dao->hasChild($id)) > 0) ? true : false ;
+184:     }
+185: 
+186:     /**
+187:      * 添加
+188:      * @param array $data
+189:      * @return \app\common\dao\BaseDao|\think\Model
+190:      * @throws DataNotFoundException
+191:      * @throws DbException
+192:      * @throws ModelNotFoundException
+193:      * @author Qinii
+194:      */
+195:     public function create(array $data)
+196:     {
+197:         $data[$this->dao->getPath()] = $this->getPathById($data[$this->dao->getParentId()]);
+198:         $data[$this->dao->getLevel()] = $this->getLevelById($data[$this->dao->getParentId()]);
+199:         return ($this->dao->create($data));
+200:     }
+201: 
+202:     /**
+203:      * 修改
+204:      * @param int $id
+205:      * @param array $data
+206:      * @author Qinii
+207:      */
+208:     public function update(int $id,array $data)
+209:     {
+210:         if($this->checkUpdate($id,$data['pid'])){
+211:             $this->dao->update($id,$data);
+212:         } else {
+213:             $data[$this->dao->getPath()] = $this->getPathById($data[$this->dao->getParentId()]);
+214:             $data[$this->dao->getLevel()] = $this->getLevelById($data[$this->dao->getParentId()]);
+215:             $data['change'] = [
+216:                 'oldPath' => $this->dao->getPathById($id).$id.$this->getPathTag(),
+217:                 'newPath' => $data[$this->dao->getPath()].$id.$this->getPathTag(),
+218:                 'changeLevel' => $this->changeLevel($id,$data[$this->getParentId()]),
+219:             ];
+220:             $this->dao->updateParent($id,$data);
+221:         }
+222:     }
+223: }
+</file>
+
+<file path="ErrorTrait.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\traits;
+14: 
+15: /**
+16:  *
+17:  * Class BaseError
+18:  * @package crmeb\basic
+19:  */
+20: trait ErrorTrait
+21: {
+22:     /**
+23:      * 错误信息
+24:      * @var string
+25:      */
+26:     protected $error;
+27: 
+28:     /**
+29:      * 设置错误信息
+30:      * @param string|null $error
+31:      * @return bool
+32:      */
+33:     protected function setError(?string $error = null)
+34:     {
+35:         $this->error = $error ?: '未知错误';
+36:         return false;
+37:     }
+38: 
+39:     /**
+40:      * 获取错误信息
+41:      * @return string
+42:      */
+43:     public function getError()
+44:     {
+45:         $error = $this->error;
+46:         $this->error = null;
+47:         return $error;
+48:     }
+49: }
+</file>
+
+<file path="Macro.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\traits;
+15: 
+16: 
+17: use BadMethodCallException;
+18: use Closure;
+19: 
+20: trait Macro
+21: {
+22:     protected $macroList = [];
+23: 
+24:     /**
+25:      * @param string $name
+26:      * @param $macro
+27:      * @author xaboy
+28:      * @day 2020-04-10
+29:      */
+30:     public function macro(string $name, $macro)
+31:     {
+32:         $this->macroList[$name] = $macro;
+33:     }
+34: 
+35:     /**
+36:      * @param array $names
+37:      * @param $macro
+38:      * @author xaboy
+39:      * @day 2020-04-10
+40:      */
+41:     public function macros(array $names, $macro)
+42:     {
+43:         foreach ($names as $name) {
+44:             $this->macro($name, $macro);
+45:         }
+46:     }
+47: 
+48:     /**
+49:      * @param string $name
+50:      * @return bool
+51:      * @author xaboy
+52:      * @day 2020-04-10
+53:      */
+54:     public function hasMacro(string $name): bool
+55:     {
+56:         return isset($this->macroList[$name]);
+57:     }
+58: 
+59:     public function __call($method, $parameters)
+60:     {
+61:         if (!$this->hasMacro($method)) {
+62:             throw new BadMethodCallException("Method {$method} does not exist.");
+63:         }
+64: 
+65:         $macro = $this->macroList[$method];
+66: 
+67:         if ($macro instanceof Closure) {
+68:             return call_user_func_array($macro->bindTo($this, static::class), $parameters);
+69:         }
+70: 
+71:         return call_user_func_array($macro, $parameters);
+72:     }
+73: }
+</file>
+
+<file path="SpecialConfig.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: 
+ 12: 
+ 13: namespace crmeb\traits;
+ 14: 
+ 15: /**
+ 16:  *
+ 17:  * Class BaseError
+ 18:  * @package crmeb\basic
+ 19:  */
+ 20: trait SpecialConfig
+ 21: {
+ 22:     public  $specialConfigArray = [
+ 23:         [
+ 24:             'is_mer' => 0,
+ 25:             'name' => '商户最低提现金额',
+ 26:             'route' => '/admin/accounts/settings'
+ 27:         ],
+ 28:         [
+ 29:             'is_mer' => 0,
+ 30:             'name' => '商户每笔最小提现额度',
+ 31:             'route' => '/admin/accounts/settings'
+ 32:         ],
+ 33:         [
+ 34:             'is_mer' => 0,
+ 35:             'name' => '商户每笔最高提现额度',
+ 36:             'route' => '/admin/accounts/settings'
+ 37:         ],
+ 38:         [
+ 39:             'is_mer' => 0,
+ 40:             'name' => '商户余额冻结期',
+ 41:             'route' => '/admin/accounts/settings'
+ 42:         ],
+ 43:         [
+ 44:             'is_mer' => 0,
+ 45:             'name' => '开启自动分账',
+ 46:             'route' => '/admin/accounts/settings'
+ 47:         ],
+ 48:         [
+ 49:             'is_mer' => 0,
+ 50:             'name' => '开启子商户入驻',
+ 51:             'route' => '/admin/accounts/settings'
+ 52:         ],
+ 53:         [
+ 54:             'is_mer' => 0,
+ 55:             'name' => '虚拟成团启用',
+ 56:             'route' => '/admin/marketing/combination/combination_set'
+ 57:         ],
+ 58:         [
+ 59:             'is_mer' => 0,
+ 60:             'name' => '真实成团最小比例',
+ 61:             'route' => '/admin/marketing/combination/combination_set'
+ 62:         ],
+ 63:         [
+ 64:             'is_mer' => 0,
+ 65:             'name' => '积分',
+ 66:             'route' => '/admin/marketing/integral/config'
+ 67:         ],
+ 68:         [
+ 69:             'is_mer' => 0,
+ 70:             'name' => '积分抵用金额',
+ 71:             'route' => '/admin/marketing/integral/config'
+ 72:         ],
+ 73:         [
+ 74:             'is_mer' => 0,
+ 75:             'name' => '下单赠送积分比例',
+ 76:             'route' => '/admin/marketing/integral/config'
+ 77:         ],
+ 78:         [
+ 79:             'is_mer' => 0,
+ 80:             'name' => '下单赠送积分冻结期',
+ 81:             'route' => '/admin/marketing/integral/config'
+ 82:         ],
+ 83:         [
+ 84:             'is_mer' => 0,
+ 85:             'name' => '积分清除时间设置',
+ 86:             'route' => '/admin/marketing/integral/config'
+ 87:         ],
+ 88:         [
+ 89:             'is_mer' => 0,
+ 90:             'name' => '邀请好友赠送积分',
+ 91:             'route' => '/admin/marketing/integral/config'
+ 92:         ],
+ 93:         [
+ 94:             'is_mer' => 0,
+ 95:             'name' => '积分说明',
+ 96:             'route' => '/admin/marketing/integral/config'
+ 97:         ],
+ 98:         [
+ 99:             'is_mer' => 1,
+100:             'name' => '积分开启',
+101:             'route' => '/merchant/marketing/integral/config'
+102:         ]
+103:     ];
+104: 
+105:     public $special = [
+106:         '0' => [
+107:             "商户最低提现金额" => "/accounts/settings",
+108:             "商户每笔最小提现额度" => "/accounts/settings",
+109:             "商户每笔最高提现额度" => "/accounts/settings",
+110:             "商户余额冻结期" => "/accounts/settings",
+111:             "开启自动分账" => "/accounts/settings",
+112:             "开启子商户入驻" => "/accounts/settings",
+113:             "虚拟成团启用" => "/marketing/combination/combination_set",
+114:             "真实成团最小比例" => "/marketing/combination/combination_set",
+115:             "积分" => "/marketing/integral/config",
+116:             "积分抵用金额" => "/marketing/integral/config",
+117:             "下单赠送积分比例" => "/marketing/integral/config",
+118:             "下单赠送积分冻结期" => "/marketing/integral/config",
+119:             "积分清除时间设置" => "/marketing/integral/config",
+120:             "邀请好友赠送积分" => "/marketing/integral/config",
+121:             "积分说明" => "/marketing/integral/config",
+122:         ],
+123:         '1' => [
+124:             "积分开启" => "/marketing/integral/config",
+125:         ],
+126:     ];
+127: 
+128:     /**
+129:      * 废弃配置项
+130:      * @var array|string[]
+131:      */
+132:     public  $unsetConfigArray = [
+133:         '/systemForm/Basics/message',
+134:     ];
+135: 
+136:     public function getSpecialConfig()
+137:     {
+138:         return array_combine(array_column($this->specialConfigArray, 'name'), array_column($this->specialConfigArray, 'route'));
+139:     }
+140: 
+141: 
+142:     public function valSpecial($isMer, $title)
+143:     {
+144:         if (in_array($title, array_keys($this->special[$isMer]))) {
+145:             return $this->special[$isMer][$title];
+146:         }
+147:         return false;
+148:     }
+149: }
+</file>
+
+</files>

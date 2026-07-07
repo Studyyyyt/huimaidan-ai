@@ -1,0 +1,1996 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: **/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+ApplyBroadcastGoodsJob.php
+AutoChangeStatusActivityJob.php
+AutoUserPosterJob.php
+BatchDeliveryJob.php
+BatchUpdateProductPriceJob.php
+CancelGroupBuyingJob.php
+CancelGroupOrderJob.php
+ChangeMerchantStatusJob.php
+ChangeSpuStatusJob.php
+CheckProductPresellJob.php
+ClearCacheJob.php
+ClearMerchantStoreJob.php
+ClearUserIntegralJob.php
+CloseSvipCouponJob.php
+CloseUserSvipJob.php
+DownloadProductCopyImage.php
+ExpressSyncJob.php
+GauaranteeCountJob.php
+ImportSpreadsheetExcelJob.php
+MerchantSendCouponJob.php
+MiniOrderShippingJob.php
+OrderProfitsharingJob.php
+OrderProfitsharingStatusJob.php
+OrderReplyJob.php
+PayGiveCouponJob.php
+SendNewPeopleCouponJob.php
+SendNewsJob.php
+SendSmsJob.php
+SendSvipCouponJob.php
+SendTemplateMessageJob.php
+SetSeckillStockCacheJob.php
+SpreadsheetExcelJob.php
+SyncProductTopJob.php
+SyncQueueStatusJob.php
+TestJob.php
+UpdateProductReplyJob.php
+UserBrokerageLevelJob.php
+VisitProductJob.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="ApplyBroadcastGoodsJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\store\broadcast\BroadcastGoodsRepository;
+18: use crmeb\interfaces\JobInterface;
+19: use crmeb\services\YunxinSmsService;
+20: use think\facade\Log;
+21: 
+22: class ApplyBroadcastGoodsJob implements JobInterface
+23: {
+24: 
+25:     public function fire($job, $goodsId)
+26:     {
+27:         $broadcastRoomGoodsRepository = app()->make(BroadcastGoodsRepository::class);
+28:         $goods = $broadcastRoomGoodsRepository->get($goodsId);
+29:         if ($goods) {
+30:             try {
+31:                 $res = $broadcastRoomGoodsRepository->wxCreate($goods);
+32:             } catch (\Exception $e) {
+33:                 $goods->error_msg = $e->getMessage();
+34:                 $goods->status = -1;
+35:             }
+36:             if (isset($res)) {
+37:                 $goods->goods_id = $res->goodsId;
+38:                 $goods->audit_id = $res->auditId;
+39:                 $goods->status = 1;
+40:             }
+41:             $goods->save();
+42:         }
+43:         $job->delete();
+44:     }
+45: 
+46:     public function failed($data)
+47:     {
+48:         // TODO: Implement failed() method.
+49:     }
+50: }
+</file>
+
+<file path="AutoChangeStatusActivityJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\store\StoreActivityRepository;
+18: use crmeb\interfaces\JobInterface;
+19: use think\facade\Log;
+20: use think\queue\Job;
+21: use app\common\repositories\store\product\ProductRepository;
+22: 
+23: class AutoChangeStatusActivityJob implements JobInterface
+24: {
+25: 
+26:     public function fire($job, $data)
+27:     {
+28:         $make = app()->make(StoreActivityRepository::class);
+29:         $make->getsearch(['is_status' => 1])->chunk(100,function($list){
+30:             foreach ($list as $item) {
+31:                 try{
+32:                     if (strtotime($item['end_time']) <= time()) {
+33:                         $item->is_show = 0;
+34:                         $item->status = -1;
+35:                         $item->save();
+36:                     } else if (!$item['status'] && strtotime($item['start_time']) <= time()) {
+37:                         $item->is_show = 1;
+38:                         $item->status = 1;
+39:                         $item->save();
+40:                     }
+41:                 }catch (\Exception $exception){
+42:                     Log::info('自动同步活动状态失败:'.$exception->getMessage());
+43:                 }
+44:             }
+45:         });
+46:         $job->delete();
+47:     }
+48: 
+49:     public function failed($data)
+50:     {
+51:         // TODO: Implement failed() method.
+52:     }
+53: }
+</file>
+
+<file path="AutoUserPosterJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\user\UserRepository;
+18: use crmeb\interfaces\JobInterface;
+19: 
+20: class AutoUserPosterJob implements JobInterface
+21: {
+22:     public function fire($job, $uid)
+23:     {
+24:         $userRepository = app()->make(UserRepository::class);
+25:         $user = $userRepository->get($uid);
+26:         if (!$user)
+27:             $job->delete();
+28:         try {
+29:             $userRepository->routineSpreadImage($user);
+30:         } catch (\Exception $e) {
+31:         };
+32:         try {
+33:             $userRepository->wxSpreadImage($user);
+34:         } catch (\Exception $e) {
+35:         };
+36:         $job->delete();
+37:     }
+38: 
+39:     public function failed($data)
+40:     {
+41:         // TODO: Implement failed() method.
+42:     }
+43: }
+</file>
+
+<file path="BatchDeliveryJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: use app\common\repositories\store\order\StoreOrderRepository;
+17: use crmeb\interfaces\JobInterface;
+18: use think\facade\Log;
+19: 
+20: class BatchDeliveryJob implements JobInterface
+21: {
+22: 
+23:     public function fire($job, $data)
+24:     {
+25:         try{
+26:             app()->make(StoreOrderRepository::class)->batchDelivery($data['mer_id'],$data['data']);
+27:             $job->delete();
+28:         }catch (\Exception $exception){
+29:             Log::info(var_export($exception, 1));
+30:         }
+31:     }
+32: 
+33:     public function failed($data)
+34:     {
+35:         // TODO: Implement failed() method.
+36:     }
+37: }
+</file>
+
+<file path="BatchUpdateProductPriceJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: use app\common\repositories\store\product\ProductBatchProcessRepository;
+17: use crmeb\interfaces\JobInterface;
+18: use think\facade\Log;
+19: 
+20: class BatchUpdateProductPriceJob implements JobInterface
+21: {
+22: 
+23:     public function fire($job, $data)
+24:     {
+25:         try {
+26:             app()->make(ProductBatchProcessRepository::class)->batchPrice($data);
+27:             $job->delete();
+28:         } catch (\Exception $exception) {
+29:             Log::info(var_export($exception, 1));
+30:         }
+31:     }
+32: 
+33:     public function failed($data)
+34:     {
+35:         // TODO: Implement failed() method.
+36:     }
+37: }
+</file>
+
+<file path="CancelGroupBuyingJob.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\jobs;
+14: 
+15: use app\common\repositories\store\order\StoreRefundOrderRepository;
+16: use crmeb\interfaces\JobInterface;
+17: use think\facade\Log;
+18: 
+19: class CancelGroupBuyingJob implements JobInterface
+20: {
+21: 
+22:     public function fire($job, $data)
+23:     {
+24:         try{
+25:         //TODO 关闭子团,自动退款,关闭订单
+26:             $make = app()->make(StoreRefundOrderRepository::class);
+27:             $make->autoRefundOrder($data['order_id'], 1, $data['message']);
+28:         }catch (\Exception $exception){
+29:             Log::info(var_export($exception, 1));
+30:         }
+31:         $job->delete();
+32:     }
+33: 
+34:     public function failed($data)
+35:     {
+36:         // TODO: Implement failed() method.
+37:     }
+38: }
+</file>
+
+<file path="CancelGroupOrderJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\store\coupon\StoreCouponUserRepository;
+18: use app\common\repositories\store\order\StoreGroupOrderRepository;
+19: use app\common\repositories\store\product\ProductAttrValueRepository;
+20: use app\common\repositories\store\product\ProductRepository;
+21: use app\common\repositories\store\product\StoreDiscountRepository;
+22: use crmeb\interfaces\JobInterface;
+23: use think\facade\Db;
+24: use think\facade\Log;
+25: 
+26: class CancelGroupOrderJob implements JobInterface
+27: {
+28: 
+29:     public function fire($job, $groupOrderId)
+30:     {
+31:         $groupOrderRepository = app()->make(StoreGroupOrderRepository::class);
+32:         $groupOrder = $groupOrderRepository->getCancelDetail($groupOrderId);
+33:         if (!$groupOrder) return $job->delete();
+34:         Db::transaction(function () use ($groupOrder) {
+35:             $couponId = $groupOrder->coupon_id ? [$groupOrder->coupon_id] : [];
+36:             $productRepository = app()->make(ProductRepository::class);
+37:             foreach ($groupOrder->orderList as $order) {
+38:                 if ($order->coupon_id)
+39:                     $couponId = array_merge($couponId, explode(',', $order->coupon_id));
+40:                 foreach ($order->orderProduct as $cart) {
+41:                     $productRepository->orderProductIncStock($order, $cart);
+42:                 }
+43:                 if ($order->activity_type == 10) {
+44:                     app()->make(StoreDiscountRepository::class)->incStock($order->orderProduct[0]['activity_id']);
+45:                 }
+46:             }
+47:             if (count($couponId)) {
+48:                 app()->make(StoreCouponUserRepository::class)->updates($couponId, ['status' => 0]);
+49:             }
+50:         });
+51:         return $job->delete();
+52:     }
+53: 
+54:     public function failed($data)
+55:     {
+56:         Log::info('取消订单执行失败:' . var_export($data, true));
+57:     }
+58: }
+</file>
+
+<file path="ChangeMerchantStatusJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\store\product\ProductRepository;
+18: use app\common\repositories\store\service\StoreServiceRepository;
+19: use app\common\repositories\system\merchant\MerchantRepository;
+20: use crmeb\interfaces\JobInterface;
+21: use think\facade\Log;
+22: use think\queue\Job;
+23: 
+24: class ChangeMerchantStatusJob implements JobInterface
+25: {
+26: 
+27:     public function fire($job, $merId)
+28:     {
+29:         $merchant = app()->make(MerchantRepository::class)->get($merId);
+30:         if ($merchant) {
+31:             $where = [
+32:                 'mer_status' => ($merchant['is_del'] || !$merchant['mer_state'] || !$merchant['status']) ? 0 : 1
+33:             ];
+34:             app()->make(ProductRepository::class)->changeMerchantProduct($merId, $where);
+35:         }
+36:         $job->delete();
+37:     }
+38: 
+39:     public function failed($data)
+40:     {
+41:         // TODO: Implement failed() method.
+42:     }
+43: }
+</file>
+
+<file path="ChangeSpuStatusJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: use app\common\repositories\store\product\SpuRepository;
+17: use crmeb\interfaces\JobInterface;
+18: use think\facade\Log;
+19: 
+20: class ChangeSpuStatusJob implements JobInterface
+21: {
+22: 
+23:     public function fire($job, $data)
+24:     {
+25:         try{
+26:             $make = app()->make(SpuRepository::class);
+27:             if (is_array($data['id'])){
+28:                 foreach ($data['id'] as $i) {
+29:                     $make->changeStatus($i, $data['product_type'], $data['operate_data'] ?? []);
+30:                 }
+31:             } else if(is_numeric($data['id'])){
+32:                 $make->changeStatus($data['id'], $data['product_type'], $data['operate_data'] ?? []);
+33:             }
+34:         }catch (\Exception $exception){
+35:             Log::info($exception->getMessage());
+36:         }
+37:         $job->delete();
+38:     }
+39: 
+40:     public function failed($data)
+41:     {
+42:         // TODO: Implement failed() method.
+43:     }
+44: }
+</file>
+
+<file path="CheckProductPresellJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\store\product\ProductPresellRepository;
+18: use crmeb\interfaces\JobInterface;
+19: use think\facade\Log;
+20: use think\queue\Job;
+21: 
+22: class CheckProductPresellJob implements JobInterface
+23: {
+24: 
+25:     public function fire($job, $data)
+26:     {
+27:         try{
+28:             $make = app()->make(ProductPresellRepository::class);
+29:             $make->checkStatus(null);
+30:         }catch (\Exception $exception){
+31:             Log::info($exception->getMessage());
+32:         }
+33:         $job->delete();
+34:     }
+35: 
+36:     public function failed($data)
+37:     {
+38:         // TODO: Implement failed() method.
+39:     }
+40: }
+</file>
+
+<file path="ClearCacheJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\system\CacheRepository;
+18: use app\common\repositories\user\UserRepository;
+19: use crmeb\interfaces\JobInterface;
+20: use think\facade\Log;
+21: 
+22: class ClearCacheJob implements JobInterface
+23: {
+24:     public function fire($job, $type)
+25:     {
+26:         $make = app()->make(CacheRepository::class);
+27:         try {
+28:             $make->clearCacheAll($type);
+29:         } catch (\Exception $e) {
+30:             Log::INFO('清除缓存失败：'.$type);
+31:         };
+32: 
+33:         $job->delete();
+34:     }
+35: 
+36:     public function failed($data)
+37:     {
+38:         // TODO: Implement failed() method.
+39:     }
+40: }
+</file>
+
+<file path="ClearMerchantStoreJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: use app\common\repositories\store\coupon\StoreCouponRepository;
+17: use app\common\repositories\store\coupon\StoreCouponUserRepository;
+18: use app\common\repositories\store\GuaranteeTemplateRepository;
+19: use app\common\repositories\store\GuaranteeValueRepository;
+20: use app\common\repositories\store\parameter\ParameterRepository;
+21: use app\common\repositories\store\parameter\ParameterTemplateRepository;
+22: use app\common\repositories\store\parameter\ParameterValueRepository;
+23: use app\common\repositories\store\product\ProductCateRepository;
+24: use app\common\repositories\store\product\ProductLabelRepository;
+25: use app\common\repositories\store\product\ProductReplyRepository;
+26: use app\common\repositories\store\product\ProductRepository;
+27: use app\common\repositories\store\product\StoreDiscountProductRepository;
+28: use app\common\repositories\store\product\StoreDiscountRepository;
+29: use app\common\repositories\store\shipping\ShippingTemplateRepository;
+30: use app\common\repositories\store\StoreCategoryRepository;
+31: use app\common\repositories\system\config\ConfigValueRepository;
+32: use app\common\repositories\system\groupData\GroupDataRepository;
+33: use crmeb\interfaces\JobInterface;
+34: use think\facade\Log;
+35: 
+36: class ClearMerchantStoreJob implements JobInterface
+37: {
+38:     public function fire($job, $data)
+39:     {
+40:         try{
+41:             /**
+42:              * 商户商品分类
+43:              * 商户商品
+44:              * 商品参数
+45:              * 商品服务模板
+46:              * 商品标签
+47:              * 商品评价
+48:              * 优惠套餐
+49:              * 运费模板
+50:              * 商户优惠券
+51:              * 商户组合数据
+52:              * 配置
+53:              * 商户图片及源文件
+54:              */
+55:             $merId = (int)$data['mer_id'];
+56:             app()->make(ProductRepository::class)->clearMerchantProduct($merId);
+57:             $servers = [
+58:                 app()->make(ProductCateRepository::class),
+59:                 app()->make(StoreCategoryRepository::class),
+60:                 app()->make(ParameterRepository::class),
+61:                 app()->make(ParameterTemplateRepository::class),
+62:                 app()->make(ParameterValueRepository::class),
+63:                 app()->make(GuaranteeTemplateRepository::class),
+64:                 app()->make(GuaranteeValueRepository::class),
+65:                 app()->make(ProductLabelRepository::class),
+66:                 app()->make(ProductReplyRepository::class),
+67:                 app()->make(StoreDiscountRepository::class),
+68:                 app()->make(StoreDiscountProductRepository::class),
+69:                 app()->make(StoreCouponRepository::class),
+70:                 app()->make(StoreCouponUserRepository::class),
+71:                 app()->make(GroupDataRepository::class),
+72:                 app()->make(ConfigValueRepository::class),
+73:                 app()->make(ShippingTemplateRepository::class),
+74:             ];
+75:             foreach ($servers as $server) {
+76:                 $server->clear($merId,'mer_id');
+77:             }
+78:         }catch (\Exception $e){
+79:             Log::info('商户ID：'.$data['mer_id'].'清除出错：'.$e->getMessage());
+80:         }
+81:         $job->delete();
+82:     }
+83: 
+84:     public function failed($data)
+85:     {
+86:         // TODO: Implement failed() method.
+87:     }
+88: }
+</file>
+
+<file path="ClearUserIntegralJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: use app\common\repositories\store\product\ProductRepository;
+17: use app\common\repositories\user\UserBillRepository;
+18: use app\common\repositories\user\UserRepository;
+19: use crmeb\interfaces\JobInterface;
+20: use think\facade\Db;
+21: use think\facade\Log;
+22: 
+23: class ClearUserIntegralJob implements JobInterface
+24: {
+25: 
+26:     public function fire($job, $data)
+27:     {
+28:         try {
+29:             $user = app()->make(UserRepository::class)->get($data['uid']);
+30:             if ($user && $user->integral > 0) {
+31:                 $validIntegral = app()->make(UserBillRepository::class)->validIntegral($data['uid'], $data['startTime'], $data['endTime']);
+32:                 if ($user->integral > $validIntegral) {
+33:                     $clear = bcsub($user->integral, $validIntegral, 0);
+34:                     $user->integral = $validIntegral;
+35:                     app()->make(UserBillRepository::class)->decBill($user->uid, 'integral', 'timeout', [
+36:                         'link_id' => 0,
+37:                         'status' => 1,
+38:                         'title' => '积分过期',
+39:                         'number' => $clear,
+40:                         'mark' => $clear . '积分已过期',
+41:                         'balance' => $user->integral
+42:                     ]);
+43:                     $user->save();
+44:                 }
+45:             }
+46:         } catch (\Exception $e) {
+47:             Log::info('用户ID：' . $data['uid'] . '积分清理失败');
+48:         }
+49:         $job->delete();
+50:     }
+51: 
+52:     public function failed($data)
+53:     {
+54:         // TODO: Implement failed() method.
+55:     }
+56: }
+</file>
+
+<file path="CloseSvipCouponJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\store\coupon\StoreCouponRepository;
+18: use app\common\repositories\store\coupon\StoreCouponUserRepository;
+19: use crmeb\interfaces\JobInterface;
+20: use think\facade\Log;
+21: 
+22: class CloseSvipCouponJob implements JobInterface
+23: {
+24:     public function fire($job, $type)
+25:     {
+26:         $meka = app()->make(StoreCouponRepository::class);
+27:         try {
+28:             $couponIds = $meka->validCouponQuery(null,StoreCouponRepository::GET_COUPON_TYPE_SVIP)->column('coupon_id');
+29:             app()->make(StoreCouponUserRepository::class)->getSearch([])->whereIn('coupon_id',$couponIds)->update(['status' => 2]);
+30:         } catch (\Exception $e) {
+31:             Log::INFO('付费会员优惠券过期操作失败：'.implode(',',$couponIds));
+32:         };
+33:         $job->delete();
+34:     }
+35: 
+36:     public function failed($data)
+37:     {
+38:         // TODO: Implement failed() method.
+39:     }
+40: }
+</file>
+
+<file path="CloseUserSvipJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\system\CacheRepository;
+18: use app\common\repositories\user\UserRepository;
+19: use crmeb\interfaces\JobInterface;
+20: use think\facade\Log;
+21: 
+22: class CloseUserSvipJob implements JobInterface
+23: {
+24:     public function fire($job, $type)
+25:     {
+26:         $make = app()->make(UserRepository::class);
+27:         try {
+28:             $uids = $make->search([])
+29:                 ->whereIn('is_svip',[1,2])
+30:                 ->whereTime('svip_endtime','<=',time())
+31:                 ->column('User.uid');
+32:             $make->updates($uids,['is_svip' => 0]);
+33:         } catch (\Exception $e) {
+34:             Log::INFO('关闭付费会员失败：'.implode(',',$uids));
+35:         };
+36:         $job->delete();
+37:     }
+38: 
+39:     public function failed($data)
+40:     {
+41:         // TODO: Implement failed() method.
+42:     }
+43: }
+</file>
+
+<file path="DownloadProductCopyImage.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: use app\common\repositories\store\product\ProductCopyRepository;
+17: use crmeb\interfaces\JobInterface;
+18: use think\facade\Log;
+19: 
+20: class DownloadProductCopyImage implements JobInterface
+21: {
+22:     public function fire($job, $data)
+23:     {
+24:         try {
+25:             app()->make(ProductCopyRepository::class)->downloadImage($data['id'], $data['data']);
+26:         } catch (\Exception $e) {
+27:             Log::info('图片采集失败，商品ID: ' . $data['id']);
+28:         }
+29:         $job->delete();
+30:     }
+31: 
+32:     public function failed($data)
+33:     {
+34:     }
+35: }
+</file>
+
+<file path="ExpressSyncJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: use app\common\repositories\store\shipping\ExpressRepository;
+17: use crmeb\interfaces\JobInterface;
+18: use think\facade\Log;
+19: 
+20: class ExpressSyncJob implements JobInterface
+21: {
+22: 
+23:     public function fire($job, $data)
+24:     {
+25:         try{
+26:             app()->make(ExpressRepository::class)->syncExportAll();
+27:         }catch (\Exception $exception){
+28:             Log::error('同步物流公司失败:'.$exception->getMessage());
+29:         }
+30:         $job->delete();
+31:     }
+32: 
+33:     public function failed($data)
+34:     {
+35:         // TODO: Implement failed() method.
+36:     }
+37: }
+</file>
+
+<file path="GauaranteeCountJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: use app\common\repositories\store\GuaranteeRepository;
+17: use crmeb\interfaces\JobInterface;
+18: use think\facade\Log;
+19: 
+20: class GauaranteeCountJob implements JobInterface
+21: {
+22: 
+23:     public function fire($job, $data)
+24:     {
+25:         try{
+26:             app()->make(GuaranteeRepository::class)->countGuarantee();
+27:         }catch (\Exception $exception){
+28:             Log::info($exception->getMessage());
+29:         }
+30:         $job->delete();
+31:     }
+32: 
+33:     public function failed($data)
+34:     {
+35:         // TODO: Implement failed() method.
+36:     }
+37: }
+</file>
+
+<file path="ImportSpreadsheetExcelJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: use app\common\repositories\store\order\StoreOrderRepository;
+17: use crmeb\interfaces\JobInterface;
+18: use think\facade\Log;
+19: 
+20: class ImportSpreadsheetExcelJob implements JobInterface
+21: {
+22: 
+23:     public function fire($job, $data)
+24:     {
+25:         try{
+26:             app()->make(StoreOrderRepository::class)->setWhereDeliveryStatus($data);
+27:         }catch (\Exception $e){
+28:             Log::info('商户ID：'.$data['mer_id'].' 导入文件  error : ' . $e->getMessage());
+29:         }
+30:         $job->delete();
+31:     }
+32: 
+33:     public function failed($data)
+34:     {
+35:         // TODO: Implement failed() method.
+36:     }
+37: }
+</file>
+
+<file path="MerchantSendCouponJob.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\jobs;
+14: 
+15: 
+16: use app\common\repositories\store\coupon\StoreCouponRepository;
+17: use app\common\repositories\store\coupon\StoreCouponSendRepository;
+18: use app\common\repositories\store\coupon\StoreCouponUserRepository;
+19: use crmeb\interfaces\JobInterface;
+20: use think\facade\Cache;
+21: 
+22: class MerchantSendCouponJob implements JobInterface
+23: {
+24: 
+25:     public function fire($job, $sendId)
+26:     {
+27:         $storeCouponSendRepository = app()->make(StoreCouponSendRepository::class);
+28:         $send = $storeCouponSendRepository->get((int)$sendId);
+29:         if (!$send || $send->status == 1) {
+30:             return $job->delete();
+31:         }
+32:         $cacheKey = '_send_coupon' . $sendId;
+33:         $cache = Cache::store('file');
+34:         if (!$cache->has($cacheKey)) {
+35:             $send->status = -1;
+36:             return $job->delete();
+37:         }
+38:         $storeCouponRepository = app()->make(StoreCouponRepository::class);
+39:         $storeCouponUserRepository = app()->make(StoreCouponUserRepository::class);
+40:         $coupon = $storeCouponRepository->get($send->coupon_id);
+41:         if (!$coupon) {
+42:             $send->status = -1;
+43:             return $job->delete();
+44:         }
+45:         $uids = $cache->get($cacheKey);
+46:         do {
+47:             $install = [];
+48:             foreach (array_splice($uids, -30) as $k => $uid) {
+49:                 $data = $storeCouponRepository->createData($coupon, $uid);
+50:                 $data['send_id'] = $sendId;
+51:                 $install[] = $data;
+52:             }
+53:             try {
+54:                 $storeCouponUserRepository->insertAll($install);
+55:             } catch (\Exception $e) {
+56:             }
+57:             usleep(100);
+58:         } while (count($uids));
+59:         $send->status = 1;
+60:         $send->save();
+61:         return $job->delete();
+62:     }
+63: 
+64:     public function failed($data)
+65:     {
+66:         // TODO: Implement failed() method.
+67:     }
+68: }
+</file>
+
+<file path="MiniOrderShippingJob.php">
+ 1: <?php
+ 2: 
+ 3: namespace crmeb\jobs;
+ 4: 
+ 5: use crmeb\interfaces\JobInterface;
+ 6: use crmeb\services\MiniProgramService;
+ 7: 
+ 8: /**
+ 9:  * 小程序订单处理
+10:  */
+11: class MiniOrderShippingJob implements JobInterface
+12: {
+13:     /**
+14:      * @param array $order_key
+15:      * @param int $logistics_type
+16:      * @param array $shipping_list
+17:      * @param string $payer_openid
+18:      * @param string $path
+19:      * @param int $delivery_mode
+20:      * @param bool $is_all_delivered
+21:      * @return void
+22:      */
+23:     public function fire($job, $data)
+24:     {
+25:         try {
+26:             MiniProgramService::create()->uploadShippingInfo($data['order_key'], $data['logistics_type'], $data['shipping_list'], $data['payer_openid'], $data['path'], $data['delivery_mode'], $data['is_all_delivered']);
+27:         } catch (\Throwable $e) {
+28:             \think\facade\Log::error('小程序订单处理失败，原因：' . $e->getMessage() . $e->getFile() . $e->getLine());
+29:         }
+30:         return $job->delete();
+31:     }
+32: 
+33:     public function failed($data)
+34:     {
+35:         // TODO: Implement failed() method.
+36:     }
+37: }
+</file>
+
+<file path="OrderProfitsharingJob.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\jobs;
+14: 
+15: 
+16: use app\common\repositories\store\order\StoreOrderProfitsharingRepository;
+17: use crmeb\interfaces\JobInterface;
+18: use think\facade\Log;
+19: 
+20: class OrderProfitsharingJob implements JobInterface
+21: {
+22: 
+23:     public function fire($job, $id)
+24:     {
+25:         $make = app()->make(StoreOrderProfitsharingRepository::class);
+26:         $profitsharing = $make->get((int)$id);
+27:         if (!$profitsharing || $profitsharing->status != 0) {
+28:             $job->delete();
+29:             return;
+30:         }
+31:         try {
+32:             Log::info('自动分账开始'.$id);
+33:             $make->profitsharing($profitsharing);
+34:         } catch (\Exception $e) {
+35:             Log::info('自动分账失败:' . $e->getMessage());
+36:         }
+37:         $job->delete();
+38:     }
+39: 
+40:     public function failed($data)
+41:     {
+42:         // TODO: Implement failed() method.
+43:     }
+44: }
+</file>
+
+<file path="OrderProfitsharingStatusJob.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\jobs;
+14: 
+15: 
+16: use app\common\repositories\store\order\StoreOrderProfitsharingRepository;
+17: use crmeb\interfaces\JobInterface;
+18: use think\facade\Log;
+19: 
+20: class OrderProfitsharingStatusJob implements JobInterface
+21: {
+22: 
+23:     public function fire($job, $id)
+24:     {
+25:         $make = app()->make(StoreOrderProfitsharingRepository::class);
+26:         $profitsharing = $make->get((int)$id);
+27:         if (!$profitsharing || $profitsharing->status != 2) {
+28:             $job->delete();
+29:             return;
+30:         }
+31: 
+32:         try {
+33:             Log::info('自动分账开始'.$id);
+34:             $make->profitsharingStatus($profitsharing);
+35:         } catch (\Exception $e) {
+36:             Log::info('自动分账失败:' . $e->getMessage());
+37:         }
+38:         $job->delete();
+39:     }
+40: 
+41:     public function failed($data)
+42:     {
+43:         // TODO: Implement failed() method.
+44:     }
+45: }
+</file>
+
+<file path="OrderReplyJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\store\order\StoreOrderRepository;
+18: use app\common\repositories\store\order\StoreOrderStatusRepository;
+19: use app\common\repositories\store\product\ProductReplyRepository;
+20: use crmeb\interfaces\JobInterface;
+21: use think\facade\Db;
+22: use think\facade\Log;
+23: use think\facade\Queue;
+24: use app\common\repositories\circle\CircleFinancialRecordRepository;
+25: 
+26: class OrderReplyJob implements JobInterface
+27: {
+28: 
+29:     public function fire($job, $orderId)
+30:     {
+31:         $storeOrderRepository = app()->make(StoreOrderRepository::class);
+32:         $productReplyRepository = app()->make(ProductReplyRepository::class);
+33:         $order = $storeOrderRepository->getWhere(['order_id' => $orderId, 'status' => 2]);
+34:         if ($order) {
+35:             $data = ['comment' => '系统默认好评', 'product_score' => 5, 'service_score' => 5, 'postage_score' => 5, 'rate' => 5, 'sort' =>0];
+36:             $data['uid'] = $order->uid;
+37:             $data['nickname'] = $order->user ? $order->user['nickname'] : '****';
+38:             $data['avatar'] = $order->user ? $order->user['avatar'] : '';
+39:             $data['mer_id'] = $order->mer_id;
+40:             $data['pics'] = '';
+41:             $ids = [];
+42:             //订单记录
+43:             $storeOrderStatusRepository = app()->make(StoreOrderStatusRepository::class);
+44:             $orderStatus = [
+45:                 'order_id' => $order->order_id,
+46:                 'order_sn' => $order->order_sn,
+47:                 'type' => $storeOrderStatusRepository::TYPE_ORDER,
+48:                 'change_message' => '交易完成',
+49:                 'change_type' => $storeOrderStatusRepository::ORDER_STATUS_AUTO_OVER,
+50:             ];
+51:             try {
+52:                 Db::transaction(function () use ($productReplyRepository, $order, &$ids, $data,$storeOrderStatusRepository,$orderStatus) {
+53:                     foreach ($order->orderProduct as $orderProduct) {
+54:                         if ($orderProduct->is_reply) continue;
+55:                         $data['order_product_id'] = $orderProduct['order_product_id'];
+56:                         $data['product_type'] = $orderProduct['cart_info']['product']['product_type']??0;
+57:                         $ids[] = $data['product_id'] = $orderProduct['product_id'];
+58:                         $data['unique'] = $orderProduct['cart_info']['productAttr']['unique'];
+59:                         $productReplyRepository->create($data);
+60:                         $orderProduct->is_reply = 1;
+61:                         $orderProduct->save();
+62:                     }
+63:                     $order->status = 3;
+64:                     $order->save();
+65:                     //TODO 交易完成
+66:                     app()->make(CircleFinancialRecordRepository::class)->defrost($order);
+67:                     $storeOrderStatusRepository->createSysLog($orderStatus);
+68:                 });
+69:                 foreach ($ids as $id) {
+70:                     Queue::push(UpdateProductReplyJob::class, $id);
+71:                 }
+72:             } catch (\Exception $e) {
+73:                 Log::error($orderId . '自动评价商品失败' . $e->getMessage());
+74:             }
+75:         }
+76:         $job->delete();
+77:     }
+78: 
+79:     public function failed($data)
+80:     {
+81:         // TODO: Implement failed() method.
+82:     }
+83: }
+</file>
+
+<file path="PayGiveCouponJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\store\coupon\StoreCouponRepository;
+18: use app\common\repositories\store\coupon\StoreCouponUserRepository;
+19: use crmeb\interfaces\JobInterface;
+20: use think\facade\Log;
+21: 
+22: class PayGiveCouponJob implements JobInterface
+23: {
+24:     public function fire($job, $data)
+25:     {
+26:         $storeCouponRepository = app()->make(StoreCouponRepository::class);
+27:         $coupons = $storeCouponRepository->getGiveCoupon($data['ids']);
+28:         foreach ($coupons as $coupon) {
+29:             if ($coupon->is_limited && 0 == $coupon->remain_count)
+30:                 continue;
+31:             try {
+32:                 $storeCouponRepository->sendCoupon($coupon, $data['uid'], StoreCouponUserRepository::SEND_TYPE_BUY);
+33:             } catch (\Exception $e) {
+34:                 Log::info('自动发放买赠优惠券:' . $e->getMessage());
+35:             }
+36:         }
+37:         $job->delete();
+38:     }
+39: 
+40:     public function failed($data)
+41:     {
+42:         // TODO: Implement failed() method.
+43:     }
+44: }
+</file>
+
+<file path="SendNewPeopleCouponJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\store\coupon\StoreCouponRepository;
+18: use app\common\repositories\store\coupon\StoreCouponUserRepository;
+19: use app\common\repositories\user\UserRepository;
+20: use crmeb\interfaces\JobInterface;
+21: use think\facade\Log;
+22: 
+23: class SendNewPeopleCouponJob implements JobInterface
+24: {
+25: 
+26:     public function fire($job, $uid)
+27:     {
+28:         if (!app()->make(UserRepository::class)->exists($uid))
+29:             return $job->delete();
+30: 
+31:         $storeCouponRepository = app()->make(StoreCouponRepository::class);
+32:         $newPeopleCoupon = $storeCouponRepository->newPeopleCoupon();
+33:         foreach ($newPeopleCoupon as $coupon) {
+34:             if ($coupon->is_limited && 0 == $coupon->remain_count)
+35:                 continue;
+36:             try {
+37:                 $storeCouponRepository->sendCoupon($coupon, $uid, StoreCouponUserRepository::SEND_TYPE_NEW);
+38:             } catch (\Exception $e) {
+39:                 Log::info('自定发放优惠券:' . $e->getMessage());
+40:             }
+41:         }
+42:         $job->delete();
+43:     }
+44: 
+45:     public function failed($data)
+46:     {
+47:         // TODO: Implement failed() method.
+48:     }
+49: }
+</file>
+
+<file path="SendNewsJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\user\UserRepository;
+18: use app\common\repositories\wechat\WechatUserRepository;
+19: use crmeb\interfaces\JobInterface;
+20: use crmeb\services\WechatService;
+21: use think\queue\Job;
+22: 
+23: class SendNewsJob implements JobInterface
+24: {
+25: 
+26:     public function fire($job, $data)
+27:     {
+28:         $wechatUserRepository = app()->make(WechatUserRepository::class);
+29:         $userRepository =  app()->make(UserRepository::class);
+30:         [$id, $news] = $data;
+31:         if(!$id || !$userInfo = $userRepository->get($id)){
+32:             return  $job->delete();
+33:         }
+34:         if (!($openId = $wechatUserRepository->idByOpenId((int)$userInfo['wechat_user_id']))) {
+35:             return  $job->delete();
+36:         }
+37:         try {
+38:             WechatService::create()->staffTo($openId, WechatService::newsMessage($news));
+39:         } catch (\Exception $e) {
+40:             $job->failed($e);
+41:         }
+42:         $job->delete();
+43:     }
+44: 
+45:     public function failed($data)
+46:     {
+47:         // TODO: Implement failed() method.
+48:     }
+49: }
+</file>
+
+<file path="SendSmsJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\system\notice\SystemNoticeConfigRepository;
+18: use crmeb\interfaces\JobInterface;
+19: use crmeb\services\SmsService;
+20: use crmeb\services\WechatTemplateMessageService;
+21: use think\facade\Log;
+22: 
+23: class SendSmsJob implements JobInterface
+24: {
+25: 
+26:     public function fire($job, $data)
+27:     {
+28:         $status = app()->make(SystemNoticeConfigRepository::class)->getNoticeStatusByConstKey($data['tempId']);
+29:         if ($status['notice_sms'] == 1) {
+30:             try {
+31:                 SmsService::sendMessage($data);
+32:             } catch (\Exception $e) {
+33:                 Log::info('发送短信失败' . var_export($data, 1) . $e->getMessage());
+34:             }
+35:         }
+36:         if ($status['notice_wechat'] == 1) {
+37:             try {
+38:                 app()->make(WechatTemplateMessageService::class)->sendTemplate($data);
+39:             } catch (\Exception $e) {
+40:                 Log::info('模板消息发送失败' . var_export($data, 1) . $e->getMessage());
+41:             }
+42:         }
+43:         if ($status['notice_routine'] == 1) {
+44:             try {
+45:                 app()->make(WechatTemplateMessageService::class)->subscribeSendTemplate($data);
+46:             } catch (\Exception $e) {
+47:                 Log::info('订阅消息发送失败' . var_export($data, 1) . $e->getMessage());
+48:             }
+49:         }
+50:         $job->delete();
+51:     }
+52: 
+53:     public function failed($data)
+54:     {
+55:         // TODO: Implement failed() method.
+56:     }
+57: }
+</file>
+
+<file path="SendSvipCouponJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\store\coupon\StoreCouponRepository;
+18: use app\common\repositories\store\coupon\StoreCouponUserRepository;
+19: use app\common\repositories\system\CacheRepository;
+20: use app\common\repositories\user\UserRepository;
+21: use crmeb\interfaces\JobInterface;
+22: use think\facade\Cache;
+23: use think\facade\Log;
+24: use think\facade\Queue;
+25: 
+26: class SendSvipCouponJob implements JobInterface
+27: {
+28:     public function fire($job, $type)
+29:     {
+30:         $moth = date('Y-m-d',time());
+31:         $meka = app()->make(StoreCouponRepository::class);
+32:         try {
+33:             $couponIds = $meka->sendSvipCoupon();
+34:         } catch (\Exception $e) {
+35:             Log::INFO('发送付费会员优惠券失败：'.$moth);
+36:         };
+37:         $job->delete();
+38:     }
+39: 
+40:     public function failed($data)
+41:     {
+42:         // TODO: Implement failed() method.
+43:     }
+44: }
+</file>
+
+<file path="SendTemplateMessageJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: use crmeb\interfaces\JobInterface;
+17: use think\facade\Log;
+18: use think\queue\Job;
+19: use crmeb\services\WechatTemplateService;
+20: use app\common\repositories\user\UserRepository;
+21: use crmeb\services\WechatTemplateMessageService;
+22: 
+23: class SendTemplateMessageJob implements JobInterface
+24: {
+25: 
+26:     public function fire($job, $data)
+27:     {
+28:         $make = app()->make(WechatTemplateMessageService::class);
+29:         try{
+30:             $make->sendTemplate($data);
+31:         }catch (\Exception $e){
+32:             Log::info('公众号消息模板:' . $e->getMessage());
+33:         }
+34:         try{
+35:             $make->subscribeSendTemplate($data);
+36:         }catch (\Exception $e){
+37:             Log::info('小程序消息模板:' . $e->getMessage());
+38:         }
+39:         $job->delete();
+40:     }
+41: 
+42:     public function failed($data)
+43:     {
+44:         // TODO: Implement failed() method.
+45:     }
+46: }
+</file>
+
+<file path="SetSeckillStockCacheJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: namespace crmeb\jobs;
+13: 
+14: use think\facade\Log;
+15: use crmeb\interfaces\JobInterface;
+16: use app\common\repositories\store\product\ProductRepository;
+17: 
+18: class SetSeckillStockCacheJob implements JobInterface
+19: {
+20:     public function fire($job, $data)
+21:     {
+22:         try{
+23:             app()->make(ProductRepository::class)->seckillStockCache($data['res'], true);
+24:         }catch (\Exception $e){
+25:             Log::info('[SetSeckillStockCacheJob] 秒杀缓存重置失败：'.$e->getMessage());
+26:         }
+27:         $job->delete();
+28:     }
+29: 
+30:     public function failed($data)
+31:     {
+32:         // TODO: Implement failed() method.
+33:     }
+34: }
+</file>
+
+<file path="SpreadsheetExcelJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: use crmeb\interfaces\JobInterface;
+17: use think\facade\Log;
+18: use think\queue\Job;
+19: use crmeb\services\ExcelService;
+20: 
+21: class SpreadsheetExcelJob implements JobInterface
+22: {
+23: 
+24:     public function fire($job, $data)
+25:     {
+26:         try{
+27:             app()->make(ExcelService::class)->getAll($data);
+28:         }catch (\Exception $e){
+29:             Log::info('导出文件:'.$data['type'].'; error : ' . $e->getMessage());
+30:         }
+31:         $job->delete();
+32:     }
+33: 
+34:     public function failed($data)
+35:     {
+36:         // TODO: Implement failed() method.
+37:     }
+38: }
+</file>
+
+<file path="SyncProductTopJob.php">
+ 1: <?php
+ 2: 
+ 3: namespace crmeb\jobs;
+ 4: 
+ 5: use app\common\repositories\store\product\SpuRepository;
+ 6: use app\common\repositories\store\StoreCategoryRepository;
+ 7: use app\common\repositories\system\merchant\MerchantRepository;
+ 8: use crmeb\interfaces\JobInterface;
+ 9: use crmeb\services\RedisCacheService;
+10: use think\facade\Cache;
+11: use think\facade\Log;
+12: use function app;
+13: 
+14: class SyncProductTopJob implements JobInterface
+15: {
+16: 
+17:     public function fire($job, $data)
+18:     {
+19:         try{
+20:             $hot = systemConfig(['hot_ranking_switch','hot_ranking_lv']);
+21:             if ($hot['hot_ranking_switch'] != 1) return $job->delete();
+22: 
+23:             $SpuRepository = app()->make(SpuRepository::class);
+24:             $RedisCacheService = app()->make(RedisCacheService::class);
+25:             $prefix = env('queue_name','merchant').'_hot_ranking_';
+26:             $oldKeys1 = $RedisCacheService->keys($prefix.'top_*') ?: [];
+27:             $oldKeys1 = array_combine($oldKeys1, $oldKeys1);
+28:             $mset = [];
+29:             $where = ['product_type' => 0, 'spu_status' => 1, 'mer_status' => 1, 'order' => 'sales'];
+30:             $ids = $SpuRepository->search($where)->limit(15)->column('spu_id');
+31:             $mset[$prefix.'top_0'] = implode(',', $ids);
+32:             unset($oldKeys1[$prefix.'top_0']);
+33:             $make = app()->make(StoreCategoryRepository::class);
+34:             foreach ([1,2,3] as $level) {
+35:                 $cateList = $make->getSearch(['status' => 1, 'mer_id' => 0, 'type' => 0])
+36:                     ->where('level','<',$level)->column('store_category_id,cate_name,pic');
+37:                 foreach ($cateList as $item) {
+38:                     $id = $item['store_category_id'];
+39:                     $ids = $make->findChildrenId($id);
+40:                     $ids[] = $id;
+41:                     $where['cate_id'] = $ids;
+42:                     $spuList = $SpuRepository->search($where)->limit(15)->select();
+43:                     if (count($spuList)) {
+44:                         foreach ($spuList as $i => $spu) {
+45:                             $key = $prefix.'top_item_' . $id . '_' . $spu['spu_id'];
+46:                             $mset[$key] = json_encode([$item['cate_name'], $i + 1, $id], JSON_UNESCAPED_UNICODE);
+47:                             unset($oldKeys1[$key]);
+48:                         }
+49:                         $_key = $prefix.'top_' . $id;
+50:                         $mset[$_key] = implode(',', $spuList->column('spu_id'));
+51:                         unset($oldKeys1[$_key]);
+52:                     }
+53:                 }
+54:                 Cache::set($prefix.'topCate', implode(',', array_column($cateList, 'store_category_id')));
+55:             }
+56:             if (count($mset)) {
+57:                 $RedisCacheService->mSet($mset);
+58:             }
+59:             if (count($oldKeys1)) {
+60:                 $RedisCacheService->handler()->del(...array_values($oldKeys1));
+61:             }
+62:         }catch (\Exception $e){
+63:             Log::info('热卖排行统计:' . $e->getMessage());
+64:         }
+65:         $job->delete();
+66:     }
+67: 
+68:     public function failed($data)
+69:     {
+70:         // TODO: Implement failed() method.
+71:     }
+72: 
+73:     public function work()
+74:     {
+75: 
+76:     }
+77: }
+</file>
+
+<file path="SyncQueueStatusJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use crmeb\interfaces\JobInterface;
+18: use think\facade\Cache;
+19: use think\facade\Log;
+20: use think\queue\Job;
+21: 
+22: class SyncQueueStatusJob implements JobInterface
+23: {
+24: 
+25:     public function fire($job, $data)
+26:     {
+27:         $key =env('APP_KEY','merchant').'_queue_status';
+28:         Cache::set($key,time(),60 * 6);
+29:         $job->delete();
+30:     }
+31: 
+32:     public function failed($data)
+33:     {
+34:         // TODO: Implement failed() method.
+35:     }
+36: }
+</file>
+
+<file path="TestJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use crmeb\interfaces\JobInterface;
+18: use think\facade\Log;
+19: use think\queue\Job;
+20: 
+21: class TestJob implements JobInterface
+22: {
+23: 
+24:     public function fire($job, $data)
+25:     {
+26:         Log::info(var_export($data, 1));
+27:         $job->delete();
+28:     }
+29: 
+30:     public function failed($data)
+31:     {
+32:         // TODO: Implement failed() method.
+33:     }
+34: }
+</file>
+
+<file path="UpdateProductReplyJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\store\product\ProductReplyRepository;
+18: use app\common\repositories\store\product\ProductRepository;
+19: use app\common\repositories\system\merchant\MerchantRepository;
+20: use crmeb\interfaces\JobInterface;
+21: 
+22: class UpdateProductReplyJob implements JobInterface
+23: {
+24: 
+25:     public function fire($job, $productId)
+26:     {
+27:         $productReplyRepository = app()->make(ProductReplyRepository::class);
+28: 
+29:         $total = $productReplyRepository->productTotalRate($productId);
+30:         if (!$total) return $job->delete();
+31:         if(!$total['total_rate']) {
+32:             $rate = 5;
+33:         } else {
+34:             $rate = bcdiv($total['total_rate'], $total['total_count'], 1);
+35:         }
+36:         app()->make(ProductRepository::class)->update($productId, [
+37:             'rate' => $rate,
+38:             'reply_count' => $total['total_count']
+39:         ]);
+40:         $data = $productReplyRepository->getWhere(['product_id' => $productId], 'mer_id');
+41:         $merchantRate = $productReplyRepository->merchantTotalRate($data['mer_id']);
+42:         app()->make(MerchantRepository::class)->update($data['mer_id'], $merchantRate);
+43:         $job->delete();
+44:     }
+45: 
+46:     public function failed($data)
+47:     {
+48:         // TODO: Implement failed() method.
+49:     }
+50: }
+</file>
+
+<file path="UserBrokerageLevelJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use app\common\repositories\user\UserBrokerageRepository;
+18: use app\common\repositories\user\UserRepository;
+19: use crmeb\interfaces\JobInterface;
+20: use think\facade\Log;
+21: 
+22: class UserBrokerageLevelJob implements JobInterface
+23: {
+24:     public function fire($job, $data)
+25:     {
+26:         try {
+27:             $user = app()->make(UserRepository::class)->get($data['uid']);
+28:             if ($user) {
+29:                 $flag = true;
+30:                 if ($data['type'] == 'spread_money') {
+31:                     $user->spread_pay_price = bcadd($user->spread_pay_price, $data['inc'], 2);
+32:                 } else if ($data['type'] == 'spread_pay_num') {
+33:                     $user->spread_pay_count = bcadd($user->spread_pay_count, $data['inc'], 0);
+34:                 } else {
+35:                     $flag = false;
+36:                 }
+37:                 if ($flag) {
+38:                     $user->save();
+39:                 }
+40:             }
+41:             $extensionInfo = get_extension_info($user);//获取用户是否可以分销以及是否内购
+42:             if ($user && $extensionInfo['isPromoter']) {
+43:                 app()->make(UserBrokerageRepository::class)->inc($user, $data['type'], $data['inc']);
+44:             }
+45:         } catch (\Exception $e) {
+46:             Log::info('分销等级同步失败: ' . var_export($data, 1) . $e->getMessage());
+47:         }
+48:         $job->delete();
+49:     }
+50: 
+51:     public function failed($data)
+52:     {
+53:     }
+54: }
+</file>
+
+<file path="VisitProductJob.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\jobs;
+15: 
+16: 
+17: use think\facade\Log;
+18: use app\common\repositories\user\UserHistoryRepository;
+19: use app\common\repositories\user\UserVisitRepository;
+20: use crmeb\interfaces\JobInterface;
+21: 
+22: class VisitProductJob implements JobInterface
+23: {
+24: 
+25:     public function fire($job, $data)
+26:     {
+27:         try{
+28:             $uid = $data['uid'];
+29:             $id = $data['id'];
+30:             $make = app()->make(UserVisitRepository::class);
+31:             $count = $make->search(['uid' => $uid, 'type' => 'product'])
+32:                 ->where('type_id', $id)
+33:                 ->whereTime('UserVisit.create_time', '>', date('Y-m-d H:i:s', strtotime('- 300 seconds')))->count();
+34:             if (!$count) $make->visitProduct($uid,$id);
+35:             app()->make(UserHistoryRepository::class)->createOrUpdate($data);
+36:         }catch (\Exception $e){
+37:             Log::info('浏览记录同步失败：'.$e->getMessage(), $data);
+38:         }
+39:         $job->delete();
+40:     }
+41: 
+42:     public function failed($data)
+43:     {
+44:         // TODO: Implement failed() method.
+45:     }
+46: }
+</file>
+
+</files>

@@ -1,0 +1,1142 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: route/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+route/admin.php
+route/api.php
+route/app.php
+route/manager.php
+route/merchant.php
+route/openapi.php
+route/service.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="route/admin.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: use app\common\middleware\AdminAuthMiddleware;
+13: use app\common\middleware\AdminTokenMiddleware;
+14: use app\common\middleware\AllowOriginMiddleware;
+15: use app\common\middleware\InstallMiddleware;
+16: use app\common\middleware\LogMiddleware;
+17: use app\common\middleware\RequestLockMiddleware;
+18: use think\facade\Route;
+19: 
+20: Route::group(config('admin.admin_prefix'), function () {
+21:     Route::miss(function () {
+22:         $DB = DIRECTORY_SEPARATOR;
+23:         return __view(app()->getRootPath() . 'public' . $DB . 'system.html');
+24:     });
+25: })->middleware(InstallMiddleware::class);
+26: 
+27: Route::group(config('admin.api_admin_prefix') . '/', function () {
+28: 
+29:     $path = $this->app->getRootPath() . 'route' . DIRECTORY_SEPARATOR.'admin';
+30:     $files = scandir($path);
+31:     foreach ($files as $file) {
+32:         if($file != '.' && $file != '..'){
+33:             include $path . DIRECTORY_SEPARATOR . $file;
+34:         }
+35:     }
+36:         Route::miss(function () {
+37:         return app('json')->fail('接口不存在');
+38:     })->middleware(AllowOriginMiddleware::class);
+39: 
+40: })
+41:     ->option([
+42:         '_lock' => true
+43:     ])
+44:     ->middleware(InstallMiddleware::class)
+45:     ->middleware(RequestLockMiddleware::class);
+</file>
+
+<file path="route/api.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: use app\common\middleware\AllowOriginMiddleware;
+ 15: use app\common\middleware\CheckSiteOpenMiddleware;
+ 16: use app\common\middleware\InstallMiddleware;
+ 17: use app\common\middleware\UserTokenMiddleware;
+ 18: use app\common\middleware\VisitProductMiddleware;
+ 19: use app\common\middleware\RequestLockMiddleware;
+ 20: use think\facade\Route;
+ 21: 
+ 22: Route::group('api/', function () {
+ 23:     Route::any('test', 'api.Auth/test');
+ 24:     //强制登录
+ 25:     Route::group(function () {
+ 26:         Route::get('pay/config', 'api.store.order.StoreOrder/payConfig');
+ 27:         Route::group('v3', function () {
+ 28:             //新的下单接口,支持分账
+ 29:             Route::group('order', function () {
+ 30:                 Route::post('check', '/v3CheckOrder');
+ 31:                 Route::post('create', '/v3CreateOrder');
+ 32:             })->prefix('api.store.order.StoreOrder');
+ 33:         });
+ 34:         Route::group('v2', function () {
+ 35:             //新的下单接口,支持分账
+ 36:             Route::group('order', function () {
+ 37:                 Route::post('check', '/v2CheckOrder');
+ 38:                 Route::post('create', '/v2CreateOrder');
+ 39:             })->prefix('api.store.order.StoreOrder');
+ 40:         });
+ 41: 
+ 42:         //退出登录
+ 43:         Route::post('logout', 'api.Auth/logout');
+ 44:         //用户信息
+ 45:         Route::get('user', 'api.Auth/userInfo');
+ 46: 
+ 47:         //绑定推荐人
+ 48:         Route::post('user/spread', 'api.Auth/spread');
+ 49: 
+ 50:         //优惠券
+ 51:         Route::group('coupon', function () {
+ 52:             Route::post('receive/:id', 'api.store.product.StoreCoupon/receiveCoupon');
+ 53:         });
+ 54: 
+ 55:         //订单
+ 56:         Route::group('order', function () {
+ 57:             Route::post('check', '/checkOrder');
+ 58:             Route::post('create', '/createOrder');
+ 59:             Route::get('group_order_list', '/groupOrderList');
+ 60:             Route::get('group_order_detail/:id', '/groupOrderDetail');
+ 61:             Route::post('cancel/:id', '/cancelGroupOrder');
+ 62:             Route::get('list', '/lst');
+ 63:             Route::get('detail/:id', '/detail');
+ 64:             Route::get('number', '/number');
+ 65:             Route::post('pay/:id', '/groupOrderPay');
+ 66:             Route::post('points/pay/:id', '/groupOrderPay')->append(['is_points' => 1]);
+ 67:             Route::post('take/:id', '/take');
+ 68:             Route::post('express/:id', '/express');
+ 69:             Route::post('del/:id', '/del');
+ 70:             Route::get('status/:id', '/groupOrderStatus');
+ 71:             Route::get('verify_code/:id', '/verifyCode');
+ 72:             Route::post('receipt/:id', '/createReceipt');
+ 73:             Route::get('delivery/:id', '/getOrderDelivery');
+ 74:             Route::get('cashier_order/:id', '/getCashierOrder');
+ 75:             Route::post('self/cancel/:id', '/cancelOrder');
+ 76:             Route::get('deliveryStation/list', '/deliveryStationList');
+ 77:             Route::get('deliverySetings', '/deliveryConfig');
+ 78:             Route::get('deliveryTrack/:id', '/deliveryTrack');
+ 79:         })->prefix('api.store.order.StoreOrder');
+ 80: 
+ 81:         // 预售
+ 82:         Route::group('presell', function () {
+ 83:             Route::post('pay/:id', '/pay');
+ 84:         })->prefix('api.store.order.PresellOrder');
+ 85: 
+ 86:         //退款单
+ 87:         Route::group('refund', function () {
+ 88:             Route::get('batch_product/:id', '/batchProduct');
+ 89:             Route::get('express/:id', '/express');
+ 90:             Route::get('product/:id', '/product');
+ 91:             Route::post('compute', '/compute');
+ 92:             Route::post('apply/:id', '/refund');
+ 93:             Route::get('list', '/lst');
+ 94:             Route::get('detail/:id', '/detail');
+ 95:             Route::post('del/:id', '/del');
+ 96:             Route::post('back_goods/:id', '/back_goods');
+ 97:             Route::post('cancel/:id', '/cancel');
+ 98:             Route::post('platform/:id', '/platformIntervene');
+ 99:         })->prefix('api.store.order.StoreRefundOrder');
+100: 
+101:         //评价
+102:         Route::group('reply', function () {
+103:             Route::get('product/:id', '/product');
+104:             Route::post(':id', '/reply');
+105:         })->prefix('api.store.product.StoreReply');
+106: 
+107:         //注销用户
+108:         Route::post('user/cancel', 'api.Auth/cancel');
+109:         //用户
+110:         Route::group('user', function () {
+111:             //切换账号
+112:             Route::get('account', 'User/account');
+113:             Route::post('switch', 'User/switchUser');
+114:             //修改信息
+115:             Route::post('change/phone', 'User/changePhone');
+116:             Route::post('change/info', 'User/updateBaseInfo');
+117:             Route::post('change/password', 'User/changePassword');
+118:             //收藏
+119:             Route::get('/relation/product/lst', 'UserRelation/productList');
+120:             Route::get('/relation/merchant/lst', 'UserRelation/merchantList');
+121:             Route::post('/relation/create', 'UserRelation/create');
+122:             Route::post('/relation/batch/create', 'UserRelation/batchCreate');
+123:             Route::post('/relation/delete', 'UserRelation/delete');
+124:             Route::post('/relation/batch/delete', 'UserRelation/batchDelete');
+125: 
+126:             //反馈
+127:             Route::post('/feedback', 'Feedback/feedback');
+128:             Route::get('/feedback/list', 'Feedback/feedbackList');
+129:             Route::get('/feedback/detail/:id', 'Feedback/detail');
+130:             //充值
+131:             Route::post('/recharge', 'UserRecharge/recharge');
+132:             Route::post('/recharge/brokerage', 'UserRecharge/brokerage');
+133:             //地址
+134:             Route::get('/address/lst', 'UserAddress/lst');
+135:             Route::post('/address/create', 'UserAddress/create');
+136:             Route::get('/address/detail/:id', 'UserAddress/detail');
+137:             Route::post('/address/update/:id', 'UserAddress/editDefault');
+138:             Route::post('/address/delete/:id', 'UserAddress/delete');
+139: 
+140:             //分销海报
+141:             Route::get('/spread_image', 'User/spread_image');
+142:             Route::get('/v2/spread_image', 'User/spread_image_v2');
+143:             //推广人列表
+144:             Route::get('/spread_list', 'User/spread_list');
+145: 
+146:             //提现
+147:             Route::get('/extract/lst', 'UserExtract/lst');
+148:             Route::get('/extract/detail/:id', 'UserExtract/detail');
+149:             Route::get('/extract/banklst', 'UserExtract/bankLst');
+150:             Route::post('/extract/create', 'UserExtract/create');
+151:             Route::get('/extract/history_bank', 'UserExtract/historyBank');
+152: 
+153:             //绑定手机号
+154:             Route::post('binding', 'User/binding');
+155:             //小程序获取手机号
+156:             Route::post('mp/binding', 'User/mpPhone');
+157: 
+158:             //余额记录
+159:             Route::get('bill', 'User/bill');
+160:             //佣金记录
+161:             Route::get('brokerage_list', 'User/brokerage_list');
+162:             //推广人订单
+163:             Route::get('spread_order', 'User/spread_order');
+164:             //推广人排行榜
+165:             Route::get('spread_top', 'User/spread_top');
+166:             //佣金排行榜
+167:             Route::get('brokerage_top', 'User/brokerage_top');
+168:             Route::get('spread_info', 'User/spread_info');
+169:             Route::get('spread_level', 'User/spread_info');
+170: 
+171:             Route::get('brokerage/info', 'User/brokerage_info');
+172:             Route::get('brokerage/all', 'User/brokerage_all');
+173:             Route::get('brokerage/notice', 'User/notice');
+174: 
+175:             //浏览记录
+176:             Route::get('history', 'UserHistory/lst');
+177:             Route::post('history/delete/:id', 'UserHistory/deleteHistory');
+178:             Route::post('history/batch/delete', 'UserHistory/deleteHistoryBatch');
+179: 
+180:             //发票
+181:             Route::post('receipt/create', 'UserReceipt/create');
+182:             Route::get('receipt/lst', 'UserReceipt/lst');
+183:             Route::get('receipt/order', 'UserReceipt/order');
+184:             Route::get('receipt/order/:id', 'UserReceipt/orderDetail');
+185:             Route::post('receipt/delete/:id', 'UserReceipt/delete');
+186:             Route::post('receipt/update/:id', 'UserReceipt/update');
+187:             Route::post('receipt/is_default/:id', 'UserReceipt/isDefault');
+188:             Route::get('receipt/detail/:id', 'UserReceipt/detail');
+189: 
+190:             //签到
+191:             Route::get('sign/lst', 'UserSign/lst');
+192:             Route::post('sign/create', 'UserSign/create');
+193:             Route::get('sign/month', 'UserSign/month');
+194: 
+195:             //积分
+196:             Route::get('integral/info', 'User/integralInfo');
+197:             Route::get('integral/lst', 'User/integralList');
+198: 
+199:             //客服列表
+200:             Route::get('services', 'User/services');
+201: 
+202:             Route::get('member/info', 'User/memberInfo');
+203:             Route::get('member/log', 'Member/getMemberValue');
+204: 
+205:             // 用户表单数据操作
+206:             Route::get('fields/info', 'UserFields/info');
+207:             Route::post('fields/save', 'UserFields/save');
+208:             Route::delete('fields/delete', 'UserFields/delete');
+209: 
+210:         })->prefix('api.user.');
+211: 
+212:         //购物车
+213:         Route::group('user/cart', function () {
+214:             Route::post('/check/:id', 'StoreCart/checkCerate');
+215:             Route::get('/lst', 'StoreCart/lst');
+216:             Route::post('/create', 'StoreCart/create');
+217:             Route::post('/again', 'StoreCart/again');
+218:             Route::post('/change/:id', 'StoreCart/change');
+219:             Route::post('/delete', 'StoreCart/batchDelete');
+220:             Route::get('/count', 'StoreCart/cartCount');
+221:             Route::post('/batchCreate', 'StoreCart/batchCreate');
+222:             Route::post('/clear', 'StoreCart/clear');
+223:         })->prefix('api.store.order.');
+224: 
+225:         Route::group('store/product', function () {
+226:             Route::post('/assist/create/:id', 'StoreProductAssistSet/create');
+227:             Route::get('/assist/detail/:id', 'StoreProductAssistSet/detail');
+228:             Route::post('/assist/set/:id', 'StoreProductAssistSet/set');
+229:             Route::get('/assist/user/:id', 'StoreProductAssistSet/userList');
+230:             Route::get('/assist/share/:id', 'StoreProductAssistSet/shareNum');
+231:             Route::get('/assist/set/lst', 'StoreProductAssistSet/lst');
+232:             Route::post('/assist/set/delete/:id', 'StoreProductAssistSet/delete');
+233:             Route::post('/increase_take', 'StoreProduct/setIncreaseTake');
+234:             Route::get('/get_attr_value/:id', 'StoreProduct/getAttrValue');
+235:         })->prefix('api.store.product.');
+236: 
+237:         //申请商户
+238:         Route::get('intention/lst', 'api.store.merchant.MerchantIntention/lst');
+239:         Route::get('intention/detail/:id', 'api.store.merchant.MerchantIntention/detail');
+240:         Route::post('intention/update/:id', 'api.store.merchant.MerchantIntention/update');
+241:         Route::post('store/product/group/cancel', 'api.store.product.StoreProductGroup/cancel');
+242: 
+243:         //社区
+244:         Route::group('community', function () {
+245: 
+246:             Route::post('/create', 'Community/create');
+247:             Route::post('/update/:id', 'Community/update');
+248:             Route::post('/delete/:id', 'Community/delete');
+249:             Route::get('pay_product/lst', 'Community/payList');
+250:             Route::get('rela_product/lst', 'Community/relationList');
+251:             Route::get('hist_product/lst', 'Community/historyList');
+252: 
+253:             Route::post('fans/:id', 'Community/setFocus');
+254:             Route::get('fans/lst', 'Community/getUserFans');
+255:             Route::get('focus/lst', 'Community/getUserFocus');
+256: 
+257:             Route::post('start/:id', 'Community/startCommunity');
+258:             Route::get('start/lst', 'Community/getUserStartCommunity');
+259: 
+260:             Route::post('reply/create/:id', 'CommunityReply/create');
+261:             Route::post('reply/start/:id', 'CommunityReply/start');
+262: 
+263:             Route::get('order/:id', 'Community/getSpuByOrder');
+264: 
+265: 
+266:         })->prefix('api.community.');
+267: 
+268:         //请求频率
+269:         Route::group(function () {
+270: 
+271:             //付费会员购买
+272:             Route::post('svip/pay/:id', 'api.user.Svip/createOrder');
+273: 
+274:             //订单检查
+275:             Route::group('order/v3', function () {
+276:                 Route::post('check', 'PointsOrder/beforCheck');
+277:                 Route::post('create', 'PointsOrder/createOrder');
+278:                 Route::post('pay/:id', 'PointsOrder/orderPay');
+279:             })->prefix('api.store.order.');
+280: 
+281:         })->middleware(\app\common\middleware\BlockerMiddleware::class);
+282: 
+283:         Route::group('points/order', function () {
+284:             Route::get('lst', 'PointsOrder/lst');
+285:             Route::get('detail/:id', 'PointsOrder/detail');
+286:             Route::post('take/:id', 'PointsOrder/take');
+287:             Route::post('deleate/:id', 'PointsOrder/del');
+288:         })->prefix('api.store.order.');
+289: 
+290:         Route::group('user/form', function () {
+291:             Route::post('/create/:id', '/create');
+292:             Route::get('/lst', '/lst');
+293:             Route::get('/detail/:id', '/detail');
+294:             Route::get('/show/:id', '/show');
+295:         })->prefix('api.store.form.FormRelated');
+296:         // 商圈入驻
+297:         Route::group('circleAgent', function () {
+298:             Route::get('list', '/list');
+299:             Route::get('detail/:id', '/detail');
+300:             Route::post('create', '/create');
+301:             Route::post('update/:id', '/update');
+302:             Route::post('revoke/:id', '/revoke');
+303:         })->prefix('api.circle.CircleAgent');
+304: 
+305:     })->middleware(UserTokenMiddleware::class, true);
+306: 
+307:     //非强制登录
+308:     Route::group(function () {
+309:         // 付费会员
+310:         Route::group('svip', function () {
+311:             //价格列表
+312:             Route::get('pay_lst', '/getTypeLst');
+313:             Route::get('user_info', '/svipUserInfo');
+314:             Route::get('coupon_lst', '/svipCoupon');
+315:             Route::get('product_lst', '/svipProductList');
+316:             Route::post('coupon_receive/:id', '/receiveCoupon');
+317:         })->prefix('api.user.Svip');
+318: 
+319:         //社区
+320:         Route::group('community', function () {
+321:             //社区文章列表
+322:             Route::get('/lst', 'Community/lst');
+323:             Route::get('/user_lst', 'Community/userList');
+324:             Route::get('/video_lst', 'Community/videoShow');
+325:             //详情
+326:             Route::get('/show/:id', 'Community/show');
+327:             //用户页
+328:             Route::get('/user/info/:id', 'Community/userInfo');
+329:             //用户的文章
+330:             Route::get('/user/community/:id', 'Community/userCommunitylst');
+331:             //用户的视频
+332:             Route::get('/user/community_video/:id', 'Community/userCommunityVideolst');
+333:             //分类&话题
+334:             Route::get('category/lst', 'CommunityCategory/lst');
+335:             Route::get('/:id/reply', 'CommunityReply/lst');
+336: 
+337:             Route::get('/focuslst', 'Community/focuslst');
+338:             Route::get('qrcode/:id', 'Community/qrcode');
+339:         })->prefix('api.community.');
+340:         //上传图片
+341:         Route::post('upload/image/:field', 'api.Common/uploadImage');
+342:         Route::post('scan_upload/image/:field/:token', 'api.Common/scanUploadImage');
+343:         //入住商户上传证件接口
+344:         Route::post('upload/certificate/:field', 'api.Common/uploadCertificate');
+345:         //获取商户基本信息
+346:         Route::get('service/info/:id', 'api.store.service.Service/merchantInfo');
+347:         //公共配置
+348:         Route::get('config', 'api.Common/config');
+349:         Route::get('has_service/:id', 'api.store.service.Service/hasService');
+350:         //专题
+351:         Route::group('activity', function () {
+352:             Route::get('lst/:id', 'api.Common/activityLst');
+353:             Route::get('info/:id', 'api.Common/activityInfo');
+354:         });
+355:         //商品
+356:         Route::group('store/product', function () {
+357:             Route::get('seckill/select', 'StoreProductSeckill/select');
+358:             Route::get('seckill/lst', 'StoreProductSeckill/lst');
+359:             Route::get('seckill/detail/:id', 'StoreProductSeckill/detail')->middleware(VisitProductMiddleware::class, 1);
+360:             Route::get('category/lst', 'StoreCategory/lst');
+361:             Route::get('category', 'StoreCategory/children');
+362:             Route::get('brand/lst', 'StoreBrand/lst');
+363:             Route::get('detail/:id', 'StoreProduct/detail')->middleware(VisitProductMiddleware::class, 0);
+364:             Route::get('show/:id', 'StoreProduct/show');
+365:             Route::get('good_list/:id', 'StoreProduct/getGoodList');
+366:             Route::get('/qrcode/:id', 'StoreProduct/qrcode');
+367:             Route::get('category/hotranking', 'StoreCategory/cateHotRanking');
+368: 
+369:             Route::get('bag/explain', 'StoreProduct/getBagExplain');
+370:             Route::get('/reply/lst/:id', 'StoreReply/lst');
+371:             //预售
+372:             Route::get('/presell/lst', 'StoreProductPresell/lst');
+373:             Route::get('/presell/detail/:id', 'StoreProductPresell/detail')->middleware(VisitProductMiddleware::class, 2);
+374:             //预售协议
+375:             Route::get('presell/agree', 'StoreProductPresell/getAgree');
+376:             //助力
+377:             Route::get('/assist/lst', 'StoreProductAssist/lst');
+378:             //拼团
+379:             Route::get('group/lst', 'StoreProductGroup/lst');
+380:             Route::get('group/detail/:id', 'StoreProductGroup/detail')->middleware(VisitProductMiddleware::class, 4);
+381:             Route::get('group/count', 'StoreProductGroup/userCount');
+382:             Route::get('group/category', 'StoreProductGroup/category');
+383:             Route::get('group/get/:id', 'StoreProductGroup/groupBuying');
+384: 
+385:             Route::get('/guarantee/:id', 'StoreProduct/guaranteeTemplate');
+386:             Route::get('/preview', 'StoreProduct/preview');
+387:             Route::get('/price_rule/:id', 'StoreProduct/priceRule');
+388:             Route::get('/cate_hot', 'StoreProduct/cateHotList');
+389:             //商品列表获取商品规格
+390:             Route::get('/get_spec/:id', 'StoreProduct/getSpec');
+391:             // 商品列表获取推荐商品
+392:             Route::get('/recommendProduct', 'StoreProduct/recommendProduct');
+393:             /**
+394:              * 预约商品相关
+395:              */
+396:             Route::get('/reservation/getMonth/:id', 'StorePrdouctReservation/showMonth');
+397:             Route::get('/reservation/getDay/:id', 'StorePrdouctReservation/showDay');
+398:             Route::post('/reservation/checkRange', 'StorePrdouctReservation/checkRange');
+399:         })->prefix('api.store.product.');
+400: 
+401:         //各种商品列表
+402:         Route::group('product/spu', function () {
+403:             //礼包 product/spu/bag
+404:             Route::get('/bag', 'StoreSpu/bag');
+405:             //商品 product/spu/lst
+406:             Route::get('/lst', 'StoreSpu/lst');
+407:             //热门 product/spu/hot/:type
+408:             Route::get('/hot/:type', 'StoreSpu/hot');
+409:             //推荐 product/spu/recommend
+410:             Route::get('/recommend', 'StoreSpu/recommend');
+411:             //商户商品  product/spu/merchant/:id
+412:             Route::get('/merchant/:id', 'StoreSpu/merProductLst');
+413:             //礼包推荐  product/spu/bag/recommend
+414:             Route::get('/bag/recommend', 'StoreSpu/bagRecommend');
+415:             //活动分类  product/spu/active/category/:type
+416:             Route::get('/active/category/:type', 'StoreSpu/activeCategory');
+417:             //标签获取数据
+418:             Route::get('/labels', 'StoreSpu/labelsLst');
+419:             //本地生活商品
+420:             Route::get('/local/:id', 'StoreSpu/local');
+421:             //复制口令
+422:             Route::get('/copy', 'StoreSpu/copy');
+423:             Route::get('/get/:id', 'StoreSpu/get');
+424:             //优惠券商品列表
+425:             Route::get('/coupon_product', 'StoreSpu/getProductByCoupon');
+426:             //热卖排行
+427:             Route::get('/get_hot_ranking', 'StoreSpu/getHotRanking');
+428:             //商品参数
+429:             Route::get('/params', 'StoreParams/select');
+430:             //商品参数值
+431:             Route::get('/params_value/:id', 'StoreParams/getValue');
+432:             //商品热搜
+433:             Route::get('/hot_lst', 'StoreProduct/getHotList');
+434:             Route::get('/hot_top', 'StoreProduct/getHotTop');
+435:         })->prefix('api.store.product.');
+436: 
+437:         //直播
+438:         Route::group('broadcast', function () {
+439:             Route::get('/lst', 'BroadcastRoom/lst');
+440:             Route::get('/hot', 'BroadcastRoom/hot');
+441:         })->prefix('api.store.broadcast.');
+442: 
+443:         //优惠券
+444:         Route::group('coupon', function () {
+445:             Route::get('product', 'api.store.product.StoreCoupon/coupon');
+446:             Route::get('store/:id', 'api.store.product.StoreCoupon/merCoupon');
+447:             Route::get('list', 'api.store.product.StoreCoupon/lst');
+448:             Route::get('getlst', 'api.store.product.StoreCoupon/getList');
+449:             Route::get('new_people', 'api.store.product.StoreCoupon/newPeople');
+450:         });
+451: 
+452:         //商户
+453:         Route::group('store/merchant/', function () {
+454:             Route::get('/lst', 'Merchant/lst');
+455:             Route::get('/product/lst/:id', 'Merchant/productList');
+456:             Route::get('/category/lst/:id', 'Merchant/categoryList');
+457:             Route::get('/detail/0', 'Merchant/systemDetail');
+458:             Route::get('/detail/:id', 'Merchant/detail');
+459:             Route::get('/qrcode/:id', 'Merchant/qrcode');
+460:             Route::get('/local', 'Merchant/localLst');
+461:             Route::get('/localDetail/:id', 'Merchant/localDetail');
+462:         })->prefix('api.store.merchant.');
+463:         Route::post('store/certificate/:merId', 'api.Auth/getMerCertificate');
+464: 
+465:         //文章
+466:         Route::group('article', function () {
+467:             Route::get('/lst/:cid', 'Article/lst');
+468:             Route::get('/list', 'Article/list');
+469:             Route::get('detail/:id', 'Article/detail');
+470:             Route::get('/category/lst', 'ArticleCategory/lst');
+471:         })->prefix('api.article.');
+472: 
+473:         Route::post('upload/video', 'merchant.Common/uploadVideo');
+474:         Route::get('excel/download/:id', 'merchant.store.order.Order/download');
+475:         //申请商户
+476:         Route::post('intention/create', 'api.store.merchant.MerchantIntention/create');
+477:         Route::get('intention/cate', 'api.store.merchant.MerchantIntention/cateLst');
+478:         Route::get('intention/type', 'api.store.merchant.MerchantIntention/typeLst');
+479:         Route::get('intention/circles', 'api.store.merchant.MerchantIntention/circles');
+480:         Route::get('intention/business', 'api.store.merchant.MerchantIntention/business');
+481:         //浏览
+482:         Route::post('common/visit', 'api.Common/visit');
+483:         Route::get('store/product/assist/count', 'api.store.product.StoreProductAssist/userCount');
+484:         Route::get('store/expr/temps', 'admin.system.serve.Export/getExportTemp');
+485: 
+486:         //复制口令
+487:         Route::get('command/copy', 'api.Common/getCommand');
+488:         Route::group('discounts', function () {
+489:             Route::get('lst', '/lst');
+490:         })->prefix('api.store.product.Discounts');
+491:         //test
+492:         Route::any('store/test', 'api.Test/test');
+493:         Route::get('subscribe', 'api.Common/subscribe');
+494: 
+495:         Route::group('points', function () {
+496:             Route::get('home', '/home');
+497:             Route::get('scope', '/points_mall_scope');
+498:             Route::get('lst', '/lst');
+499:             Route::get('detail/:id', '/detail');
+500:         })->prefix('api.store.product.PointsProduct');
+501: 
+502:         Route::group('diy', function () {
+503:             //普通商品详情
+504:             Route::get('/product_detail', '/productDetail');
+505:             //秒杀
+506:             Route::get('/seckill', '/seckill');
+507:             //助力
+508:             Route::get('/assist', '/assist');
+509:             //预售
+510:             Route::get('/presell', '/presell');
+511:             //拼团
+512:             Route::get('/group', '/group');
+513:             //商品列表
+514:             Route::get('/spu', '/spu');
+515:             //社区
+516:             Route::get('/community', '/community');
+517:             //优惠券
+518:             Route::get('/coupon', '/coupon');
+519:             //品牌好店
+520:             Route::get('/store', '/store');
+521:             //二级分类
+522:             Route::get('/category', '/category');
+523:             //直播
+524:             Route::get('/broadcast', '/broadcast');
+525:             //热卖排行
+526:             Route::get('/hot_top', '/hot_top');
+527:             // 悬浮按钮
+528:             Route::get('/fab', '/fab');
+529:             // 平台商品分类
+530:             Route::get('/productCategory', '/productCategory');
+531:         })->prefix('api.Diy');
+532: 
+533:         Route::group('system/form', function () {
+534:             Route::get('/lst', '/lst');
+535:             Route::get('/detail/:id', '/detail');
+536:             Route::get('/info/:form_id', '/getFormInfo');
+537:             Route::get('/share_posters/:id', '/getSharePosters');
+538:         })->prefix('api.store.form.Form');
+539:         // 分组推荐
+540:         Route::group('store/group', function () {
+541:             Route::get('/recommend', '/recommendList');
+542:             Route::get('/options', '/options');
+543:         })->prefix('api.store.StoreGroup');
+544: 
+545:         // 用户
+546:         Route::group('user', function () {
+547:             // 签到数据信息获取
+548:             Route::get('sign/info', 'UserSign/info');
+549:         })->prefix('api.user.');
+550:     })->middleware(UserTokenMiddleware::class, false);
+551: 
+552:     //微信支付回调
+553:     Route::any('notice/wechat_pay', 'api.Common/wechatNotify')->name('wechatNotify');
+554:     //微信支付回调
+555:     Route::any('notice/wechat_combine_pay', 'api.Common/wechatCombinePayNotify')->name('wechatCombinePayNotify');
+556:     //Route::any('notice/routine_combine_pay/:type', 'api.Common/routineCombinePayNotify')->name('routineCombinePayNotify');
+557: 
+558:     Route::any('notice/callback', 'api.Common/deliveryNotify');
+559: 
+560:     Route::any('order_call_back', 'api.Common/callBackNotify')->name('mchNotify');
+561:     //小程序支付回调
+562:     Route::any('notice/routine_pay', 'api.Common/routineNotify')->name('routineNotify');
+563:     Route::any('notice/mchNotify/:type', 'api.Common/mchNotify')->name('mchNotify');
+564:     //支付宝支付回调
+565:     Route::any('notice/alipay_pay/:type', 'api.Common/alipayNotify')->name('alipayNotify');
+566: 
+567:     //城市列表
+568:     Route::get('system/city/lst', 'merchant.store.shipping.City/getlist');
+569:     Route::get('v2/system/city/lst/:pid', 'merchant.store.shipping.City/lstV2');
+570:     Route::get('v2/system/city', 'merchant.store.shipping.City/cityList');
+571: 
+572:     //热门搜索
+573:     Route::get('common/hot_keyword', 'api.Common/hotKeyword')->append(['type' => 0]);
+574:     //社区热门搜索
+575:     Route::get('common/commuunity/hot_keyword', 'api.Common/hotKeyword')->append(['type' => 1]);
+576:     //推荐页 banner
+577:     Route::get('common/hot_banner/:type', 'api.Common/hotBanner');
+578:     //退款原因
+579:     Route::get('common/refund_message', 'api.Common/refundMessage');
+580:     //充值赠送
+581:     Route::get('common/recharge_quota', 'api.Common/userRechargeQuota');
+582:     //快递公司
+583:     Route::get('common/express', 'api.Common/express');
+584:     //图片转 base64
+585:     Route::post('common/base64', 'api.Common/get_image_base64');
+586:     //个人中心菜单
+587:     Route::get('common/menus', 'api.Common/menus');
+588:     //首页数据
+589:     Route::get('common/home', 'api.Common/home');
+590:     //经纬度转位置信息
+591:     Route::get('lbs/geocoder', 'api.Common/lbs_geocoder');
+592:     //位置信息转经纬度
+593:     Route::get('lbs/address', 'api.Common/lbs_address');
+594:     //获取支付宝支付链接
+595:     Route::get('common/pay_key/:key', 'api.Common/pay_key');
+596:     //用户反馈类型
+597:     Route::get('common/feedback_type', 'api.user.FeedBackCategory/lst');
+598:     //登录
+599:     Route::post('auth/login', 'api.Auth/login');
+600:     //获取小程序登录是否需绑定手机号处理
+601:     Route::post('auth/mp_login_type', 'api.Auth/mpLoginType');
+602:     //登录
+603:     Route::post('auth', 'api.Auth/authLogin');
+604:     //短信登录
+605:     Route::post('auth/smslogin', 'api.Auth/smsLogin');
+606:     //注册
+607:     Route::post('auth/register', 'api.Auth/register');
+608:     //小程序手机号注册
+609:     Route::post('auth/mp_phone', 'api.Auth/mpPhone');
+610:     //微信授权
+611:     Route::get('auth/wechat', 'api.Auth/auth');
+612:     //小程序授权
+613:     Route::post('auth/mp', 'api.Auth/mpAuth');
+614:     //app授权
+615:     Route::post('auth/app', 'api.Auth/appAuth');
+616:     //apple授权
+617:     Route::post('auth/apple', 'api.Auth/appleAuth');
+618:     //修改密码
+619:     Route::post('user/change_pwd', 'api.Auth/changePassword');
+620:     //验证码
+621:     Route::post('auth/verify', 'api.Auth/verify');
+622:     //微信配置
+623:     Route::get('wechat/config', 'api.Wechat/jsConfig');
+624:     //图片验证码
+625:     Route::get('captcha', 'api.Auth/getCaptcha');
+626:     //获取协议列表
+627:     Route::get('agreement_lst', 'admin.system.Cache/getKeyLst')->append(['type' => 1]);
+628:     //获取协议内容
+629:     Route::get('agreement/:key', 'admin.system.Cache/getAgree');
+630: 
+631:     Route::get('copyright', 'api.Common/copyright');
+632: 
+633:     Route::get('script', 'api.Common/script');
+634:     Route::get('appVersion', 'api.Common/appVersion');
+635: 
+636:     Route::get('navigation', 'api.Common/getNavigation')->middleware(UserTokenMiddleware::class, false);
+637:     Route::get('micro', 'api.Common/micro');
+638:     Route::get('version', 'admin.Common/version');
+639:     Route::any('getVersion', 'api.Common/getVersion')->name('getVersion');
+640: 
+641:     Route::get('diy', 'api.Common/diy');
+642:     //滑块验证码
+643:     Route::get('ajcaptcha', 'api.Auth/ajcaptcha');
+644:     Route::post('ajcheck', 'api.Auth/ajcheck');
+645: 
+646:     Route::get('open_screen', 'api.Common/open_screen');
+647: 
+648:     //可以查看所有路由的接口 - 开发者使用
+649:     Route::get('route/list', 'api.Route/list');
+650: })->middleware(AllowOriginMiddleware::class)
+651:     ->middleware(InstallMiddleware::class)
+652:     ->middleware(CheckSiteOpenMiddleware::class)
+653:     ->middleware(RequestLockMiddleware::class);
+654: 
+655: 
+656:  Route::any('/', 'View/h5')
+657:      ->middleware(InstallMiddleware::class)
+658:      ->middleware(CheckSiteOpenMiddleware::class);
+659: 
+660: 
+661: Route::group('/pages', function () {
+662:     Route::miss('View/h5');
+663: })->middleware(InstallMiddleware::class)
+664:     ->middleware(CheckSiteOpenMiddleware::class);
+665: 
+666: Route::group('/open-location', function () {
+667:     Route::miss('View/h5');
+668: })->middleware(InstallMiddleware::class)
+669:     ->middleware(CheckSiteOpenMiddleware::class);
+</file>
+
+<file path="route/app.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: use app\common\middleware\CheckSiteOpenMiddleware;
+13: use app\common\middleware\InstallMiddleware;
+14: use think\facade\Route;
+15: 
+16: Route::any('api/wechat/serve', 'WechatNotice/serve');
+17: 
+18: Route::get('install','Install/begin');
+19: Route::group('install',function(){
+20:    route::get('environment','/environment') ;
+21:    route::get('databases','/databases') ;
+22:    route::post('databases/create','/create') ;
+23:    route::post('databases/check','/databasesCheck') ;
+24:    route::post('perform/:n','/perform') ;
+25:    route::get('end','/end') ;
+26:    route::get('loader','/swooleCompiler') ;
+27: })->prefix('Install');
+28: 
+29: Route::any('logs', 'Logger/recode');
+30: 
+31: Route::group(config('admin.service_prefix'), function () {
+32:     Route::miss(function () {
+33:         $DB = DIRECTORY_SEPARATOR;
+34:         return view(app()->getRootPath() . 'public' . $DB . 'kefu.html');
+35:     });
+36: })->middleware(InstallMiddleware::class)
+37:     ->middleware(CheckSiteOpenMiddleware::class);
+</file>
+
+<file path="route/manager.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: use think\facade\Route;
+ 14: use app\common\middleware\UserTokenMiddleware;
+ 15: use app\common\middleware\MerchantServerMiddleware;
+ 16: use app\common\middleware\AllowOriginMiddleware;
+ 17: 
+ 18: Route::group('api/', function () {
+ 19: 
+ 20:     //客服聊天
+ 21:     Route::group('service', function () {
+ 22:         Route::get('history/:id', 'api.store.service.Service/chatHistory');
+ 23:         Route::get('list', 'api.store.service.Service/getList');
+ 24:         Route::get('mer_history/:merId/:id', 'api.store.service.Service/serviceHistory');
+ 25:         Route::get('user_list/:merId', 'api.store.service.Service/serviceUserList');
+ 26:         //客服扫码登录
+ 27:         Route::post('scan_login/:key', 'api.store.service.Service/scanLogin');
+ 28:         Route::get('user/:merId/:uid', 'api.store.service.Service/user');
+ 29:         Route::post('mark/:merId/:uid', 'api.store.service.Service/mark');
+ 30:     });
+ 31: 
+ 32:     //客服商品管理
+ 33:     Route::group('server/:merId', function () {
+ 34:         /*
+ 35:          * 商品管理
+ 36:          */
+ 37:         //添加
+ 38:         Route::post('product/create', 'StoreProduct/create');
+ 39:         //编辑
+ 40:         Route::post('product/update/:id', 'StoreProduct/update');
+ 41:         Route::get('product/detail/:id', 'StoreProduct/detail');
+ 42:         Route::post('product/delete/:id', 'StoreProduct/delete');
+ 43:         Route::post('product/status/:id', 'StoreProduct/switchStatus');
+ 44:         Route::get('product/lst', 'StoreProduct/lst');
+ 45:         Route::get('product/title', 'StoreProduct/title');
+ 46:         Route::post('product/restore/:id', 'StoreProduct/restore');
+ 47:         Route::post('product/destory/:id', 'StoreProduct/destory');
+ 48:         Route::post('product/good/:id', 'StoreProduct/updateGood');
+ 49:         Route::get('product/config', 'StoreProduct/config');
+ 50:         //修改分类
+ 51:         Route::post('product/edit_cate/:id', 'StoreProduct/editCate');
+ 52:         Route::post('product/edit_mer_cate/:id', 'StoreProduct/editMerCate');
+ 53:         Route::get('product/value/:id', 'StoreProduct/getValue');
+ 54:         Route::post('product/value/:id', 'StoreProduct/setValue');
+ 55: 
+ 56: 
+ 57:         //商品分类
+ 58:         Route::get('category/lst', 'StoreCategory/lst');
+ 59:         Route::post('category/create', 'StoreCategory/create');
+ 60:         Route::post('category/update/:id', 'StoreCategory/update');
+ 61:         Route::get('category/detail/:id', 'StoreCategory/detail');
+ 62:         Route::post('category/status/:id', 'StoreCategory/switchStatus');
+ 63:         Route::post('category/delete/:id', 'StoreCategory/delete');
+ 64:         Route::get('category/list', 'StoreCategory/getList');
+ 65:         Route::get('category/select', 'StoreCategory/getTreeList');
+ 66:         Route::get('category/brandlist', 'StoreCategory/BrandList');
+ 67: 
+ 68:         //运费模板
+ 69:         Route::get('template/lst', 'ShippingTemplate/lst');
+ 70:         Route::post('template/create', 'ShippingTemplate/create');
+ 71:         Route::post('template/update/:id', 'ShippingTemplate/update');
+ 72:         Route::get('template/select', 'ShippingTemplate/getList');
+ 73:         Route::get('template/detail/:id', 'ShippingTemplate/detail');
+ 74:         Route::post('template/delete', 'ShippingTemplate/batchDelete');
+ 75: 
+ 76:         //品牌管理
+ 77:         Route::get('attr/lst', 'StoreProductAttrTemplate/lst');
+ 78:         Route::post('attr/create', 'StoreProductAttrTemplate/create');
+ 79:         Route::post('attr/update/:id', 'StoreProductAttrTemplate/update');
+ 80:         Route::get('attr/detail/:id', 'StoreProductAttrTemplate/detail');
+ 81:         Route::post('attr/delete', 'StoreProductAttrTemplate/batchDelete');
+ 82:         Route::get('attr/detail/:id', 'StoreProductAttrTemplate/detail');
+ 83:         Route::get('attr/list', 'StoreProductAttrTemplate/getlist');
+ 84:     })->prefix('api.server.')->middleware(MerchantServerMiddleware::class, ['reqire' => true,'auth' => 1]);
+ 85: 
+ 86:     Route::group(function () {
+ 87:         //管理员订单
+ 88:         Route::group('admin/:merId', function () {
+ 89:             Route::get('/statistics', '/orderStatistics');
+ 90:             Route::get('/order_price', '/orderDetail');
+ 91:             Route::get('/order_list', '/orderList');
+ 92:             Route::get('/order/:id', '/order');
+ 93:             Route::post('/mark/:id', '/mark');
+ 94:             Route::post('/price/:id', '/price');
+ 95:             Route::post('/delivery/:id', '/delivery');
+ 96:             Route::post('/verify/:id', '/verify');
+ 97:             Route::get('/pay_price', '/payPrice');
+ 98:             Route::get('/pay_number', '/payNumber');
+ 99:             Route::get('/mer_form', '/getFormData');
+100:             Route::get('/dump_temp', '/getFormData');
+101:             Route::get('/delivery_config', '/getDeliveryConfig');
+102:             Route::get('/delivery_options', '/getDeliveryOptions');
+103:             Route::get('/delivery/options', '/options');
+104:             // 预约
+105:             Route::group('reservation', function () {
+106:                 Route::get('staffs','/staffList');
+107:                 Route::post('dispatch/:id', '/reservationDispatch');
+108:                 Route::post('updateDispatch/:id', '/reservationUpdateDispatch');
+109:                 Route::post('reschedule/:id', '/reservationReschedule');
+110:                 Route::post('verify/:id', '/reservationVerify');
+111:                 Route::get('config', '/reservationConfig');
+112:             });
+113:             // 同城配送
+114:             Route::group('delivery', function () {
+115:                 Route::get('person','/deliveryPersonList');
+116:                 Route::post('dispatch/:id', '/deliveryDispatch');
+117:                 Route::post('updateDispatch/:id', '/deliveryUpdateDispatch');
+118:                 Route::post('confirm/:id', '/deliveryConfirm');
+119:             });
+120:         })->prefix('api.server.StoreOrder');
+121:         //管理员退款单
+122:         Route::group('server/:merId/refund', function () {
+123:             //退款单
+124:             Route::get('check/:id', '/check');
+125:             Route::post('create', '/create');
+126:             Route::post('compute', '/compute');
+127:             Route::get('lst', '/lst');
+128:             Route::get('detail/:id', '/detail');
+129:             Route::get('get/:id', '/getRefundPrice');
+130:             Route::post('confirm/:id', '/refundPrice');
+131:             Route::get('express/:id', '/express');
+132:             Route::post('status/:id', '/switchStatus');
+133:             Route::post('mark/:id', '/mark');
+134:         })->prefix('api.server.StoreRefundOrder');
+135: 
+136:     })->middleware(MerchantServerMiddleware::class, ['reqire' => true,'auth' => 0]);
+137: 
+138:     Route::group(function () {
+139:         //核销订单
+140:         Route::group('verifier/:merId', function () {
+141:             Route::get('order/:id', '/detail');
+142:             Route::post(':id', '/verify');
+143:         })->prefix('api.store.order.StoreOrderVerify');
+144:     })->middleware(MerchantServerMiddleware::class, ['reqire' => false,'auth' => 0],['reqire' => false]);
+145: 
+146:     Route::group(function () {
+147:         Route::group('staffs/', function () {
+148:             Route::get('order_lst', '/order_lst');
+149:             Route::get('order/:id', '/orderDetail');
+150:             Route::post('order/:id/dispatch', '/reservationDispatch');
+151:             Route::post('order/:id/verifier', '/verify');
+152:             Route::post('order/:id/check', '/checkIn');
+153:             Route::post('order/:id/trace', '/addTrace');
+154:             Route::post('order/:id/mark', '/mark');
+155:             Route::get('reservation/config', '/reservationConfig');
+156:         })->prefix('api.store.service.Staffs');
+157:     })->middleware(MerchantServerMiddleware::class, [],['reqire' => true]);
+158: 
+159:     Route::group(function () {
+160:         Route::group('delivery/', function () {
+161:             Route::get('order_lst', '/order_lst')->name('deliveryOrderLst');
+162:             Route::get('order/:id', '/orderDetail')->name('deliveryOrderDetail');
+163:             Route::post('order/:id/receive', '/receive');
+164:             Route::post('order/:id/confirm', '/confirm');
+165:             Route::post('order/:id/mark', '/mark');
+166:         })->prefix('api.store.service.Delivery');
+167:     })->middleware(MerchantServerMiddleware::class, [],[],['reqire' => true]);
+168: 
+169: })->middleware(AllowOriginMiddleware::class)
+170:     ->middleware(UserTokenMiddleware::class,true);
+</file>
+
+<file path="route/merchant.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: use app\common\middleware\AllowOriginMiddleware;
+14: use app\common\middleware\CheckSiteOpenMiddleware;
+15: use app\common\middleware\InstallMiddleware;
+16: use think\facade\Route;
+17: use app\common\middleware\RequestLockMiddleware;
+18: 
+19: Route::group(config('admin.merchant_prefix'), function () {
+20:     Route::miss(function () {
+21:         $DB = DIRECTORY_SEPARATOR;
+22:         return view(app()->getRootPath() . 'public' . $DB . 'mer.html');
+23:     });
+24: })->middleware(InstallMiddleware::class)
+25:     ->middleware(CheckSiteOpenMiddleware::class);
+26: 
+27: Route::group(config('admin.api_merchant_prefix') . '/', function () {
+28:     $path = $this->app->getRootPath() . 'route' . DIRECTORY_SEPARATOR.'merchant';
+29:     $files = scandir($path);
+30:     foreach ($files as $file) {
+31:         if($file != '.' && $file != '..'){
+32:             include $path . DIRECTORY_SEPARATOR . $file;
+33:         }
+34:     }
+35:     Route::miss(function () {
+36:         return app('json')->fail('接口不存在');
+37:     })->middleware(AllowOriginMiddleware::class);
+38: })
+39:     ->option([
+40:         '_lock' => true
+41:     ])
+42:     ->middleware(InstallMiddleware::class)
+43:     ->middleware(CheckSiteOpenMiddleware::class)
+44:     ->middleware(RequestLockMiddleware::class);
+</file>
+
+<file path="route/openapi.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: use app\common\middleware\AdminAuthMiddleware;
+13: use app\common\middleware\AdminTokenMiddleware;
+14: use app\common\middleware\AllowOriginMiddleware;
+15: use app\common\middleware\InstallMiddleware;
+16: use app\common\middleware\LogMiddleware;
+17: use app\common\middleware\RequestLockMiddleware;
+18: use think\facade\Route;
+19: 
+20: Route::group(config('admin.api_openapi_prefix') . '/', function () {
+21: 
+22:     $path = $this->app->getRootPath() . 'route' . DIRECTORY_SEPARATOR.'openapi';
+23:     $files = scandir($path);
+24:     foreach ($files as $file) {
+25:         if($file != '.' && $file != '..'){
+26:             include $path . DIRECTORY_SEPARATOR . $file;
+27:         }
+28:     }
+29:         Route::miss(function () {
+30:         return app('json')->fail('接口不存在');
+31:     })->middleware(AllowOriginMiddleware::class);
+32: 
+33: })
+34:     ->option([
+35:         '_lock' => false
+36:     ])
+37:     ->middleware(InstallMiddleware::class)
+38:     ->middleware(RequestLockMiddleware::class);
+</file>
+
+<file path="route/service.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: use app\common\middleware\AllowOriginMiddleware;
+13: use app\common\middleware\ServiceTokenMiddleware;
+14: use think\facade\Route;
+15: 
+16: Route::group(config('admin.api_service_prefix'), function () {
+17: 
+18:     //验证码
+19:     Route::get('captcha', 'service.Login/getCaptcha');
+20:     Route::get('config', 'service.Common/config');
+21:     //登录
+22:     Route::post('login', 'service.Login/login');
+23:     //扫码登录
+24:     Route::post('login/scan', 'service.Login/scanLogin');
+25:     //登录
+26:     Route::post('login/scan/check', 'service.Login/checkScanLogin');
+27: 
+28:     Route::group(function () {
+29:         //退出登录
+30:         Route::post('logout', 'service.Login/logout');
+31:         //商户信息
+32:         Route::get('info', 'service.Common/info');
+33:         //用户聊天列表
+34:         Route::get('user/lst', 'service.Service/serviceUserList');
+35:         //用户备注
+36:         Route::post('user/mark/:uid', 'service.Service/mark');
+37:         //聊天记录
+38:         Route::get('history/:uid', 'service.Service/history');
+39:         //用户信息
+40:         Route::get('user', 'service.Common/user');
+41:         //图片上传
+42:         Route::post('upload/:field', 'service.Service/upload');
+43:         //订单信息
+44:         Route::get('order/:id', 'service.Service/getOrderInfo');
+45: 
+46:         Route::get('order_status/:id', 'service.Service/orderStatus');
+47:         //退款单信息
+48:         Route::get('refund/:id', 'service.Service/getRefundOder');
+49:         //快递
+50:         Route::get('order_express/:id', 'service.Service/orderExpress');
+51:         //快递
+52:         Route::get('refund_express/:id', 'service.Service/refundOrderExpress');
+53:         //商品
+54:         Route::get('product/:id', 'service.Service/product');
+55: 
+56:     })->middleware(ServiceTokenMiddleware::class, true);
+57: 
+58: })->middleware(AllowOriginMiddleware::class);
+</file>
+
+</files>

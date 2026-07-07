@@ -1,0 +1,245 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: **/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+AdminException.php
+AuthException.php
+SmsException.php
+UploadException.php
+UploadFailException.php
+WechatException.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="AdminException.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: namespace crmeb\exceptions;
+13: 
+14: /**
+15:  * Class AuthException
+16:  * @package crmeb\exceptions
+17:  */
+18: class AdminException extends \RuntimeException
+19: {
+20: //    public function __construct($message, $replace = [], $code = 0, \Throwable $previous = null)
+21: //    {
+22: //        if (is_array($message)) {
+23: //            $errInfo = $message;
+24: //            $message = $errInfo[1] ?? '未知错误';
+25: //            if ($code === 0) {
+26: //                $code = $errInfo[0] ?? 400;
+27: //            }
+28: //        }
+29: //
+30: //        if (is_numeric($message)) {
+31: //            $code = $message;
+32: //            $message = getLang($message, $replace);
+33: //        }
+34: //
+35: //        parent::__construct($message, $code, $previous);
+36: //    }
+37: }
+</file>
+
+<file path="AuthException.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\exceptions;
+15: 
+16: 
+17: use think\exception\HttpResponseException;
+18: 
+19: class AuthException extends HttpResponseException
+20: {
+21:     public function __construct($message, $code = 40000)
+22:     {
+23:         parent::__construct(app('json')->make($code, $message));
+24:     }
+25: }
+</file>
+
+<file path="SmsException.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\exceptions;
+15: 
+16: 
+17: use Throwable;
+18: 
+19: class SmsException extends \Exception
+20: {
+21: 
+22: }
+</file>
+
+<file path="UploadException.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: 
+14: namespace crmeb\exceptions;
+15: 
+16: 
+17: use Throwable;
+18: 
+19: /**
+20:  * Class AuthException
+21:  * @package crmeb\exceptions
+22:  */
+23: class UploadException extends \RuntimeException
+24: {
+25:     public function __construct($message = "", $code = 0, Throwable $previous = null)
+26:     {
+27:         if (is_array($message)) {
+28:             $errInfo = $message;
+29:             $message = $errInfo[1] ?? '未知错误';
+30:             $code = $errInfo[0] ?? 400;
+31:         }
+32: 
+33:         parent::__construct($message, $code, $previous);
+34:     }
+35: }
+</file>
+
+<file path="UploadFailException.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\exceptions;
+15: 
+16: 
+17: use think\exception\HttpResponseException;
+18: 
+19: class UploadFailException extends HttpResponseException
+20: {
+21: 
+22:     public function __construct($message = '附件上传失败')
+23:     {
+24:         parent::__construct(app('json')->fail($message));
+25:     }
+26: }
+</file>
+
+<file path="WechatException.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\exceptions;
+15: 
+16: 
+17: use think\exception\HttpResponseException;
+18: use think\exception\ValidateException;
+19: use think\Response;
+20: 
+21: class WechatException extends ValidateException
+22: {
+23: }
+</file>
+
+</files>

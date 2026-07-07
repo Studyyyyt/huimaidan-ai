@@ -1,0 +1,10 @@
+allowBuilds:
+  core-js: set this to true or false
+  core-js-pure: set this to true or false
+  cos-js-sdk-v5: set this to true or false
+  deasync: set this to true or false
+  ejs: set this to true or false
+  fsevents: set this to true or false
+  husky: set this to true or false
+  swiper: set this to true or false
+  yorkie: set this to true or false

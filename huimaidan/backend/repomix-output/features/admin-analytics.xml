@@ -1,0 +1,2712 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: app/controller/admin/analytics/**/*.php, route/admin/analytics.php, app/common/repositories/analytics/**/*.php, app/common/dao/analytics/**/*.php, app/common/model/analytics/**/*.php, app/validate/admin/*Analytics*.php, crmeb/services/analytics/**/*.php, app/common/repositories/system/CountRepository.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/common/repositories/analytics/OrderAnalyticsRepository.php
+app/common/repositories/analytics/ProductAnalyticsRepository.php
+app/common/repositories/analytics/UserAnalyticsRepository.php
+app/common/repositories/system/CountRepository.php
+app/controller/admin/analytics/StoreOrder.php
+app/controller/admin/analytics/StoreProduct.php
+app/controller/admin/analytics/User.php
+route/admin/analytics.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/common/repositories/analytics/OrderAnalyticsRepository.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: namespace app\common\repositories\analytics;
+ 13: 
+ 14: use think\facade\Db;
+ 15: use think\facade\Cache;
+ 16: use crmeb\services\CacheService;
+ 17: use app\common\dao\store\order\StoreOrderDao;
+ 18: use app\common\repositories\BaseRepository;
+ 19: use app\common\repositories\user\UserVisitRepository;
+ 20: use app\common\repositories\user\UserRelationRepository;
+ 21: use app\common\repositories\store\order\StoreCartRepository;
+ 22: use app\common\repositories\store\order\StoreOrderRepository;
+ 23: use app\common\repositories\store\order\StoreRefundOrderRepository;
+ 24: 
+ 25: /**
+ 26:  * 订单
+ 27:  */
+ 28: class orderAnalyticsRepository extends BaseRepository
+ 29: {
+ 30: 
+ 31:     public static $formatMap = [
+ 32:         'week' => '%m-%d',    // 按日期
+ 33:         'month' => '%d',   // 按日期
+ 34:         'year' => '%m',       // 按年月
+ 35:         'quarter' => '%m',    // 按年月
+ 36:         'lately7' => '%m-%d', // 按日期
+ 37:         'lately30' => '%m-%d' // 按日期
+ 38:     ];
+ 39: 
+ 40:     /**
+ 41:      * StoreOrderRepository constructor.
+ 42:      * @param StoreOrderDao $dao
+ 43:      */
+ 44:     public function __construct(StoreOrderDao $dao)
+ 45:     {
+ 46:         $this->dao = $dao;
+ 47:     }
+ 48: 
+ 49: 
+ 50:     const CACHA_TIME = 120;
+ 51:     /**
+ 52:      * 订单实付金额
+ 53:      * 用券金额
+ 54:      * 退款金额
+ 55:      * 支付订单数
+ 56:      * 退款订单数
+ 57:      */
+ 58:     public function top($date, $merId = '')
+ 59:     {
+ 60:         $adminId = app('request')->adminId() ?: '';
+ 61:         [$cacheky, $cacheTags] = CacheService::setWithTags(
+ 62:             CacheService::ANALYTICS_ORDER_TOP,
+ 63:             compact('merId','date', 'adminId')
+ 64:         );
+ 65: 
+ 66:         return Cache::tag($cacheTags)->remember($cacheky, function () use ($date, $merId) {
+ 67:             $merId = $merId ? : '';
+ 68:             $query = $this->dao->search(['date' => $date, 'mer_id' => $merId, 'paid' => 1]);
+ 69:             $momQuery = $this->dao->search(['mom_date' => $date, 'mer_id' => $merId, 'paid' => 1]);
+ 70:             //支付订单数 & 环比
+ 71:             $payOrderNum = $query->count();
+ 72:             $momPayOrderNum = $momQuery->count();
+ 73: 
+ 74:             //订单实付金额
+ 75:             $payMoney = $query->sum('pay_price');
+ 76:             $momPayMoney = $momQuery->sum('pay_price');
+ 77: 
+ 78:             //用券金额
+ 79:             $couponMoney = $query
+ 80:                 ->where(function($query){
+ 81:                     $query->where('coupon_price','>',0)->whereOr('platform_coupon_price > 0');
+ 82:                 })
+ 83:                 ->sum(Db::raw('platform_coupon_price + coupon_price'));
+ 84: 
+ 85:             $momCouponMoney = $momQuery
+ 86:                 ->where(function($query){
+ 87:                     $query->where('coupon_price','>',0)->whereOr('platform_coupon_price > 0');
+ 88:                 })
+ 89:                 ->sum(Db::raw('platform_coupon_price + coupon_price'));
+ 90: 
+ 91: 
+ 92:             $refundOrderRepository = app()->make(StoreRefundOrderRepository::class);
+ 93:             $refundQuery = $refundOrderRepository->search(['date' => $date, 'mer_id' => $merId]);
+ 94:             $momRefundQuery = $refundOrderRepository->search(['mom_date' => $date, 'mer_id' => $merId]);
+ 95: 
+ 96:             //退款金额
+ 97:             $refundMoney = $refundQuery->where('StoreRefundOrder.status',3)->sum('refund_price');
+ 98:             $momRefundMoney = $momRefundQuery->where('StoreRefundOrder.status',3)->sum('refund_price');
+ 99:             //退款订单数
+100:             $refundOrderNum = $refundQuery->where('StoreRefundOrder.status','<>',-1)->count();
+101:             $momRefundOrderNum = $momRefundQuery->where('StoreRefundOrder.status','<>',-1)->count();
+102:             $redata = [
+103:                 [
+104:                     'title' => "支付订单数",
+105:                     'count' => $payOrderNum,
+106:                     'mom'   => $momPayOrderNum,
+107:                     'statistic' => growthRate($payOrderNum,$momPayOrderNum)
+108:                 ],
+109:                 [
+110:                     'title' => "订单实付金额",
+111:                     'count' => $payMoney,
+112:                     'mom'   => $momPayMoney,
+113:                     'statistic' => growthRate($payMoney,$momPayMoney)
+114:                 ],
+115:                 [
+116:                     'title' => "用券金额",
+117:                     'count' => $couponMoney,
+118:                     'mom'   => $momCouponMoney,
+119:                     'statistic' => growthRate($couponMoney,$momCouponMoney)
+120:                 ],
+121:                 [
+122:                     'title' => "退款金额",
+123:                     'count' => $refundMoney,
+124:                     'mom'   => $momRefundMoney,
+125:                     'statistic' => growthRate($refundMoney,$momRefundMoney)
+126:                 ],
+127:                 [
+128:                     'title' => "退款订单数",
+129:                     'count' => $refundOrderNum,
+130:                     'mom'   => $momRefundOrderNum,
+131:                     'statistic' => growthRate($refundOrderNum,$momRefundOrderNum)
+132:                 ],
+133:             ];
+134:             return $redata;
+135:         },self::CACHA_TIME);
+136:     }
+137: 
+138: 
+139:     public function lineChart($date = '', $merId = '')
+140:     {
+141:         $adminId = app('request')->adminId() ?: '';
+142:         [$cacheky, $cacheTags] = CacheService::setWithTags(
+143:             CacheService::ANALYTICS_ORDER_LINE_CHART,
+144:             compact('merId','date', 'adminId')
+145:         );
+146: 
+147:         return Cache::tag($cacheTags)->remember($cacheky, function () use ($date, $merId) {
+148:             $merId = $merId ? : '';
+149:             [$dates, $customFormat] = getStepLength($date);
+150:             $format = $customFormat ? $customFormat : self::$formatMap[$date] ?? '%m-%d';
+151: 
+152:             $field = Db::raw("from_unixtime(unix_timestamp(StoreOrder.create_time),'{$format}') as month,sum(pay_price) as pay_price,count(*) as order_num");
+153:             $res = $this->dao->search(['date' => $date, 'mer_id' => $merId, 'paid' => 1])
+154:                 ->field($field)
+155:                 ->group("month")
+156:                 ->select()->toArray();
+157:             $field = Db::raw("from_unixtime(unix_timestamp(StoreRefundOrder.create_time),'{$format}') as month,sum(refund_price) as refund_price,count(*) as refund_num");
+158:             $refundOrderRepository = app()->make(StoreRefundOrderRepository::class);
+159:             $refundRes = $refundOrderRepository->search(['date' => $date, 'mer_id' => $merId])
+160:                 ->field($field)
+161:                 ->group("month")
+162:                 ->select()->toArray();
+163:             $data = [];
+164:             foreach ($res as $re) {
+165:                 $data[$re['month']] = ['xaxis' => $re['month'], 'pay_price' => $re['pay_price'], 'order_num' => $re['order_num'],];
+166:             }
+167:             foreach ($refundRes as $re) {
+168:                 if (isset($data[$re['month']])){
+169:                     $data[$re['month']]['refund_price'] = $re['refund_price'];
+170:                     $data[$re['month']]['refund_num'] = $re['refund_num'];
+171:                 } else {
+172:                     $data[$re['month']] = [
+173:                         'xaxis' => $re['month'],
+174:                         'pay_price' => 0,
+175:                         'order_num'=> 0,
+176:                         'refund_price' =>$re['refund_price'],
+177:                         'refund_num' => $re['refund_num'],
+178:                     ];
+179:                 }
+180:             }
+181:             $redata =  [];
+182:             foreach ($dates as $mo) {
+183:                 $redata[] = isset($data[$mo]) ? $data[$mo] : [
+184:                     'xaxis' => $mo,
+185:                     'pay_price' => 0,
+186:                     'order_num'=> 0,
+187:                     'refund_price' => 0,
+188:                     'refund_num' => 0,
+189:                 ];
+190:             }
+191:             return $redata;
+192:         }, self::CACHA_TIME);
+193:     }
+194: 
+195:     public function typePieCahrt($date = '', $merId = '')
+196:     {
+197:         /**
+198:          * 获取订单数量
+199:          * 发货类型(1:发货 2: 送货 3: 虚拟,4电子面单，5同城 6 卡密自动发货)
+200:          */
+201:         $adminId = app('request')->adminId() ?: '';
+202:         [$cacheky, $cacheTags] = CacheService::setWithTags(
+203:             CacheService::ANALYTICS_ORDER_DELIVER_PIE,
+204:             compact('merId','date', 'adminId')
+205:         );
+206:         return Cache::tag($cacheTags)->remember($cacheky, function () use ($date, $merId) {
+207:             $merId = $merId ? : '';
+208:         //1 快递 2 配送 3 虚拟
+209:         //按发货方式：1快递订单、2配送订单、4核销订单、3虚拟发货、6自动发货
+210:             $where = ['date' => $date, 'mer_id' => $merId, 'paid' => 1];
+211:             $count1 = $this->dao->search($where + ['filter_delivery' => 1])->count('*');
+212:             $count2 = $this->dao->search($where + ['filter_delivery' => 2])->count('*');
+213:             $count3 = $this->dao->search($where + ['filter_delivery' => 3])->count('*');
+214:             $count4 = $this->dao->search($where + ['filter_delivery' => 4])->count('*');
+215:             $count5 = $this->dao->search($where + ['filter_delivery' => 5])->count('*');
+216: 
+217:             return [
+218:                 ['name' => '快递发货', 'value' => $count1,],
+219:                 ['name' => '配送订单', 'value' => $count2,],
+220:                 ['name' => '虚拟发货', 'value' => $count3,],
+221:                 ['name' => '核销订单', 'value' => $count4,],
+222:                 ['name' => '自动发货', 'value' => $count5,],
+223:             ];
+224:         }, self::CACHA_TIME);
+225:     }
+226: 
+227:     public function delivePieCahrt($date = '', $merId = '')
+228:     {
+229:         /**
+230:          * 获取订单数量
+231:          * 普通、秒杀、预售、砍价、拼团、积分、套餐、新人
+232:          */
+233:         $adminId = app('request')->adminId() ?: '';
+234:         [$cacheky, $cacheTags] = CacheService::setWithTags(
+235:             CacheService::ANALYTICS_ORDER_TYPE_PIE,
+236:             compact('merId','date', 'adminId')
+237:         );
+238:         return Cache::tag($cacheTags)->remember($cacheky, function () use ($date, $merId) {
+239:             $merId = $merId ? : '';
+240:             $query = $this->dao->search(['date' => $date, 'mer_id' => $merId, 'paid' => 1]);
+241:             $count = $query->where('activity_type',0)->count('*');
+242:             $count1 = $query->where('activity_type',1)->count('*');
+243:             $count2 = $query->where('activity_type',2)->count('*');
+244:             $count3 = $query->where('activity_type',3)->count('*');
+245:             $count4 = $query->where('activity_type',4)->count('*');
+246:             $count10 = $query->where('activity_type',10)->count('*');
+247:             $countfirst = $this->dao->joinGroupOrder(['date' => $date, 'mer_id' => $merId, 'is_first' => 1])
+248:                 ->field('StoreOrder.*')
+249:                 ->count();
+250:             $count20 = $this->dao->joinGroupOrder(['date' => $date, 'mer_id' => $merId,])
+251:                 ->where('StoreOrder.activity_type',20)
+252:                 ->count('*');
+253: 
+254:             return [
+255:                 ['name' => '普通订单', 'value' => $count, ],
+256:                 ['name' => '秒杀订单', 'value' => $count1,],
+257:                 ['name' => '预售订单', 'value' => $count2,],
+258:                 ['name' => '砍价订单', 'value' => $count3,],
+259:                 ['name' => '拼团订单', 'value' => $count4,],
+260:                 ['name' => '积分订单', 'value' => $count20,],
+261:                 ['name' => '套餐订单', 'value' => $count10,],
+262:                 ['name' => '新人首单', 'value' => $countfirst,]
+263:             ];
+264:         }, self::CACHA_TIME);
+265:     }
+266: 
+267: 
+268: }
+</file>
+
+<file path="app/common/repositories/analytics/ProductAnalyticsRepository.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: namespace app\common\repositories\analytics;
+ 13: 
+ 14: use think\facade\Db;
+ 15: use think\facade\Cache;
+ 16: use crmeb\services\CacheService;
+ 17: use app\common\dao\store\product\ProductDao;
+ 18: use app\common\dao\store\order\StoreOrderDao;
+ 19: use app\common\repositories\BaseRepository;
+ 20: use app\common\repositories\user\UserVisitRepository;
+ 21: use app\common\repositories\user\UserRelationRepository;
+ 22: use app\common\repositories\store\order\StoreCartRepository;
+ 23: use app\common\repositories\store\order\StoreOrderRepository;
+ 24: use app\common\repositories\store\order\StoreRefundOrderRepository;
+ 25: 
+ 26: /**
+ 27:  * 订单
+ 28:  */
+ 29: class productAnalyticsRepository extends BaseRepository
+ 30: {
+ 31:     /**
+ 32:      * StoreOrderRepository constructor.
+ 33:      * @param StoreOrderDao $dao
+ 34:      */
+ 35:     public function __construct(ProductDao $dao)
+ 36:     {
+ 37:         $this->dao = $dao;
+ 38:     }
+ 39: 
+ 40: 
+ 41:     public static $formatMap = [
+ 42:         'week' => '%m-%d',    // 按日期
+ 43:         'month' => '%d',   // 按日期
+ 44:         'year' => '%m',       // 按年月
+ 45:         'quarter' => '%m',    // 按年月
+ 46:         'lately7' => '%m-%d', // 按日期
+ 47:         'lately30' => '%m-%d' // 按日期
+ 48:     ];
+ 49: 
+ 50:     const CACHA_TIME = 120;
+ 51: 
+ 52:     public function top($date, $merId = '')
+ 53:     {
+ 54:         $adminId = app('request')->adminId() ?: '';
+ 55:         [$cacheky, $cacheTags] = CacheService::setWithTags(
+ 56:             CacheService::ANALYTICS_PRODUCT_TOP,
+ 57:             compact('merId','date', 'adminId')
+ 58:         );
+ 59:         return Cache::tag($cacheTags)->remember($cacheky, function () use ($date, $merId) {
+ 60:             $merId = $merId ? : '';
+ 61:             $userVisitRepository = app()->make(UserVisitRepository::class);
+ 62:             $storeCartRepository = app()->make(StoreCartRepository::class);
+ 63:             $storeOrderRepository = app()->make(StoreOrderRepository::class);
+ 64:             $userRelationRepository = app()->make(UserRelationRepository::class);
+ 65:             $storeRefundOrderRepository = app()->make(StoreRefundOrderRepository::class);
+ 66: 
+ 67:             $visit = $userVisitRepository->search(['type' => 'product', 'date' => $date, 'mer_id' => $merId,])->count();
+ 68:             $mom_visit = $userVisitRepository->search(['type' => 'product', 'mom_date' => $date, 'mer_id' => $merId,])
+ 69:                 ->count();
+ 70: 
+ 71:             $relation = $userRelationRepository->getSearch(['type' => 1,'date' => $date])->count();
+ 72:             $mom_relation = $userRelationRepository->getSearch(['type' => 1,'mom_date' => $date])->count();
+ 73: 
+ 74:             $cart_num = $storeCartRepository->getSearch(['date' => $date,'is_pay' => 0, 'is_new' => 0,'is_fail' =>
+ 75:                 0])->sum('cart_num');
+ 76:             $mom_cart_num = $storeCartRepository->getSearch(['mom_date' => $date,'is_pay' => 0, 'is_new' => 0,'is_fail' =>
+ 77:                 0])->sum('cart_num');
+ 78: 
+ 79:             $total_num = $storeOrderRepository->search(['date' => $date, 'mer_id' => $merId])->sum('total_num');
+ 80:             $mom_total_num = $storeOrderRepository->search(['mom_date' => $date, 'mer_id' => $merId])->sum('total_num');
+ 81: 
+ 82:             $paid_num  = $storeOrderRepository->search(['date' => $date, 'mer_id' => $merId, 'paid' => 1])->sum('total_num');
+ 83:             $mom_paid_num  = $storeOrderRepository->search(['mom_date' => $date, 'mer_id' => $merId, 'paid' => 1])->sum('total_num');
+ 84: 
+ 85:             $refund_num = $storeRefundOrderRepository->search(['date' => $date, 'mer_id' => $merId])->sum('refund_num');
+ 86:             $mom_refund_num = $storeRefundOrderRepository->search(['mom_date' => $date, 'mer_id' => $merId])->sum('refund_num');
+ 87:             $redata = [
+ 88:                 [
+ 89:                     'title' => "浏览量",
+ 90:                     'count' => $visit,
+ 91:                     'mom'   => $mom_visit,
+ 92:                     'statistic' => growthRate($visit,$mom_visit)
+ 93:                 ],
+ 94:                 [
+ 95:                     'title' => "收藏量",
+ 96:                     'count' => $relation,
+ 97:                     'mom'   => $mom_relation,
+ 98:                     'statistic' => growthRate($relation,$mom_relation)
+ 99:                 ],
+100:                 [
+101:                     'title' => "加购数",
+102:                     'count' => $cart_num,
+103:                     'mom'   => $mom_cart_num,
+104:                     'statistic' => growthRate($cart_num,$mom_cart_num)
+105:                 ],
+106:                 [
+107:                     'title' => "下单数",
+108:                     'count' => $total_num,
+109:                     'mom'   => $mom_total_num,
+110:                     'statistic' => growthRate($total_num,$mom_total_num)
+111:                 ],
+112:                 [
+113:                     'title' => "支付数",
+114:                     'count' => $paid_num,
+115:                     'mom'   => $mom_paid_num,
+116:                     'statistic' => growthRate($paid_num,$mom_paid_num)
+117:                 ],
+118:                 [
+119:                     'title' => "退款数",
+120:                     'count' => $refund_num,
+121:                     'mom'   => $mom_refund_num,
+122:                     'statistic' => growthRate($refund_num,$mom_refund_num)
+123:                 ],
+124:             ];
+125:             return $redata;
+126:         }, self::CACHA_TIME);
+127:     }
+128: 
+129:     public function lineChart($date = '', $merId = '')
+130:     {
+131:         $adminId = app('request')->adminId() ?: '';
+132:         [$cacheky, $cacheTags] = CacheService::setWithTags(
+133:             CacheService::ANALYTICS_PRODUCT_LINE_CHART,
+134:             compact('merId','date', 'adminId')
+135:         );
+136:         return Cache::tag($cacheTags)->remember($cacheky, function () use ($date, $merId) {
+137:             $merId = $merId ? : '';
+138:             [$dates, $customFormat] = getStepLength($date);
+139:             $redata =  [];
+140:             foreach ($dates as $mo) {
+141:                 $redata[$mo] = [
+142:                     'xaxis' => $mo,
+143:                     'visit' => 0, //浏览量
+144:                     'relation'=> 0, //收藏量
+145:                     'total_num' => 0, //下单量
+146:                     'paid_num' => 0, //支付量
+147:                 ];
+148:             }
+149:             $format = $customFormat ? $customFormat : self::$formatMap[$date] ?? '%m-%d';
+150:             $this->getVisit($redata, $date, $format, $merId);
+151:             $this->getRelation($redata, $date, $format, $merId);
+152:             $this->getOrder($redata, $date, $format, $merId);
+153:             return array_values($redata);
+154:         }, self::CACHA_TIME);
+155:     }
+156: 
+157:     protected function getOrder(&$redata, $date, $format, $merId = '')
+158:     {
+159:         $storeOrderRepository = app()->make(StoreOrderRepository::class);
+160:         $field = Db::raw("from_unixtime(unix_timestamp(StoreOrder.create_time),'{$format}') as month,sum(total_num) as total_num");
+161:         $query = $storeOrderRepository->search(['date' => $date, 'mer_id' => $merId])->field($field);
+162: 
+163:         $res = $query->group("month")->select()->toArray();
+164:         foreach ($res as $re) {
+165:             if(isset( $redata[$re['month']])) {
+166:                 $redata[$re['month']]['total_num'] = (int)$re['total_num'];
+167:             }
+168:         }
+169: 
+170:         $ress = $query->where('paid',1)->group("month")->select()->toArray();
+171:         foreach ($ress as $rr) {
+172:             if(isset( $redata[$re['month']])) {
+173:                 $redata[$rr['month']]['paid_num'] = (int)$rr['total_num'];
+174:             }
+175:         }
+176:     }
+177: 
+178:     protected function getRelation(&$redata, $date, $format, $merId = '')
+179:     {
+180:         $userRelationRepository = app()->make(UserRelationRepository::class);
+181:         $field = Db::raw("from_unixtime(unix_timestamp(create_time),'{$format}') as month,count(*) as count");
+182:         $res = $userRelationRepository->getSearch(['type' => 1,'date' => $date])
+183:             ->field($field)
+184:             ->group("month")
+185:             ->select()->toArray();
+186:         foreach ($res as $re) {
+187:             if(isset( $redata[$re['month']])) {
+188:                 $redata[$re['month']]['relation'] = $re['count'];
+189:             }
+190:         }
+191:     }
+192: 
+193:     protected function getVisit(&$redata, $date, $format, $merId = '')
+194:     {
+195:         $field = Db::raw("from_unixtime(unix_timestamp(UserVisit.create_time),'{$format}') as month,count(*) as count");
+196:         $userVisitRepository = app()->make(UserVisitRepository::class);
+197:         $res = $userVisitRepository->search(['type' => 'product', 'date' => $date, 'mer_id' => $merId,])
+198:             ->field($field)
+199:             ->group("month")
+200:             ->select()->toArray();
+201:         foreach ($res as $re) {
+202:             if(isset( $redata[$re['month']])) {
+203:                 $redata[$re['month']]['visit'] = $re['count'];
+204:             }
+205:         }
+206:     }
+207: 
+208:     public function catePieCahrt($merId = '')
+209:     {
+210:         $adminId = app('request')->adminId() ?: '';
+211:         [$cacheky, $cacheTags] = CacheService::setWithTags(
+212:             CacheService::ANALYTICS_PRODUCT_CATEGORY_CHART,
+213:             compact('merId', 'adminId')
+214:         );
+215: 
+216:         return Cache::tag($cacheTags)->remember($cacheky, function () use ($merId) {
+217:             $merId = $merId ? : '';
+218:             $field = Db::raw("count(*) as count,cate_id");
+219:             $query = $this->dao->getSearch([])->with(['storeCategory']);
+220:             // 分组权限
+221:             if (app('request')->hasMacro('regionAuthority') && $region = app('request')->regionAuthority()) {
+222:                 $query->whereIn('mer_id', $region);
+223:             }
+224:             $res = $query
+225:                 ->field($field)
+226:                 ->group('cate_id')
+227:                 ->order('count DESC')
+228:                 ->select()->toArray();
+229:             $redata = [];
+230:             foreach($res as $re) {
+231:                 if ($re['storeCategory']) {
+232:                     $redata[] = [
+233:                         'name' => $re['storeCategory']['cate_name'],
+234:                         'value' => $re['count']
+235:                     ];
+236:                 }
+237:             }
+238:             return $redata;
+239:         }, self::CACHA_TIME);
+240:     }
+241: 
+242: 
+243:     public function typePieCahrt($merId = '')
+244:     {
+245:         $adminId = app('request')->adminId() ?: '';
+246:         [$cacheky, $cacheTags] = CacheService::setWithTags(
+247:             CacheService::ANALYTICS_PRODUCT_TYPE_CHART,
+248:             compact('merId', 'adminId')
+249:         );
+250:         return Cache::tag($cacheTags)->remember($cacheky, function () use ($merId) {
+251:             $merId = $merId ? : '';
+252:             //0.实体商品，1.虚拟商品，2 网盘，3 卡密 4 预约商品
+253:             $nams = ['普通商品', '虚拟商品', '网盘商品', '卡密商品', '预约商品',];
+254:             $where = $merId ? ['mer_id' => $merId] : [];
+255:             $field = Db::raw("count(*) as count,type");
+256:             $query = $this->dao->getSearch($where);
+257:             // 分组权限
+258:             if (app('request')->hasMacro('regionAuthority') && $region = app('request')->regionAuthority()) {
+259:                 $query->whereIn('mer_id', $region);
+260:             }
+261:             $res = $query
+262:                 ->where('product_type',0)
+263:                 ->field($field)
+264:                 ->group('type')
+265:                 ->order('type ASC')
+266:                 ->select()->toArray();
+267:             $redata = [];
+268:             foreach($res as $re) {
+269:                 $redata[] = [
+270:                     'name' => $nams[$re['type']],
+271:                     'value' => $re['count']
+272:                 ];
+273:             }
+274:             return $redata;
+275:         }, self::CACHA_TIME);
+276:     }
+277: 
+278: }
+</file>
+
+<file path="app/common/repositories/analytics/UserAnalyticsRepository.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: namespace app\common\repositories\analytics;
+ 13: 
+ 14: use think\facade\Db;
+ 15: use think\facade\Cache;
+ 16: use crmeb\services\CacheService;
+ 17: use app\common\dao\user\UserDao;
+ 18: use app\common\dao\store\order\StoreOrderDao;
+ 19: use app\common\repositories\BaseRepository;
+ 20: use app\common\repositories\user\UserRepository;
+ 21: use app\common\repositories\user\UserVisitRepository;
+ 22: use app\common\repositories\user\UserOrderRepository;
+ 23: use app\common\repositories\user\UserRelationRepository;
+ 24: use app\common\repositories\store\order\StoreCartRepository;
+ 25: use app\common\repositories\store\order\StoreOrderRepository;
+ 26: use app\common\repositories\store\order\StoreGroupOrderRepository;
+ 27: use app\common\repositories\store\order\StoreRefundOrderRepository;
+ 28: 
+ 29: /**
+ 30:  * 订单
+ 31:  */
+ 32: class UserAnalyticsRepository extends BaseRepository
+ 33: {
+ 34: 
+ 35:     public static $formatMap = [
+ 36:         'week' => '%m-%d',    // 按日期
+ 37:         'month' => '%d',   // 按日期
+ 38:         'year' => '%m',       // 按年月
+ 39:         'quarter' => '%m',    // 按年月
+ 40:         'lately7' => '%m-%d', // 按日期
+ 41:         'lately30' => '%m-%d' // 按日期
+ 42:     ];
+ 43: 
+ 44:     /**
+ 45:      * StoreOrderRepository constructor.
+ 46:      * @param UserDao $dao
+ 47:      */
+ 48:     public function __construct(UserDao $dao)
+ 49:     {
+ 50:         $this->dao = $dao;
+ 51:     }
+ 52: 
+ 53: 
+ 54:     const CACHA_TIME = 120;
+ 55: 
+ 56:     public function top($date, $merId = '')
+ 57:     {
+ 58:         [$cacheky, $cacheTags] = CacheService::setWithTags(
+ 59:             CacheService::ANALYTICS_ORDER_TOP,
+ 60:             compact('merId','date')
+ 61:         );
+ 62:         /**
+ 63:          * 用户数量
+ 64:          * 新增用户
+ 65:          * 下单用户
+ 66:          * 活跃用户
+ 67:          * 付费会员
+ 68:          * 新增付费会员
+ 69:          */
+ 70:         return Cache::tag($cacheTags)->remember($cacheky, function () use ($date, $merId) {
+ 71: 
+ 72:             //用户数量
+ 73:             $count = $this->dao->search([])->count();
+ 74: 
+ 75:             //新增用户
+ 76:             $newCount = $this->dao->search(['date' => $date])->count();
+ 77:             $momNewCount = $this->dao->search(['mom_date' => $date])->count();
+ 78: 
+ 79:             //下单用户
+ 80:             $storeOrderRepository = app()->make(StoreGroupOrderRepository::class);
+ 81:             $paidCount = $storeOrderRepository->search(['date' => $date, 'paid' => 1], 0)->group('uid')->count();
+ 82:             $momPaidCount = $storeOrderRepository->search(['mom_date' => $date, 'paid' => 1], 0)->group('uid')->count();
+ 83: 
+ 84:             //活跃用户
+ 85:             $userVisitRepository = app()->make(UserVisitRepository::class);
+ 86:             $auCount = $userVisitRepository->search(['date' => $date])->group('uid')->count();
+ 87:             $momAuCount = $userVisitRepository->search(['mom_date' => $date])->group('uid')->count();
+ 88: 
+ 89:             //付费会员
+ 90:             $svipCount = $this->dao->search(['is_svip' => 1])->count();
+ 91: 
+ 92:             //新增付费会员
+ 93:             $userOrderRepository = app()->make(UserOrderRepository::class);
+ 94:             $firstSvip = $userOrderRepository->search(['date' => $date])
+ 95:                 ->where('other','first')
+ 96:                 ->whereLike('order_type',"s-%")
+ 97:                 ->count();
+ 98: 
+ 99:             $momFirstSvip = $userOrderRepository->search(['mom_date' => $date])
+100:                 ->where('other','first')
+101:                 ->whereLike('order_type',"s-%")
+102:                 ->count();
+103: 
+104:             $redata = [
+105:                 [
+106:                     'title' => "用户数量",
+107:                     'count' => $count,
+108:                     'mom'   => 0,
+109:                     'statistic' => 0
+110:                 ],
+111:                 [
+112:                     'title' => "新增用户",
+113:                     'count' => $newCount,
+114:                     'mom'   => $momNewCount,
+115:                     'statistic' => growthRate($newCount,$momNewCount)
+116:                 ],
+117:                 [
+118:                     'title' => "下单用户",
+119:                     'count' => $paidCount,
+120:                     'mom'   => $momPaidCount,
+121:                     'statistic' => growthRate($paidCount,$momPaidCount)
+122:                 ],
+123:                 [
+124:                     'title' => "活跃用户",
+125:                     'count' => $auCount,
+126:                     'mom'   => $momAuCount,
+127:                     'statistic' => growthRate($auCount,$momAuCount)
+128:                 ],
+129:                 [
+130:                     'title' => "付费会员",
+131:                     'count' => $svipCount,
+132:                     'mom'   => 0,
+133:                     'statistic' => 0
+134:                 ],
+135:                 [
+136:                     'title' => "新增付费会员",
+137:                     'count' => $firstSvip,
+138:                     'mom'   => $momFirstSvip,
+139:                     'statistic' => growthRate($firstSvip,$momFirstSvip)
+140:                 ],
+141:             ];
+142:             return $redata;
+143:         },self::CACHA_TIME);
+144:     }
+145: 
+146: 
+147: 
+148: 
+149:     public function lineChart($type, $date = '')
+150:     {
+151:         [$cacheky, $cacheTags] = CacheService::setWithTags(
+152:             CacheService::ANALYTICS_USER_LINE_CHART,
+153:             compact('type','date')
+154:         );
+155: 
+156:         return Cache::tag($cacheTags)->remember($cacheky, function () use ($date, $type) {
+157:             [$dates, $customFormat] = getStepLength($date);
+158:             $format = $customFormat ? $customFormat : self::$formatMap[$date] ?? '%m-%d';
+159:             $redata =  [];
+160:             foreach ($dates as $mo) {
+161:                 $redata[$mo] = ['xaxis' => $mo, 'count' => 0,];
+162:             }
+163: 
+164:             switch ($type) {
+165:                 case 0:
+166:                     $this->getNewUser($redata,$date,$format);
+167:                     break;
+168:                 case 1:
+169:                     $this->getAuUser($redata,$date,$format);
+170:                     break;
+171:                 case 2:
+172:                     $this->getNewSvip($redata,$date,$format);
+173:                     break;
+174:                 default:
+175:                     break;
+176: 
+177:             }
+178:             return array_values($redata);
+179:         }, self::CACHA_TIME);
+180:     }
+181: 
+182: 
+183: 
+184:     public function getNewSvip(&$redata, $date,$format)
+185:     {
+186:         $userOrderRepository = app()->make(UserOrderRepository::class);
+187:         $field = Db::raw("from_unixtime(unix_timestamp(UserOrder.create_time),'{$format}') as month, COUNT(*) as count");
+188:         $res = $userOrderRepository->search(['date' => $date])
+189:             ->field($field)
+190:             ->where('other','first')
+191:             ->whereLike('order_type',"s%")
+192:             ->group('month')
+193:             ->select()->toArray();
+194:         foreach ($res as $re) {
+195:             if(isset($redata[$re['month']])) {
+196:                 $redata[$re['month']]['count'] = $re['count'];
+197:             }
+198:         }
+199:     }
+200: 
+201:     public function getAuUser(&$redata, $date,$format)
+202:     {
+203:         $userVisitRepository = app()->make(UserVisitRepository::class);
+204:         $field = Db::raw("from_unixtime(unix_timestamp(UserVisit.create_time),'{$format}') as month, COUNT(DISTINCT UserVisit.uid) as count");
+205:         $res = $userVisitRepository->search(['date' => $date])
+206:             ->field($field)
+207:             ->group('month')
+208:             ->select()->toArray();
+209: 
+210:         foreach ($res as $re) {
+211:             if(isset($redata[$re['month']])) {
+212:                 $redata[$re['month']]['count'] = $re['count'];
+213:             }
+214:         }
+215:     }
+216: 
+217:     public function getNewUser(&$redata, $date,$format)
+218:     {
+219:         $field = Db::raw("from_unixtime(unix_timestamp(User.create_time),'{$format}') as month,count(*) as count");
+220:         $res = $this->dao->search(['date' => $date])
+221:             ->field($field)
+222:             ->group("month")
+223:             ->select()->toArray();
+224:         foreach ($res as $re) {
+225:             if(isset( $redata[$re['month']])) {
+226:                 $redata[$re['month']]['count'] = $re['count'];
+227:             }
+228:         }
+229:     }
+230: 
+231:     public function typePieCahrt($date)
+232:     {
+233:         [$cacheky, $cacheTags] = CacheService::setWithTags(
+234:             CacheService::ANALYTICS_USER_BAR_CHART,
+235:             compact('date')
+236:         );
+237:         return Cache::tag($cacheTags)->remember($cacheky, function () use ($date) {
+238:             [$dates, $customFormat] = getStepLength($date);
+239:             $format = $customFormat ? $customFormat : self::$formatMap[$date] ?? '%m-%d';
+240:             $redata =  [];
+241:             foreach ($dates as $mo) {
+242:                 $redata[$mo] = ['xaxis' => $mo, 'old' => 0, 'new' => 0];
+243:             }
+244: 
+245:             $storeOrderRepository = app()->make(StoreGroupOrderRepository::class);
+246:             $field = Db::raw("from_unixtime(unix_timestamp(create_time),'{$format}') as month, COUNT(DISTINCT uid) as count");
+247:             $res = $storeOrderRepository->search(['date' => $date, 'paid' => 1, 'is_first' => 0],0)
+248:                 ->field($field)
+249:                 ->group('month')
+250:                 ->select()->toArray();
+251: 
+252:             foreach ($res as $re) {
+253:                 if(isset($redata[$re['month']])) {
+254:                     $redata[$re['month']]['old'] = $re['count'];
+255:                 }
+256:             }
+257: 
+258:             $ress = $storeOrderRepository->search(['date' => $date, 'paid' => 1, 'is_first' => 1],0)
+259:                 ->field($field)
+260:                 ->group('month')
+261:                 ->select()->toArray();
+262: 
+263:             foreach ($ress as $r) {
+264:                 if(isset($redata[$r['month']])) {
+265:                     $redata[$r['month']]['new'] = $r['count'];
+266:                 }
+267:             }
+268:             return array_values($redata);
+269:         },self::CACHA_TIME);
+270:     }
+271: }
+</file>
+
+<file path="app/common/repositories/system/CountRepository.php">
+   1: <?php
+   2: 
+   3: namespace app\common\repositories\system;
+   4: 
+   5: use AlibabaCloud\SDK\Dysmsapi\V20170525\Models\AddShortUrlResponseBody\data;
+   6: use app\common\repositories\BaseRepository;
+   7: use app\common\repositories\community\CommunityRepository;
+   8: use app\common\repositories\store\broadcast\BroadcastGoodsRepository;
+   9: use app\common\repositories\store\broadcast\BroadcastRoomRepository;
+  10: use app\common\repositories\system\notice\SystemNoticeLogRepository;
+  11: use app\common\repositories\store\order\{StoreOrderProductRepository,
+  12:     StoreOrderReceiptRepository,
+  13:     StoreOrderRepository,
+  14:     StoreRefundOrderRepository
+  15: };
+  16: use app\common\repositories\store\product\{ProductAssistRepository,
+  17:     ProductGroupRepository,
+  18:     ProductPresellRepository,
+  19:     ProductReplyRepository,
+  20:     ProductRepository
+  21: };
+  22: use app\common\repositories\system\financial\FinancialRepository;
+  23: use app\common\repositories\system\merchant\{
+  24:     MerchantIntentionRepository,
+  25:     MerchantRepository
+  26: };
+  27: use app\common\repositories\user\{
+  28:     FeedbackRepository,
+  29:     UserExtractRepository
+  30: };
+  31: use think\facade\Cache;
+  32: use think\facade\Config;
+  33: 
+  34: class CountRepository extends BaseRepository
+  35: {
+  36: 
+  37:     const CACHE_KEY = 'sys_count';
+  38:     protected $is_cache = true;
+  39: 
+  40:     protected $cache_method = [
+  41:         'getMerchantSalesTop',
+  42:         'getMerchantSalesPriceTop',
+  43:         'getMerchantProductSalesPriceTop'
+  44:     ];
+  45: 
+  46:     public $admin_prefix = '';
+  47:     public $merchant_prefix = '';
+  48: 
+  49:     public function __construct()
+  50:     {
+  51:         $this->admin_prefix = Config::get('admin.admin_prefix');
+  52:         $this->merchant_prefix = Config::get('admin.merchant_prefix');
+  53:     }
+  54:     /**
+  55:      * @param $type
+  56:      * @param $callback
+  57:      * @return mixed
+  58:      * @throws \Exception
+  59:      *
+  60:      * @date 2023/10/21
+  61:      * @author yyw
+  62:      */
+  63:     protected function cache($type, $callback)
+  64:     {
+  65:         if (!$this->is_cache || !in_array($type, $this->cache_method) || env('APP_DEBUG', false)) {
+  66:             return $callback();
+  67:         }
+  68:         $res = Cache::get(self::CACHE_KEY . '_' . $type);
+  69:         if ($res) {
+  70:             return json_decode($res, true);
+  71:         } else {
+  72:             $res = $callback();
+  73:             Cache::set(self::CACHE_KEY . '_' . $type, json_encode($res), $res['ttl'] ??  300);
+  74:             return $res;
+  75:         }
+  76:     }
+  77: 
+  78:     /**
+  79:      * 删除为空数组项
+  80:      * @param array $data
+  81:      * @return array
+  82:      *
+  83:      * @date 2023/10/25
+  84:      * @author yyw
+  85:      */
+  86:     public function deleteArrayEmpty(array $data): array
+  87:     {
+  88:         foreach ($data as $key => $item) {
+  89:             if (empty($item)) {
+  90:                 unset($data[$key]);
+  91:             }
+  92:         }
+  93:         return array_values($data);
+  94:     }
+  95: 
+  96:     /**
+  97:      * 获取平台首页统计
+  98:      * @return array
+  99:      *
+ 100:      * @date 2023/10/21
+ 101:      * @author yyw
+ 102:      */
+ 103:     public function getAdminCount()
+ 104:     {
+ 105:         return $this->deleteArrayEmpty(array_merge(
+ 106:             $this->getAuditProductCount(),
+ 107: //            $this->getAuditActiveProductCount(),
+ 108:             $this->getAuditDistributionInfo(null),
+ 109:             $this->getAuditMerchantCount(),
+ 110:             $this->getAuditExtractCount(),
+ 111:             $this->getAuditFinancialCount(),
+ 112:             $this->getAuditCommunityCount(),
+ 113:             $this->getAuditRefundOrderCount(),
+ 114:             $this->getAuditFeedbackCount(),
+ 115:             $this->getIntegralOrderShipInfo()
+ 116:         ));
+ 117:     }
+ 118: 
+ 119:     /**
+ 120:      * 获取平台代办
+ 121:      * @return array
+ 122:      *
+ 123:      * @date 2023/10/25
+ 124:      * @author yyw
+ 125:      */
+ 126:     public function getAdminTodo()
+ 127:     {
+ 128:         return $this->deleteArrayEmpty(array_merge(
+ 129:             $this->getAuditProductCount('todo'),
+ 130:             $this->getAuditDistributionInfo(null, 'todo'),
+ 131:             $this->getAuditExtractCount('todo'),
+ 132:             $this->getAuditFinancialCount('todo'),
+ 133:             $this->getAuditMerchantCount('todo'),
+ 134:             $this->getAuditCommunityCount('todo'),
+ 135:             $this->getAuditFeedbackCount('todo'),
+ 136: //            $this->getAuditActiveProductCount('todo'),
+ 137:             $this->getAuditLiveRoomCount('todo'),
+ 138:             $this->getAuditLiveProdouctCount('todo'),
+ 139:             $this->getIntegralOrderShipInfo('todo')
+ 140:         ));
+ 141:     }
+ 142: 
+ 143: 
+ 144:     /**
+ 145:      * 获取去待审核的普通商品数量
+ 146:      * @return mixed
+ 147:      *
+ 148:      * @date 2023/10/21
+ 149:      * @author yyw
+ 150:      */
+ 151:     public function getAuditProductCount(string $type = 'count')
+ 152:     {
+ 153:         return $this->cache(__FUNCTION__, function () use ($type) {
+ 154:             $productRepository = app()->make(ProductRepository::class);
+ 155:             $normal_count = $productRepository->search(null, $productRepository->switchType(6, null, 0))->count();
+ 156:             $seckill_count = $productRepository->search(null, $productRepository->switchType(6, null, 1))->count();
+ 157:             $group_count = app()->make(ProductGroupRepository::class)->search(['product_status' => 0])->count();
+ 158:             $presell_count = app()->make(ProductPresellRepository::class)->search(['product_status' => 0])->count();
+ 159:             $assist_count = app()->make(ProductAssistRepository::class)->search(['product_status' => 0])->count();
+ 160:             $normal_path = '/'.$this->admin_prefix.'/product/examine';
+ 161:             $seckill_path = '/'.$this->admin_prefix.'/marketing/seckill/list';
+ 162:             $group_path = '/'.$this->admin_prefix.'/marketing/combination/combination_goods?product_status=0';
+ 163:             $presell_path = '/'.$this->admin_prefix.'/marketing/presell/list?product_status=0';
+ 164:             $assist_path = '/'.$this->admin_prefix.'/marketing/assist/goods_list?product_status=0';
+ 165:             $data = [];
+ 166:             switch ($type) {
+ 167:                 case 'count':
+ 168:                     $children = [];
+ 169:                     if ($normal_count > 0) {
+ 170:                         $children[] = [
+ 171:                             'title' => '普通商品',
+ 172:                             'path' => $normal_path,
+ 173:                             'count' => $normal_count,
+ 174:                             'message' => '普通商品(' . $normal_count . ')',
+ 175:                         ];
+ 176:                     }
+ 177:                     if ($seckill_count > 0) {
+ 178:                         $children[] = [
+ 179:                             'title' => '秒杀商品',
+ 180:                             'path' => $seckill_path,
+ 181:                             'count' => $seckill_count,
+ 182:                             'message' => '秒杀商品(' . $seckill_count . ')',
+ 183:                         ];
+ 184:                     }
+ 185:                     if ($group_count > 0) {
+ 186:                         $children[] = [
+ 187:                             'title' => '拼团商品',
+ 188:                             'path' => $group_path,
+ 189:                             'count' => $group_count,
+ 190:                             'message' => '拼团商品(' . $group_count . ')',
+ 191:                         ];
+ 192:                     }
+ 193:                     if ($presell_count > 0) {
+ 194:                         $children[] = [
+ 195:                             'title' => '预售商品',
+ 196:                             'path' => $presell_path,
+ 197:                             'count' => $presell_count,
+ 198:                             'message' => '预售商品(' . $presell_count . ')',
+ 199:                         ];
+ 200:                     }
+ 201:                     if ($assist_count > 0) {
+ 202:                         $children[] = [
+ 203:                             'title' => '助力商品',
+ 204:                             'path' => $assist_path,
+ 205:                             'count' => $assist_count,
+ 206:                             'message' => '助力商品(' . $assist_count . ')',
+ 207:                         ];
+ 208:                     }
+ 209:                     $count = 0;
+ 210:                     foreach ($children as $child) {
+ 211:                         $count += $child['count'];
+ 212:                     }
+ 213:                     $data[] = [
+ 214:                         'title' => '待审核商品',
+ 215:                         'icon' => 'iconputongshangpin',
+ 216:                         'path' => '/',
+ 217:                         'count' => $count,
+ 218:                         'children' => $children
+ 219:                     ];
+ 220:                     break;
+ 221:                 case 'todo':
+ 222:                     if ($normal_count > 0) {
+ 223:                         $data[] = [
+ 224:                             'title' => '待审核普通商品提醒',
+ 225:                             'path' => $normal_path,
+ 226:                             'message' => '您有' . $normal_count . '个商品待审核'
+ 227:                         ];
+ 228:                     }
+ 229:                     if ($seckill_count > 0) {
+ 230:                         $data[] = [
+ 231:                             'title' => '待审核秒杀商品提醒',
+ 232:                             'path' => $seckill_path,
+ 233:                             'message' => '您有' . $seckill_count . '个秒杀商品待审核'
+ 234:                         ];
+ 235:                     }
+ 236:                     if ($group_count > 0) {
+ 237:                         $data[] = [
+ 238:                             'title' => '待审核拼团商品提醒',
+ 239:                             'path' => $group_path,
+ 240:                             'message' => '您有' . $group_count . '个拼团商品待审核'
+ 241:                         ];
+ 242:                     }
+ 243:                     if ($assist_count > 0) {
+ 244:                         $data[] = [
+ 245:                             'title' => '待审核助力商品提醒',
+ 246:                             'path' => $assist_path,
+ 247:                             'message' => '您有' . $assist_count . '个助力商品待审核'
+ 248:                         ];
+ 249:                     }
+ 250:                     if ($presell_count > 0) {
+ 251:                         $data[] = [
+ 252:                             'title' => '待审核预售商品提醒',
+ 253:                             'path' => $presell_path,
+ 254:                             'message' => '您有' . $presell_count . '个预售商品待审核'
+ 255:                         ];
+ 256:                     }
+ 257:                     break;
+ 258:             }
+ 259:             return $data;
+ 260:         });
+ 261:     }
+ 262: 
+ 263:     /**
+ 264:      * 获取活动商品待审核数量
+ 265:      * @return array
+ 266:      *
+ 267:      * @date 2023/10/21
+ 268:      * @author yyw
+ 269:      */
+ 270:     public function getAuditActiveProductCount(string $type = 'count')
+ 271:     {
+ 272:         return $this->cache(__FUNCTION__, function () use ($type) {
+ 273:             $productRepository = app()->make(ProductRepository::class);
+ 274:             $seckill_count = $productRepository->search(null, $productRepository->switchType(6, null, 1))->count();
+ 275:             $group_count = app()->make(ProductGroupRepository::class)->search(['product_status' => 0])->count();
+ 276:             $presell_count = app()->make(ProductPresellRepository::class)->search(['product_status' => 0])->count();
+ 277:             $assist_count = app()->make(ProductAssistRepository::class)->search(['product_status' => 0])->count();
+ 278: 
+ 279:             $seckill_path = '/'.$this->admin_prefix.'/marketing/seckill/list';
+ 280:             $group_path = '/'.$this->admin_prefix.'/marketing/combination/combination_goods?product_status=0';
+ 281:             $presell_path = '/'.$this->admin_prefix.'/marketing/presell/list?product_status=0';
+ 282:             $assist_path = '/'.$this->admin_prefix.'/marketing/assist/goods_list?product_status=0';
+ 283:             $data = [];
+ 284:             switch ($type) {
+ 285:                 case 'count':
+ 286:                     $children = [];
+ 287:                     if ($seckill_count > 0) {
+ 288:                         $children[] = [
+ 289:                             'title' => '秒杀',
+ 290:                             'path' => $seckill_path,
+ 291:                             'count' => $seckill_count,
+ 292:                             'message' => '秒杀(' . $seckill_count . ')',
+ 293:                         ];
+ 294:                     }
+ 295:                     if ($group_count > 0) {
+ 296:                         $children[] = [
+ 297:                             'title' => '拼团',
+ 298:                             'path' => $group_path,
+ 299:                             'count' => $group_count,
+ 300:                             'message' => '拼团(' . $group_count . ')',
+ 301:                         ];
+ 302:                     }
+ 303:                     if ($presell_count > 0) {
+ 304:                         $children[] = [
+ 305:                             'title' => '预售',
+ 306:                             'path' => $presell_path,
+ 307:                             'count' => $presell_count,
+ 308:                             'message' => '预售(' . $presell_count . ')',
+ 309:                         ];
+ 310:                     }
+ 311:                     if ($assist_count > 0) {
+ 312:                         $children[] = [
+ 313:                             'title' => '助力',
+ 314:                             'path' => $assist_path,
+ 315:                             'count' => $assist_count,
+ 316:                             'message' => '助力(' . $assist_count . ')',
+ 317:                         ];
+ 318:                     }
+ 319:                     $count = 0;
+ 320:                     foreach ($children as $child) {
+ 321:                         $count += $child['count'];
+ 322:                     }
+ 323:                     $data[] = [
+ 324:                         'title' => '待审核活动商品',
+ 325:                         'icon' => 'iconhuodongshangpin',
+ 326:                         'path' => '/',
+ 327:                         'count' => $count,
+ 328:                         'children' => $children
+ 329:                     ];
+ 330:                     break;
+ 331:                 case 'todo':
+ 332:                     if ($seckill_count > 0) {
+ 333:                         $data[] = [
+ 334:                             'title' => '待审核秒杀商品提醒',
+ 335:                             'path' => $seckill_path,
+ 336:                             'message' => '您有' . $seckill_count . '个秒杀商品待审核'
+ 337:                         ];
+ 338:                     }
+ 339:                     if ($group_count > 0) {
+ 340:                         $data[] = [
+ 341:                             'title' => '待审核拼团商品提醒',
+ 342:                             'path' => $group_path,
+ 343:                             'message' => '您有' . $group_count . '个拼团商品待审核'
+ 344:                         ];
+ 345:                     }
+ 346:                     if ($assist_count > 0) {
+ 347:                         $data[] = [
+ 348:                             'title' => '待审核助力商品提醒',
+ 349:                             'path' => $assist_path,
+ 350:                             'message' => '您有' . $assist_count . '个助力商品待审核'
+ 351:                         ];
+ 352:                     }
+ 353:                     if ($presell_count > 0) {
+ 354:                         $data[] = [
+ 355:                             'title' => '待审核预售商品提醒',
+ 356:                             'path' => $presell_path,
+ 357:                             'message' => '您有' . $presell_count . '个预售商品待审核'
+ 358:                         ];
+ 359:                     }
+ 360:                     break;
+ 361:             }
+ 362:             return $data;
+ 363:         });
+ 364: 
+ 365:     }
+ 366: 
+ 367:     /**
+ 368:      * 获取分销商品待审核数量
+ 369:      * @param int|null $mer_id
+ 370:      * @param string $type
+ 371:      * @return mixed
+ 372:      * @throws \Exception
+ 373:      *
+ 374:      * @date 2023/10/25
+ 375:      * @author yyw
+ 376:      */
+ 377:     public function getAuditDistributionInfo(?int $mer_id, string $type = 'count')
+ 378:     {
+ 379:         return $this->cache(__FUNCTION__, function () use ($mer_id, $type) {
+ 380:             $productRepository = app()->make(ProductRepository::class);
+ 381:             $count = $productRepository->search($mer_id, $productRepository->switchType(6, null, 10))->count();
+ 382:             $path = '/'.$this->admin_prefix.'/promoter/gift?type=6';
+ 383:             if ($mer_id) {
+ 384:                 $path = '/'.$this->merchant_prefix.'/product/list?type=6&is_gift_bag=1';
+ 385:             }
+ 386:             $data = [];
+ 387: 
+ 388:             switch ($type) {
+ 389:                 case 'count':
+ 390:                     $data[] = [
+ 391:                         'title' => empty($mer_id) ? '待审核分销礼包' : '审核未通过分销礼包',
+ 392:                         'icon' => 'icondaihexiao-fenxiaolibao',
+ 393:                         'path' => $path,
+ 394:                         'count' => $count,
+ 395:                         'children' => []
+ 396:                     ];
+ 397:                     break;
+ 398:                 case 'todo':
+ 399:                     if ($count > 0) {
+ 400:                         $data[] = [
+ 401:                             'title' => empty($mer_id) ? '待审核分销礼包提醒' : '分销礼包审核未通过提醒',
+ 402:                             'path' => $path,
+ 403:                             'message' => '您有' . $count . (empty($mer_id) ? '个分销礼包待审核' : '个分销礼包审核未通过')
+ 404:                         ];
+ 405:                     }
+ 406:                     break;
+ 407:             }
+ 408:             return $data;
+ 409:         });
+ 410:     }
+ 411: 
+ 412:     /**
+ 413:      * 获取商户审核
+ 414:      * @return array
+ 415:      *
+ 416:      * @date 2023/10/21
+ 417:      * @author yyw
+ 418:      */
+ 419:     public function getAuditMerchantCount(string $type = 'count')
+ 420:     {
+ 421:         return $this->cache(__FUNCTION__, function () use ($type) {
+ 422:             $merchantIntentionRepository = app()->make(MerchantIntentionRepository::class);
+ 423:             $count = $merchantIntentionRepository->search(['status' => 0])->count();
+ 424:             $path = '/'.$this->admin_prefix.'/'.$this->merchant_prefix.'/application';
+ 425:             $data = [];
+ 426: 
+ 427:             switch ($type) {
+ 428:                 case 'count':
+ 429:                     $data[] = [
+ 430:                         'title' => '待审核商户入驻',
+ 431:                         'icon' => 'icondaishenhe-shanghuruzhu',
+ 432:                         'path' => $path,
+ 433:                         'count' => $count,
+ 434:                         'children' => []
+ 435:                     ];
+ 436:                     break;
+ 437:                 case 'todo':
+ 438:                     if ($count > 0) {
+ 439:                         $data[] = [
+ 440:                             'title' => '待审核商户入驻提醒',
+ 441:                             'path' => $path,
+ 442:                             'message' => '您有' . $count . '个商户入驻待审核'
+ 443:                         ];
+ 444:                     }
+ 445:                     break;
+ 446:             }
+ 447:             return $data;
+ 448:         });
+ 449:     }
+ 450: 
+ 451:     /**
+ 452:      * 获取提现待审核
+ 453:      * @return array
+ 454:      *
+ 455:      * @date 2023/10/21
+ 456:      * @author yyw
+ 457:      */
+ 458:     public function getAuditExtractCount(string $type = 'count')
+ 459:     {
+ 460:         return $this->cache(__FUNCTION__, function () use ($type) {
+ 461:             $userExtractRepository = app()->make(UserExtractRepository::class);
+ 462:             $count = $userExtractRepository->search(['status' => 0])->count();
+ 463:             $path = '/'.$this->admin_prefix.'/accounts/extract';
+ 464:             $data = [];
+ 465: 
+ 466:             switch ($type) {
+ 467:                 case 'count':
+ 468:                     $data[] = [
+ 469:                         'title' => '待审核提现',
+ 470:                         'icon' => 'icondaishenhe-tixian',
+ 471:                         'path' => $path,
+ 472:                         'count' => $count,
+ 473:                         'children' => []
+ 474:                     ];
+ 475:                     break;
+ 476:                 case 'todo':
+ 477:                     if ($count > 0) {
+ 478:                         $data[] = [
+ 479:                             'title' => '待审核提现提醒',
+ 480:                             'path' => $path,
+ 481:                             'message' => '您有' . $count . '个提现待审核'
+ 482:                         ];
+ 483:                     }
+ 484:                     break;
+ 485:             }
+ 486:             return $data;
+ 487:         });
+ 488:     }
+ 489: 
+ 490:     /**
+ 491:      * 获取转账待审核
+ 492:      * @return array
+ 493:      *
+ 494:      * @date 2023/10/21
+ 495:      * @author yyw
+ 496:      */
+ 497:     public function getAuditFinancialCount(string $type = 'count')
+ 498:     {
+ 499:         return $this->cache(__FUNCTION__, function () use ($type) {
+ 500:             $financialRepository = app()->make(FinancialRepository::class);
+ 501:             $count = $financialRepository->search(['status' => 0])->count();
+ 502:             $path = '/'.$this->admin_prefix.'/accounts/transferRecord';
+ 503:             $data = [];
+ 504: 
+ 505:             switch ($type) {
+ 506:                 case 'count':
+ 507:                     $data[] = [
+ 508:                         'title' => '待审核转账',
+ 509:                         'icon' => 'icondaishenhe-zhuanzhang',
+ 510:                         'path' => $path,
+ 511:                         'count' => $count,
+ 512:                         'children' => []
+ 513:                     ];
+ 514:                     break;
+ 515:                 case 'todo':
+ 516:                     if ($count > 0) {
+ 517:                         $data[] = [
+ 518:                             'title' => '待审核转账提醒',
+ 519:                             'path' => $path,
+ 520:                             'message' => '您有' . $count . '个转账待审核'
+ 521:                         ];
+ 522:                     }
+ 523: 
+ 524:                     break;
+ 525:             }
+ 526:             return $data;
+ 527:         });
+ 528:     }
+ 529: 
+ 530:     /**
+ 531:      * 待审核社区内容
+ 532:      * @return array
+ 533:      *
+ 534:      * @date 2023/10/21
+ 535:      * @author yyw
+ 536:      */
+ 537:     public function getAuditCommunityCount(string $type = 'count')
+ 538:     {
+ 539:         return $this->cache(__FUNCTION__, function () use ($type) {
+ 540:             $communityRepository = app()->make(CommunityRepository::class);
+ 541:             $count = $communityRepository->search(['status' => 0,'is_del' => 0])->count();
+ 542:             $path = '/'.$this->admin_prefix.'/community/list';
+ 543:             $data = [];
+ 544: 
+ 545:             switch ($type) {
+ 546:                 case 'count':
+ 547:                     $data[] = [
+ 548:                         'title' => '待审核社区内容',
+ 549:                         'icon' => 'icondaishenhe-shequneirong',
+ 550:                         'path' => $path,
+ 551:                         'count' => $count,
+ 552:                         'children' => []
+ 553:                     ];
+ 554:                     break;
+ 555:                 case 'todo':
+ 556:                     if ($count > 0) {
+ 557:                         $data[] = [
+ 558:                             'title' => '待审核社区内容提醒',
+ 559:                             'path' => $path,
+ 560:                             'message' => '您有' . $count . '个社区内容待审核'
+ 561:                         ];
+ 562:                     }
+ 563:                     break;
+ 564:             }
+ 565:             return $data;
+ 566:         });
+ 567:     }
+ 568: 
+ 569:     /**
+ 570:      * 待退款订单
+ 571:      * @return array
+ 572:      *
+ 573:      * @date 2023/10/21
+ 574:      * @author yyw
+ 575:      */
+ 576:     public function getAuditRefundOrderCount(string $type = 'count')
+ 577:     {
+ 578:         return $this->cache(__FUNCTION__, function () use ($type) {
+ 579:             $storeRefundOrderRepository = app()->make(StoreRefundOrderRepository::class);
+ 580:             $count = $storeRefundOrderRepository->search(['status' => 0])->count();
+ 581:             $path = '/'.$this->admin_prefix.'/order/refund';
+ 582:             $data = [];
+ 583: 
+ 584:             switch ($type) {
+ 585:                 case 'count':
+ 586:                     $data[] = [
+ 587:                         'title' => '待退款订单',
+ 588:                         'icon' => 'icondaituikuan',
+ 589:                         'path' => $path,
+ 590:                         'count' => $count,
+ 591:                         'children' => []
+ 592:                     ];
+ 593:                     break;
+ 594:                 case 'todo':
+ 595:                     if ($count > 0) {
+ 596:                         $data[] = [
+ 597:                             'title' => '待退款订单提醒',
+ 598:                             'path' => $path,
+ 599:                             'message' => '您有' . $count . '个待退款订单待审核'
+ 600:                         ];
+ 601:                     }
+ 602:                     break;
+ 603:             }
+ 604:             return $data;
+ 605:         });
+ 606:     }
+ 607: 
+ 608:     /**
+ 609:      * 待处理用户反馈
+ 610:      * @return array
+ 611:      *
+ 612:      * @date 2023/10/21
+ 613:      * @author yyw
+ 614:      */
+ 615:     public function getAuditFeedbackCount(string $type = 'count')
+ 616:     {
+ 617:         return $this->cache(__FUNCTION__, function () use ($type) {
+ 618:             $feedbackRepository = app()->make(FeedbackRepository::class);
+ 619:             $count = $feedbackRepository->search(['status' => 0])->count();
+ 620:             $path = '/'.$this->admin_prefix.'/feedback/list';
+ 621:             $data = [];
+ 622: 
+ 623:             switch ($type) {
+ 624:                 case 'count':
+ 625:                     $data[] = [
+ 626:                         'title' => '待处理用户反馈',
+ 627:                         'icon' => 'icondaichuli-yonghufankui',
+ 628:                         'path' => $path,
+ 629:                         'count' => $count,
+ 630:                         'children' => []
+ 631:                     ];
+ 632:                     break;
+ 633:                 case 'todo':
+ 634:                     if ($count > 0) {
+ 635:                         $data[] = [
+ 636:                             'title' => '待处理用户反馈提醒',
+ 637:                             'path' => $path,
+ 638:                             'message' => '您有' . $count . '个用户反馈待处理'
+ 639:                         ];
+ 640:                     }
+ 641:                     break;
+ 642:             }
+ 643:             return $data;
+ 644:         });
+ 645:     }
+ 646: 
+ 647:     /**
+ 648:      * 待处理直播间审核
+ 649:      * @return array
+ 650:      *
+ 651:      * @date 2023/10/21
+ 652:      * @author yyw
+ 653:      */
+ 654:     public function getAuditLiveRoomCount(string $type = 'count')
+ 655:     {
+ 656:         return $this->cache(__FUNCTION__, function () use ($type) {
+ 657:             $count = app()->make(BroadcastRoomRepository::class)->search(['status_tag' => 0])->count();
+ 658:             $path = '/'.$this->admin_prefix.'/marketing/studio/list';
+ 659:             $data = [];
+ 660: 
+ 661:             switch ($type) {
+ 662:                 case 'count':
+ 663:                     $data[] = [
+ 664:                         'title' => '待审核直播间',
+ 665:                         'icon' => '',
+ 666:                         'path' => $path,
+ 667:                         'count' => $count,
+ 668:                         'children' => []
+ 669:                     ];
+ 670:                     break;
+ 671:                 case 'todo':
+ 672:                     if ($count > 0) {
+ 673:                         $data[] = [
+ 674:                             'title' => '待审核直播间提醒',
+ 675:                             'path' => $path,
+ 676:                             'message' => '您有' . $count . '个直播间待审核'
+ 677:                         ];
+ 678:                     }
+ 679:                     break;
+ 680:             }
+ 681:             return $data;
+ 682:         });
+ 683:     }
+ 684: 
+ 685:     /**
+ 686:      * 待处理直播商品审核
+ 687:      * @return array
+ 688:      *
+ 689:      * @date 2023/10/21
+ 690:      * @author yyw
+ 691:      */
+ 692:     public function getAuditLiveProdouctCount(string $type = 'count')
+ 693:     {
+ 694:         return $this->cache(__FUNCTION__, function () use ($type) {
+ 695:             $count = app()->make(BroadcastGoodsRepository::class)->search(['status_tag' => 0])->count();
+ 696:             $path = '/'.$this->admin_prefix.'/marketing/broadcast/list';
+ 697:             $data = [];
+ 698: 
+ 699:             switch ($type) {
+ 700:                 case 'count':
+ 701:                     $data[] = [
+ 702:                         'title' => '待审核直播商品',
+ 703:                         'icon' => '',
+ 704:                         'path' => $path,
+ 705:                         'count' => $count,
+ 706:                         'children' => []
+ 707:                     ];
+ 708:                     break;
+ 709:                 case 'todo':
+ 710:                     if ($count > 0) {
+ 711:                         $data[] = [
+ 712:                             'title' => '待审核直播商品提醒',
+ 713:                             'path' => $path,
+ 714:                             'message' => '您有' . $count . '个直播商品待审核'
+ 715:                         ];
+ 716:                     }
+ 717:                     break;
+ 718:             }
+ 719:             return $data;
+ 720:         });
+ 721:     }
+ 722: 
+ 723:     /**
+ 724:      * 待发货积分订单订单
+ 725:      * @param string $type
+ 726:      * @return mixed
+ 727:      * @throws \Exception
+ 728:      *
+ 729:      * @date 2023/11/02
+ 730:      * @author yyw
+ 731:      */
+ 732:     public function getIntegralOrderShipInfo(string $type = 'count')
+ 733:     {
+ 734:         return $this->cache(__FUNCTION__, function () use ($type) {
+ 735:             $storeOrderRepository = app()->make(StoreOrderRepository::class);
+ 736:             $stay_delivery_count = $storeOrderRepository->searchAll(['status' => 0, 'activity_type' => 20], 0, 1)->count();
+ 737: 
+ 738:             $stay_delivery_path = '/'.$this->admin_prefix.'/marketing/integral/orderList?status=0';
+ 739:             $data = [];
+ 740: 
+ 741:             switch ($type) {
+ 742:                 case 'count':
+ 743:                     $data[] = [
+ 744:                         'title' => '待发货积分订单',
+ 745:                         'icon' => 'icondaifahuo-jifen',
+ 746:                         'path' => $stay_delivery_path,
+ 747:                         'count' => $stay_delivery_count,
+ 748:                         'children' => []
+ 749:                     ];
+ 750:                     break;
+ 751:                 case 'todo':
+ 752:                     if ($stay_delivery_count) {
+ 753:                         $data[] = [
+ 754:                             'title' => '待发货积分订单提醒',
+ 755:                             'path' => $stay_delivery_path,
+ 756:                             'message' => '您有' . $stay_delivery_count . '个待发货的积分订单'
+ 757:                         ];
+ 758:                     }
+ 759:                     break;
+ 760:             }
+ 761:             return $data;
+ 762:         });
+ 763:     }
+ 764: 
+ 765:     /**
+ 766:      * 获取商户排行榜
+ 767:      * @param string $date
+ 768:      * @param string $type
+ 769:      * @param string $sort
+ 770:      * @return mixed
+ 771:      * @throws \Exception
+ 772:      */
+ 773:     public function getMerchantTop(string $date, string $type = 'sales', string $sort = 'desc')
+ 774:     {
+ 775:         return $this->cache(__FUNCTION__, function () use ($date, $type, $sort) {
+ 776:             $storeOrderRepository = app()->make(StoreOrderRepository::class);
+ 777:             $list = $storeOrderRepository->getMerchantTop($date, $type, $sort);
+ 778:             foreach ($list as &$item) {
+ 779:                 $item['mer_name'] = $item['merchant']['mer_name'] ?? '未知商户';
+ 780:                 $item['mer_avatar'] = $item['merchant']['mer_avatar'] ?? rtrim(systemConfig('site_url'), '/') . '/static/images/mer_logo.png';
+ 781:                 $item['care_count'] = $item['merchant']['care_count'] ?? 0;
+ 782:                 unset($item['merchant']);
+ 783:             }
+ 784:             return compact('list');
+ 785:         });
+ 786:     }
+ 787: 
+ 788:     /**
+ 789:      * 获取商户首页统计
+ 790:      * @param int $mer_id
+ 791:      * @return array
+ 792:      * @throws \Exception
+ 793:      */
+ 794:     public function getMerchantCount(int $mer_id)
+ 795:     {
+ 796:         return $this->deleteArrayEmpty(array_merge(
+ 797:             $this->getMerchantOrderShipInfo($mer_id),
+ 798:             $this->getMerchantRefuseProductInfo($mer_id),
+ 799: //            $this->getMerchantActivityProductInfo($mer_id),
+ 800:             $this->getMerchantPendWriteOffOrderInfo($mer_id),
+ 801:             $this->getMerchantAlertProductInfo($mer_id),
+ 802:             $this->getMerchantSellOutProductInfo($mer_id),
+ 803:             $this->getMerchantRefundOrderInfo($mer_id),
+ 804:             $this->getMerchantOrderReceiptInfo($mer_id),
+ 805:             $this->getMerchantSellProductInfo($mer_id),
+ 806:             $this->getMerchantStayReviewsInfo($mer_id)
+ 807: //            $this->getAuditDistributionInfo($mer_id)
+ 808:         ));
+ 809:     }
+ 810: 
+ 811:     /**
+ 812:      * 获取商户小铃铛代办
+ 813:      * @param int $mer_id
+ 814:      * @return array
+ 815:      * @throws \Exception
+ 816:      */
+ 817:     public function getMerchantTodo(int $mer_id)
+ 818:     {
+ 819:         return $this->deleteArrayEmpty(array_merge(
+ 820:             $this->getMerchantOrderShipInfo($mer_id, 'todo'),
+ 821:             $this->getMerchantRefuseProductInfo($mer_id, 'todo'),
+ 822: //            $this->getMerchantActivityProductInfo($mer_id, 'todo'),
+ 823:             $this->getMerchantPendWriteOffOrderInfo($mer_id, 'todo'),
+ 824:             $this->getMerchantAlertProductInfo($mer_id, 'todo'),
+ 825:             $this->getMerchantSellOutProductInfo($mer_id, 'todo'),
+ 826:             $this->getMerchantRefundOrderInfo($mer_id, 'todo'),
+ 827:             $this->getMerchantOrderReceiptInfo($mer_id, 'todo'),
+ 828:             $this->getMerchantStayReviewsInfo($mer_id, 'todo')
+ 829: //            $this->getAuditDistributionInfo($mer_id, 'todo')
+ 830:         ));
+ 831:     }
+ 832: 
+ 833:     /**
+ 834:      * 出售商品
+ 835:      * @param int $mer_id
+ 836:      * @param string $type
+ 837:      * @return mixed
+ 838:      * @throws \Exception
+ 839:      *
+ 840:      * @date 2023/11/02
+ 841:      * @author yyw
+ 842:      */
+ 843:     public function getMerchantSellProductInfo(int $mer_id, string $type = 'count')
+ 844:     {
+ 845:         return $this->cache(__FUNCTION__, function () use ($mer_id, $type) {
+ 846:             $productRepository = app()->make(ProductRepository::class);
+ 847:             $data = [];
+ 848:             $productType = 0;
+ 849: 
+ 850:             $sell_count = $productRepository->search($mer_id, $productRepository->switchType(1, $mer_id, $productType))->count();
+ 851:             $sell_path = '/'.$this->merchant_prefix.'/product/list?type=1';
+ 852: 
+ 853:             switch ($type) {
+ 854:                 case 'count':
+ 855:                     $data[] = [
+ 856:                         'title' => '出售商品',
+ 857:                         'icon' => 'iconzaishoushangpin',
+ 858:                         'path' => $sell_path,
+ 859:                         'count' => $sell_count,
+ 860:                         'children' => []
+ 861:                     ];
+ 862:                     break;
+ 863:                 case 'todo':
+ 864:                     break;
+ 865:             }
+ 866: 
+ 867:             return $data;
+ 868:         });
+ 869:     }
+ 870: 
+ 871:     /**
+ 872:      * 售罄商品
+ 873:      * @param int $mer_id
+ 874:      * @param string $type
+ 875:      * @return mixed
+ 876:      * @throws \Exception
+ 877:      *
+ 878:      * @date 2023/11/02
+ 879:      * @author yyw
+ 880:      */
+ 881:     public function getMerchantSellOutProductInfo(int $mer_id, string $type = 'count')
+ 882:     {
+ 883:         return $this->cache(__FUNCTION__, function () use ($mer_id, $type) {
+ 884:             $productRepository = app()->make(ProductRepository::class);
+ 885:             $data = [];
+ 886:             $productType = 0;
+ 887: 
+ 888:             $sell_out_count = $productRepository->search($mer_id, $productRepository->switchType(3, $mer_id, $productType))->count();
+ 889:             $sell_out_path = '/'.$this->merchant_prefix.'/product/list?type=3';
+ 890: 
+ 891:             switch ($type) {
+ 892:                 case 'count':
+ 893:                     $data[] = [
+ 894:                         'title' => '售罄商品',
+ 895:                         'icon' => 'iconshouqingshangpin',
+ 896:                         'path' => $sell_out_path,
+ 897:                         'count' => $sell_out_count,
+ 898:                         'children' => []
+ 899:                     ];
+ 900:                     break;
+ 901:                 case 'todo':
+ 902:                     if ($sell_out_count > 0) {
+ 903:                         $data[] = [
+ 904:                             'title' => '已售罄商品提醒',
+ 905:                             'path' => $sell_out_path,
+ 906:                             'message' => '您有' . $sell_out_count . '个商品已售罄'
+ 907:                         ];
+ 908:                     }
+ 909:                     break;
+ 910:             }
+ 911: 
+ 912:             return $data;
+ 913:         });
+ 914:     }
+ 915: 
+ 916:     /**
+ 917:      * 警戒库存商品
+ 918:      * @param int $mer_id
+ 919:      * @param string $type
+ 920:      * @return mixed
+ 921:      * @throws \Exception
+ 922:      *
+ 923:      * @date 2023/11/02
+ 924:      * @author yyw
+ 925:      */
+ 926:     public function getMerchantAlertProductInfo(int $mer_id, string $type = 'count')
+ 927:     {
+ 928:         return $this->cache(__FUNCTION__, function () use ($mer_id, $type) {
+ 929:             $productRepository = app()->make(ProductRepository::class);
+ 930:             $data = [];
+ 931:             $productType = 0;
+ 932: 
+ 933:             $alert_count = $productRepository->search($mer_id, $productRepository->switchType(4, $mer_id, $productType))->count();
+ 934:             $alert_path = '/'.$this->merchant_prefix.'/product/list?type=4';
+ 935: 
+ 936:             switch ($type) {
+ 937:                 case 'count':
+ 938:                     $data[] = [
+ 939:                         'title' => '警戒库存商品',
+ 940:                         'icon' => 'iconjingjiekucun',
+ 941:                         'path' => $alert_path,
+ 942:                         'count' => $alert_count,
+ 943:                         'children' => []
+ 944:                     ];
+ 945:                     break;
+ 946:                 case 'todo':
+ 947:                     if ($alert_count) {
+ 948:                         $data[] = [
+ 949:                             'title' => '警戒库存商品提醒',
+ 950:                             'path' => $alert_path,
+ 951:                             'message' => '您有' . $alert_count . '个商品已售罄'
+ 952:                         ];
+ 953:                     }
+ 954:                     break;
+ 955:             }
+ 956:             return $data;
+ 957:         });
+ 958:     }
+ 959: 
+ 960:     /**
+ 961:      * 审核未通过普通商品
+ 962:      * @param int $mer_id
+ 963:      * @param string $type
+ 964:      * @return array
+ 965:      *
+ 966:      * @date 2023/10/25
+ 967:      * @author yyw
+ 968:      */
+ 969:     public function getMerchantRefuseProductInfo(int $mer_id, string $type = 'count')
+ 970:     {
+ 971:         return $this->cache(__FUNCTION__, function () use ($mer_id, $type) {
+ 972:             $productRepository = app()->make(ProductRepository::class);
+ 973:             $data = [];
+ 974: 
+ 975:             // 普通商品
+ 976:             $refuse_count = $productRepository->search($mer_id, $productRepository->switchType(7, $mer_id, 0))->count();
+ 977:             // 审核未通过活动商品
+ 978:             $seckill_count = $productRepository->search($mer_id, $productRepository->switchType(7, null, 1))->count();
+ 979:             $group_count = app()->make(ProductGroupRepository::class)->search(['mer_id' => $mer_id, 'product_status' => -1])->count();
+ 980:             $presell_count = app()->make(ProductPresellRepository::class)->search(['mer_id' => $mer_id, 'product_status' => -1])->count();
+ 981:             $assist_count = app()->make(ProductAssistRepository::class)->search(['mer_id' => $mer_id, 'product_status' => -1])->count();
+ 982:             $live_room_count = app()->make(BroadcastRoomRepository::class)->search(['mer_id' => $mer_id, 'status_tag' => -1])->count();
+ 983:             $live_goods_count = app()->make(BroadcastGoodsRepository::class)->search(['mer_id' => $mer_id, 'status_tag' => -1])->count();
+ 984:             // 分销礼包
+ 985:             $distribution_count = $productRepository->search($mer_id, $productRepository->switchType(6, null, 10))->count();
+ 986: 
+ 987:             $refuse_path = '/'.$this->merchant_prefix.'/product/list?type=7';
+ 988: 
+ 989:             $seckill_path = '/'.$this->merchant_prefix.'/marketing/seckill/product/list?type=-1';
+ 990:             $group_path = '/'.$this->merchant_prefix.'/marketing/combination/combination_goods?product_status=-1';
+ 991:             $presell_path = '/'.$this->merchant_prefix.'/marketing/presell/list?product_status=-1';
+ 992:             $assist_path = '/'.$this->merchant_prefix.'/marketing/assist/list?product_status=-1';
+ 993:             $live_room_path = '/'.$this->merchant_prefix.'/marketing/studio/list?status_tag=-1';
+ 994:             $live_goods_path = '/'.$this->merchant_prefix.'/marketing/broadcast/list?status_tag=-1';
+ 995: 
+ 996:             $distribution_path = '/'.$this->merchant_prefix.'/product/list?type=6&is_gift_bag=1';
+ 997:             $status_path = '/'.$this->merchant_prefix.'/product/list?type=7';
+ 998: 
+ 999:             switch ($type) {
+1000:                 case 'count':
+1001:                     $children = [];
+1002:                     if ($refuse_count > 0) {
+1003:                         $children[] = [
+1004:                             'title' => '普通商品',
+1005:                             'path' => $refuse_path,
+1006:                             'count' => $refuse_count,
+1007:                             'message' => '普通商品(' . $refuse_count . ')',
+1008:                         ];
+1009:                     }
+1010:                     if ($seckill_count > 0) {
+1011:                         $children[] = [
+1012:                             'title' => '秒杀',
+1013:                             'path' => $seckill_path,
+1014:                             'count' => $seckill_count,
+1015:                             'message' => '秒杀(' . $seckill_count . ')',
+1016:                         ];
+1017:                     }
+1018:                     if ($group_count > 0) {
+1019:                         $children[] = [
+1020:                             'title' => '拼团',
+1021:                             'path' => $group_path,
+1022:                             'count' => $group_count,
+1023:                             'message' => '拼团(' . $group_count . ')',
+1024:                         ];
+1025:                     }
+1026:                     if ($assist_count > 0) {
+1027:                         $children[] = [
+1028:                             'title' => '助力',
+1029:                             'path' => $assist_path,
+1030:                             'count' => $assist_count,
+1031:                             'message' => '助力(' . $assist_count . ')',
+1032:                         ];
+1033:                     }
+1034:                     if ($presell_count > 0) {
+1035:                         $children[] = [
+1036:                             'title' => '预售',
+1037:                             'path' => $presell_path,
+1038:                             'count' => $presell_count,
+1039:                             'message' => '预售(' . $presell_count . ')',
+1040:                         ];
+1041:                     }
+1042:                     if ($live_room_count > 0) {
+1043:                         $children[] = [
+1044:                             'title' => '直播间',
+1045:                             'path' => $live_room_path,
+1046:                             'count' => $live_room_count,
+1047:                             'message' => '直播间(' . $live_room_count . ')',
+1048:                         ];
+1049:                     }
+1050:                     if ($live_goods_count > 0) {
+1051:                         $children[] = [
+1052:                             'title' => '直播间商品',
+1053:                             'path' => $live_goods_path,
+1054:                             'count' => $live_goods_count,
+1055:                             'message' => '直播间商品(' . $live_goods_count . ')',
+1056:                         ];
+1057:                     }
+1058:                     if ($distribution_count > 0) {
+1059:                         $children[] = [
+1060:                             'title' => '分销礼包商品',
+1061:                             'path' => $distribution_path,
+1062:                             'count' => $distribution_count,
+1063:                             'message' => '分销礼包商品(' . $distribution_count . ')',
+1064:                         ];
+1065:                     }
+1066: 
+1067:                     $count = 0;
+1068:                     foreach ($children as $child) {
+1069:                         $count += $child['count'];
+1070:                     }
+1071: 
+1072:                     $data[] = [
+1073:                         'title' => '审核未通过商品',
+1074:                         'icon' => 'iconputongshangpin',
+1075:                         'path' => $status_path,
+1076:                         'count' => $count,
+1077:                         'children' => $children
+1078:                     ];
+1079:                     break;
+1080:                 case 'todo':
+1081:                     if ($refuse_count > 0) {
+1082:                         $data[] = [
+1083:                             'title' => '普通商品审核未通过提醒',
+1084:                             'path' => $refuse_path,
+1085:                             'message' => '您有' . $refuse_count . '个普通商品审核未通过'
+1086:                         ];
+1087:                     }
+1088:                     if ($seckill_count > 0) {
+1089:                         $data[] = [
+1090:                             'title' => '秒杀商品审核未通过提醒',
+1091:                             'path' => $seckill_path,
+1092:                             'message' => '您有' . $seckill_count . '个秒杀商品审核未通过'
+1093:                         ];
+1094:                     }
+1095:                     if ($group_count > 0) {
+1096:                         $data[] = [
+1097:                             'title' => '拼团商品审核未通过提醒',
+1098:                             'path' => $group_path,
+1099:                             'message' => '您有' . $group_count . '个拼团商品审核未通过'
+1100:                         ];
+1101:                     }
+1102:                     if ($assist_count > 0) {
+1103:                         $data[] = [
+1104:                             'title' => '助力商品审核未通过提醒',
+1105:                             'path' => $assist_path,
+1106:                             'message' => '您有' . $assist_count . '个助力商品审核未通过'
+1107:                         ];
+1108:                     }
+1109:                     if ($presell_count > 0) {
+1110:                         $data[] = [
+1111:                             'title' => '预售商品审核未通过提醒',
+1112:                             'path' => $presell_path,
+1113:                             'message' => '您有' . $presell_count . '个预售商品审核未通过'
+1114:                         ];
+1115:                     }
+1116:                     if ($live_room_count > 0) {
+1117:                         $data[] = [
+1118:                             'title' => '直播商品审核未通过提醒',
+1119:                             'path' => $live_room_path,
+1120:                             'message' => '您有' . $live_room_count . '个直播商品审核未通过'
+1121:                         ];
+1122:                     }
+1123:                     if ($live_goods_count > 0) {
+1124:                         $data[] = [
+1125:                             'title' => '直播间审核未通过提醒',
+1126:                             'path' => $live_goods_path,
+1127:                             'message' => '您有' . $live_goods_count . '个直播间审核未通过'
+1128:                         ];
+1129:                     }
+1130:                     if ($distribution_count > 0) {
+1131:                         $data[] = [
+1132:                             'title' => '分销礼包审核未通过提醒',
+1133:                             'path' => $distribution_path,
+1134:                             'message' => '您有' . $distribution_count . '个分销礼包审核未通过'
+1135:                         ];
+1136:                     }
+1137: 
+1138:                     break;
+1139:             }
+1140:             return $data;
+1141:         });
+1142:     }
+1143: 
+1144:     public function getMerchantActivityProductInfo(int $mer_id, string $type = 'count')
+1145:     {
+1146:         return $this->cache(__FUNCTION__, function () use ($mer_id, $type) {
+1147:             $productRepository = app()->make(ProductRepository::class);
+1148:             $seckill_count = $productRepository->search($mer_id, $productRepository->switchType(7, null, 1))->count();
+1149:             $group_count = app()->make(ProductGroupRepository::class)->search(['mer_id' => $mer_id, 'product_status' => -1])->count();
+1150:             $presell_count = app()->make(ProductPresellRepository::class)->search(['mer_id' => $mer_id, 'product_status' => -1])->count();
+1151:             $assist_count = app()->make(ProductAssistRepository::class)->search(['mer_id' => $mer_id, 'product_status' => -1])->count();
+1152: 
+1153:             $live_room_count = app()->make(BroadcastRoomRepository::class)->search(['mer_id' => $mer_id, 'status_tag' => -1])->count();
+1154:             $live_goods_count = app()->make(BroadcastGoodsRepository::class)->search(['mer_id' => $mer_id, 'status_tag' => -1])->count();
+1155: 
+1156:             $seckill_path = '/'.$this->merchant_prefix.'/marketing/seckill/list?type=-1';
+1157:             $group_path = '/'.$this->merchant_prefix.'/marketing/combination/combination_goods?product_status=-1';
+1158:             $presell_path = '/'.$this->merchant_prefix.'/marketing/presell/list?product_status=-1';
+1159:             $assist_path = '/'.$this->merchant_prefix.'/marketing/assist/list?product_status=-1';
+1160:             $live_room_path = '/'.$this->merchant_prefix.'/marketing/studio/list?status_tag=-1';
+1161:             $live_goods_path = '/'.$this->merchant_prefix.'/marketing/broadcast/list?status_tag=-1';
+1162:             $data = [];
+1163:             switch ($type) {
+1164:                 case 'count':
+1165:                     $children = [];
+1166:                     if ($seckill_count > 0) {
+1167:                         $children[] = [
+1168:                             'title' => '秒杀',
+1169:                             'path' => $seckill_path,
+1170:                             'count' => $seckill_count,
+1171:                             'message' => '秒杀(' . $seckill_count . ')',
+1172:                         ];
+1173:                     }
+1174:                     if ($group_count > 0) {
+1175:                         $children[] = [
+1176:                             'title' => '拼团',
+1177:                             'path' => $group_path,
+1178:                             'count' => $group_count,
+1179:                             'message' => '拼团(' . $group_count . ')',
+1180:                         ];
+1181:                     }
+1182:                     if ($assist_count > 0) {
+1183:                         $children[] = [
+1184:                             'title' => '助力',
+1185:                             'path' => $assist_path,
+1186:                             'count' => $assist_count,
+1187:                             'message' => '助力(' . $assist_count . ')',
+1188:                         ];
+1189:                     }
+1190:                     if ($presell_count > 0) {
+1191:                         $children[] = [
+1192:                             'title' => '预售',
+1193:                             'path' => $presell_path,
+1194:                             'count' => $presell_count,
+1195:                             'message' => '预售(' . $presell_count . ')',
+1196:                         ];
+1197:                     }
+1198:                     if ($live_room_count > 0) {
+1199:                         $children[] = [
+1200:                             'title' => '直播间',
+1201:                             'path' => $live_room_path,
+1202:                             'count' => $live_room_count,
+1203:                             'message' => '直播间(' . $live_room_count . ')',
+1204:                         ];
+1205:                     }
+1206:                     if ($live_goods_count > 0) {
+1207:                         $children[] = [
+1208:                             'title' => '直播间商品',
+1209:                             'path' => $live_goods_path,
+1210:                             'count' => $live_goods_count,
+1211:                             'message' => '直播间商品(' . $live_goods_count . ')',
+1212:                         ];
+1213:                     }
+1214:                     $count = 0;
+1215:                     foreach ($children as $child) {
+1216:                         $count += $child['count'];
+1217:                     }
+1218:                     $data[] = [
+1219:                         'title' => '审核未通过活动商品',
+1220:                         'icon' => 'iconhuodongshangpin',
+1221:                         'path' => '/',
+1222:                         'count' => $count,
+1223:                         'children' => $children
+1224:                     ];
+1225:                     break;
+1226:                 case 'todo':
+1227:                     if ($seckill_count > 0) {
+1228:                         $data[] = [
+1229:                             'title' => '秒杀商品审核未通过提醒',
+1230:                             'path' => $seckill_path,
+1231:                             'message' => '您有' . $seckill_count . '个秒杀商品审核未通过'
+1232:                         ];
+1233:                     }
+1234:                     if ($group_count > 0) {
+1235:                         $data[] = [
+1236:                             'title' => '拼团商品审核未通过提醒',
+1237:                             'path' => $group_path,
+1238:                             'message' => '您有' . $group_count . '个拼团商品审核未通过'
+1239:                         ];
+1240:                     }
+1241:                     if ($assist_count > 0) {
+1242:                         $data[] = [
+1243:                             'title' => '助力商品审核未通过提醒',
+1244:                             'path' => $assist_path,
+1245:                             'message' => '您有' . $assist_count . '个助力商品审核未通过'
+1246:                         ];
+1247:                     }
+1248:                     if ($presell_count > 0) {
+1249:                         $data[] = [
+1250:                             'title' => '预售商品审核未通过提醒',
+1251:                             'path' => $presell_path,
+1252:                             'message' => '您有' . $presell_count . '个预售商品审核未通过'
+1253:                         ];
+1254:                     }
+1255:                     if ($live_room_count > 0) {
+1256:                         $data[] = [
+1257:                             'title' => '直播商品审核未通过提醒',
+1258:                             'path' => $live_room_path,
+1259:                             'message' => '您有' . $live_room_count . '个直播商品审核未通过'
+1260:                         ];
+1261:                     }
+1262:                     if ($live_goods_count > 0) {
+1263:                         $data[] = [
+1264:                             'title' => '直播间审核未通过提醒',
+1265:                             'path' => $live_goods_path,
+1266:                             'message' => '您有' . $live_goods_count . '个直播间审核未通过'
+1267:                         ];
+1268:                     }
+1269:                     break;
+1270:             }
+1271:             return $data;
+1272:         });
+1273:     }
+1274: 
+1275:     /**
+1276:      * 待发货订单
+1277:      * @param int $mer_id
+1278:      * @param string $type
+1279:      * @return mixed
+1280:      * @throws \Exception
+1281:      *
+1282:      * @date 2023/11/02
+1283:      * @author yyw
+1284:      */
+1285:     public function getMerchantOrderShipInfo(int $mer_id, string $type = 'count')
+1286:     {
+1287:         return $this->cache(__FUNCTION__, function () use ($mer_id, $type) {
+1288:             $storeOrderRepository = app()->make(StoreOrderRepository::class);
+1289:             $stay_delivery_count = $storeOrderRepository->search(['mer_id' => $mer_id])->where($storeOrderRepository->getOrderType(2))->count();
+1290: 
+1291:             $stay_delivery_path = '/'.$this->merchant_prefix.'/order/list?status=2';
+1292:             $data = [];
+1293: 
+1294:             switch ($type) {
+1295:                 case 'count':
+1296:                     $data[] = [
+1297:                         'title' => '待发货订单',
+1298:                         'icon' => 'icondaifahuo2',
+1299:                         'path' => $stay_delivery_path,
+1300:                         'count' => $stay_delivery_count,
+1301:                         'children' => []
+1302:                     ];
+1303:                     break;
+1304:                 case 'todo':
+1305:                     if ($stay_delivery_count) {
+1306:                         $data[] = [
+1307:                             'title' => '待发货订单提醒',
+1308:                             'path' => $stay_delivery_path,
+1309:                             'message' => '您有' . $stay_delivery_count . '个待发货的订单'
+1310:                         ];
+1311:                     }
+1312:                     break;
+1313:             }
+1314:             return $data;
+1315:         });
+1316:     }
+1317: 
+1318:     /**
+1319:      * 待核销订单
+1320:      * @param int $mer_id
+1321:      * @param string $type
+1322:      * @return mixed
+1323:      * @throws \Exception
+1324:      *
+1325:      * @date 2023/11/02
+1326:      * @author yyw
+1327:      */
+1328:     public function getMerchantPendWriteOffOrderInfo(int $mer_id, string $type = 'count')
+1329:     {
+1330:         return $this->cache(__FUNCTION__, function () use ($mer_id, $type) {
+1331:             $storeOrderRepository = app()->make(StoreOrderRepository::class);
+1332:             $stay_cancel_count = $storeOrderRepository->search(['mer_id' => $mer_id, 'order_type' => 1, 'status' => 0, 'paid' => 1])->count();
+1333:             $stay_cancel_path = '/'.$this->merchant_prefix.'/order/list?order_type=1&type=1';
+1334:             $data = [];
+1335:             switch ($type) {
+1336:                 case 'count':
+1337:                     $data[] = [
+1338:                         'title' => '待核销订单',
+1339:                         'icon' => 'icondaihexiao',
+1340:                         'path' => $stay_cancel_path,
+1341:                         'count' => $stay_cancel_count,
+1342:                         'children' => []
+1343:                     ];
+1344:                     break;
+1345:                 case 'todo':
+1346:                     if ($stay_cancel_count > 0) {
+1347:                         $data[] = [
+1348:                             'title' => '待核销订单提醒',
+1349:                             'path' => $stay_cancel_path,
+1350:                             'message' => '您有' . $stay_cancel_count . '个待核销的订单'
+1351:                         ];
+1352:                     }
+1353:                     break;
+1354:             }
+1355:             return $data;
+1356:         });
+1357:     }
+1358: 
+1359:     /**
+1360:      * 待退款订单
+1361:      * @param int $mer_id
+1362:      * @param string $type
+1363:      * @return mixed
+1364:      * @throws \Exception
+1365:      *
+1366:      * @date 2023/10/25
+1367:      * @author yyw
+1368:      */
+1369:     public function getMerchantRefundOrderInfo(int $mer_id, string $type = 'count')
+1370:     {
+1371:         return $this->cache(__FUNCTION__, function () use ($mer_id, $type) {
+1372:             $storeRefundOrderRepository = app()->make(StoreRefundOrderRepository::class);
+1373:             $stay_refund_count = $storeRefundOrderRepository->search(['mer_id' => $mer_id, 'status' => 0])->count();
+1374: 
+1375:             $stay_refund_path = '/'.$this->merchant_prefix.'/order/refund?status=0';
+1376:             $data = [];
+1377: 
+1378:             switch ($type) {
+1379:                 case 'count':
+1380:                     $data[] = [
+1381:                         'title' => '待退款订单',
+1382:                         'icon' => 'icondaituikuan',
+1383:                         'path' => $stay_refund_path,
+1384:                         'count' => $stay_refund_count,
+1385:                         'children' => []
+1386:                     ];
+1387:                     break;
+1388:                 case 'todo':
+1389:                     if ($stay_refund_count > 0) {
+1390:                         $data[] = [
+1391:                             'title' => '待退款订单提醒',
+1392:                             'path' => $stay_refund_path,
+1393:                             'message' => '您有' . $stay_refund_count . '个待退款的订单'
+1394:                         ];
+1395:                     }
+1396: 
+1397:                     break;
+1398:             }
+1399:             return $data;
+1400:         });
+1401:     }
+1402: 
+1403: 
+1404:     /**
+1405:      * 获取商户商品评论代办
+1406:      * @param int $mer_id
+1407:      * @param string $type
+1408:      * @return mixed
+1409:      * @throws \Exception
+1410:      *
+1411:      * @date 2023/10/25
+1412:      * @author yyw
+1413:      */
+1414:     public function getMerchantStayReviewsInfo(int $mer_id, string $type = 'count')
+1415:     {
+1416:         return $this->cache(__FUNCTION__, function () use ($mer_id, $type) {
+1417:             $productRepository = app()->make(ProductReplyRepository::class);
+1418:             $count = $productRepository->searchJoinQuery(['mer_id' => $mer_id, 'is_reply' => 0, 'is_del' => 0])->count();
+1419:             $path = '/'.$this->merchant_prefix.'/product/reviews?is_reply=0';
+1420:             $data = [];
+1421: 
+1422:             switch ($type) {
+1423:                 case 'count':
+1424:                     $data[] = [
+1425:                         'title' => '待回复评论',
+1426:                         'icon' => 'icondaihuifu',
+1427:                         'path' => $path,
+1428:                         'count' => $count,
+1429:                         'children' => []
+1430:                     ];
+1431:                     break;
+1432:                 case 'todo':
+1433:                     if ($count > 0) {
+1434:                         $data[] = [
+1435:                             'title' => '评论回复提醒',
+1436:                             'path' => $path,
+1437:                             'message' => '您有' . $count . '个评论待回复'
+1438:                         ];
+1439:                     }
+1440:                     break;
+1441:             }
+1442: 
+1443:             return $data;
+1444:         });
+1445:     }
+1446: 
+1447:     /**
+1448:      * 获取开发票订单信息
+1449:      * @param int $mer_id
+1450:      * @param string $type
+1451:      * @return mixed
+1452:      * @throws \Exception
+1453:      *
+1454:      * @date 2023/10/25
+1455:      * @author yyw
+1456:      */
+1457:     public function getMerchantOrderReceiptInfo(int $mer_id, string $type = 'count')
+1458:     {
+1459:         return $this->cache(__FUNCTION__, function () use ($mer_id, $type) {
+1460:             $storeOrderReceiptRepository = app()->make(StoreOrderReceiptRepository::class);
+1461:             $count = $storeOrderReceiptRepository->search(['mer_id' => $mer_id, 'status' => 0])->count();
+1462:             $path = '/'.$this->merchant_prefix.'/order/invoice?status=0';
+1463:             $data = [];
+1464: 
+1465:             switch ($type) {
+1466:                 case 'count':
+1467:                     $data[] = [
+1468:                         'title' => '待开发票',
+1469:                         'icon' => 'icondaikaipiao',
+1470:                         'path' => $path,
+1471:                         'count' => $count,
+1472:                         'children' => []
+1473:                     ];
+1474:                     break;
+1475:                 case 'todo':
+1476:                     if ($count > 0) {
+1477:                         $data[] = [
+1478:                             'title' => '待开票订单提醒',
+1479:                             'path' => $path,
+1480:                             'message' => '您有' . $count . '个待开票的订单'
+1481:                         ];
+1482:                     }
+1483:                     break;
+1484:             }
+1485: 
+1486:             return $data;
+1487:         });
+1488:     }
+1489: 
+1490:     public function getMerchantNoticeInfo(int $mer_id, string $type = 'count')
+1491:     {
+1492:         return $this->cache(__FUNCTION__, function () use ($mer_id, $type) {
+1493:             $systemNoticeLogRepository = app()->make(SystemNoticeLogRepository::class);
+1494:             $count = $systemNoticeLogRepository->search(['mer_id' => $mer_id, 'is_read' => 0, 'is_del' => 0])->count();
+1495:             $path = '/'.$this->merchant_prefix.'/station/notice?is_read=0';
+1496:             $data = [];
+1497: 
+1498:             switch ($type) {
+1499:                 case 'count':
+1500:                     if ($count > 0) {
+1501:                         $data[] = [
+1502:                             'title' => '平台公告',
+1503:                             'icon' => '',
+1504:                             'path' => $path,
+1505:                             'count' => $count,
+1506:                             'children' => []
+1507:                         ];
+1508:                     }
+1509:                     break;
+1510:                 case 'todo':
+1511:                     if ($count > 0) {
+1512:                         $data[] = [
+1513:                             'title' => '平台公告',
+1514:                             'path' => $path,
+1515:                             'message' => '您有' . $count . '条未读消息'
+1516:                         ];
+1517:                     }
+1518:                     break;
+1519:             }
+1520: 
+1521:             return $data;
+1522:         });
+1523:     }
+1524: 
+1525:     /**
+1526:      * 获取商户商品销售金额排行
+1527:      * @param string $date
+1528:      * @return array
+1529:      *
+1530:      * @date 2023/10/21
+1531:      * @author yyw
+1532:      */
+1533:     public function getMerchantProductSalesPriceTop(int $mer_id, string $date)
+1534:     {
+1535:         return $this->cache(__FUNCTION__, function () use ($mer_id, $date) {
+1536:             $storeOrderProductRepository = app()->make(StoreOrderProductRepository::class);
+1537:             $list = $storeOrderProductRepository->getProductRate($mer_id, $date);
+1538:             return compact('list');
+1539:         });
+1540:     }
+1541: }
+</file>
+
+<file path="app/controller/admin/analytics/StoreOrder.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: namespace app\controller\admin\analytics;
+13: 
+14: use think\App;
+15: use crmeb\basic\BaseController;
+16: use app\common\repositories\analytics\OrderAnalyticsRepository;
+17: 
+18: class  StoreOrder extends BaseController
+19: {
+20:     #StoreOrderRepository
+21:     public $repository;
+22:     public function __construct(App $app, OrderAnalyticsRepository $repository)
+23:     {
+24:         parent::__construct($app);
+25:         $this->repository = $repository;
+26:     }
+27: 
+28: 
+29:     /**
+30:      * 订单实付金额
+31:      * 用券金额
+32:      * 退款金额
+33:      * 支付订单数
+34:      * 退款订单数
+35:      */
+36:     public function top()
+37:     {
+38:         $date = $this->request->param('date','today');
+39:         $date = $date ?: 'today';
+40:         $data = $this->repository->top($date, $this->request->merId());
+41:         return app('json')->success($data);
+42:     }
+43: 
+44:     public function lineChart()
+45:     {
+46:         $date = $this->request->param('date','week');
+47:         $date = $date ?: 'week';
+48:         $data = $this->repository->lineChart($date, $this->request->merId());
+49:         return app('json')->success($data);
+50:     }
+51: 
+52:     public function typePieCahrt($type)
+53:     {
+54:         $date = $this->request->param('date','week');
+55:         $date = $date ?: 'week';
+56:         if ($type) {
+57:             $data = $this->repository->typePieCahrt($date, $this->request->merId());
+58:         } else {
+59:             $data = $this->repository->delivePieCahrt($date, $this->request->merId());
+60:         }
+61: 
+62:         return app('json')->success($data);
+63:     }
+64: }
+</file>
+
+<file path="app/controller/admin/analytics/StoreProduct.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: namespace app\controller\admin\analytics;
+13: 
+14: use think\App;
+15: use crmeb\basic\BaseController;
+16: use app\common\repositories\analytics\ProductAnalyticsRepository;
+17: 
+18: class  StoreProduct extends BaseController
+19: {
+20:     #StoreOrderRepository
+21:     public $repository;
+22:     public function __construct(App $app, ProductAnalyticsRepository $repository)
+23:     {
+24:         parent::__construct($app);
+25:         $this->repository = $repository;
+26:     }
+27: 
+28: 
+29:     /**
+30:      * 浏览量
+31:      * 收藏量
+32:      * 加购数
+33:      * 下单数
+34:      * 支付数
+35:      * 退款数
+36:      */
+37:     public function top()
+38:     {
+39:         $date = $this->request->param('date','today');
+40:         $date = $date ?: 'today';
+41:         $data = $this->repository->top($date,$this->request->merId());
+42:         return app('json')->success($data);
+43:     }
+44: 
+45: 
+46:     public function lineChart()
+47:     {
+48:         $date = $this->request->param('date','week');
+49:         $date = $date ?: 'week';
+50:         $data = $this->repository->lineChart($date,$this->request->merId());
+51:         return app('json')->success($data);
+52:     }
+53: 
+54:     public function typePieCahrt($type)
+55:     {
+56:         if ($type) {
+57:             $data = $this->repository->catePieCahrt($this->request->merId());
+58:         } else {
+59:             $data = $this->repository->typePieCahrt($this->request->merId());
+60:         }
+61:         return app('json')->success($data);
+62:     }
+63: 
+64: }
+</file>
+
+<file path="app/controller/admin/analytics/User.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: namespace app\controller\admin\analytics;
+13: 
+14: use think\App;
+15: use crmeb\basic\BaseController;
+16: use app\common\repositories\analytics\UserAnalyticsRepository;
+17: 
+18: class  User extends BaseController
+19: {
+20:     #StoreOrderRepository
+21:     public $repository;
+22:     public function __construct(App $app, UserAnalyticsRepository $repository)
+23:     {
+24:         parent::__construct($app);
+25:         $this->repository = $repository;
+26:     }
+27: 
+28: 
+29:     /**
+30:      * 用户数量
+31:      * 新增用户
+32:      * 下单用户
+33:      * 活跃用户
+34:      * 付费会员
+35:      * 新增付费会员
+36:      */
+37:     public function top()
+38:     {
+39:         $date = $this->request->param('date','today');
+40:         $date = $date ?: 'today';
+41:         $data = $this->repository->top($date);
+42:         return app('json')->success($data);
+43:     }
+44: 
+45: 
+46:     public function lineChart()
+47:     {
+48:         /**
+49:          * 新增用户数量
+50:          * 活跃用户数量
+51:          * 新增付费会员
+52:          */
+53:         $type = $this->request->param('type',0);
+54:         $date = $this->request->param('date','week');
+55:         $date = $date ?: 'week';
+56:         $data = $this->repository->lineChart($type, $date);
+57:         return app('json')->success($data);
+58:     }
+59: 
+60:     public function typePieCahrt()
+61:     {
+62:         $date = $this->request->param('date','week');
+63:         $date = $date ?: 'week';
+64:         $data = $this->repository->typePieCahrt($date);
+65:         return app('json')->success($data);
+66:     }
+67: }
+</file>
+
+<file path="route/admin/analytics.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: use think\facade\Route;
+13: use app\common\middleware\AdminAuthMiddleware;
+14: use app\common\middleware\AdminTokenMiddleware;
+15: use app\common\middleware\AllowOriginMiddleware;
+16: use app\common\middleware\LogMiddleware;
+17: 
+18: Route::group(function () {
+19: 
+20:     //订单统计
+21:     Route::group('analytics/order', function () {
+22:         //顶部统计
+23:         Route::get('top', '/top')->name('systemAnalyticsOrderTop')->option([
+24:             '_alias' => '顶部统计',
+25:         ]);
+26:         Route::get('line_chart', '/lineChart')->name('systemAnalyticsOrderLineChart')->option([
+27:             '_alias' => '折线图统计',
+28:         ]);
+29:         Route::get('pie_chart/:type', '/typePieCahrt')->name('systemAnalyticsOrderTypePieChart')->option([
+30:             '_alias' => '折线图统计',
+31:         ]);
+32:     })->prefix('admin.analytics.StoreOrder')->option([
+33:         '_path' => '/statistic/order',
+34:         '_auth' => true,
+35:     ]);
+36: 
+37:     //商品统计
+38:     Route::group('analytics/product', function () {
+39:         //顶部统计
+40:         Route::get('top', '/top')->name('systemAnalyticsProductTop')->option([
+41:             '_alias' => '顶部统计',
+42:         ]);
+43:         Route::get('line_chart', '/lineChart')->name('systemAnalyticsProductLineChart')->option([
+44:             '_alias' => '折线图统计',
+45:         ]);
+46:         Route::get('pie_chart/:type', '/typePieCahrt')->name('systemAnalyticsProductTypePieChart')->option([
+47:             '_alias' => '折线图统计',
+48:         ]);
+49:     })->prefix('admin.analytics.StoreProduct')->option([
+50:         '_path' => '/statistic/product',
+51:         '_auth' => true,
+52:     ]);
+53: 
+54:     //用户统计
+55:     Route::group('analytics/user', function () {
+56:         //顶部统计
+57:         Route::get('top', '/top')->name('systemAnalyticsUserTop')->option([
+58:             '_alias' => '顶部统计',
+59:         ]);
+60:         Route::get('line_chart', '/lineChart')->name('systemAnalyticsUserLineChart')->option([
+61:             '_alias' => '折线图统计',
+62:         ]);
+63:         Route::get('pie_chart', '/typePieCahrt')->name('systemAnalyticsUserTypePieChart')->option([
+64:             '_alias' => '折线图统计',
+65:         ]);
+66:     })->prefix('admin.analytics.User')->option([
+67:         '_path' => '/statistic/member',
+68:         '_auth' => true,
+69:     ]);
+70: 
+71: })->middleware(AllowOriginMiddleware::class)
+72:     ->middleware(AdminTokenMiddleware::class, true)
+73:     ->middleware(AdminAuthMiddleware::class)
+74:     ->middleware(LogMiddleware::class);
+</file>
+
+</files>

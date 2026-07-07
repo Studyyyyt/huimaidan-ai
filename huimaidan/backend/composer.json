@@ -1,0 +1,118 @@
+{
+    "name": "topthink/think",
+    "description": "the new thinkphp framework",
+    "type": "project",
+    "keywords": [
+        "framework",
+        "thinkphp",
+        "ORM"
+    ],
+    "homepage": "http://thinkphp.cn/",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "liu21st",
+            "email": "liu21st@gmail.com"
+        },
+        {
+            "name": "yunwuxin",
+            "email": "448901948@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.0",
+        "ext-json": "*",
+        "ext-openssl": "*",
+        "ext-gd": "*",
+        "ext-redis": "*",
+        "ext-zip": "*",
+        "ext-pdo": "*",
+        "ext-curl": "*",
+        "ext-bcmath": "*",
+        "ext-mbstring": "*",
+        "ext-swoole": "^4.4.0",
+        "topthink/framework": "6.0.7",
+        "topthink/think-orm": "^2.0",
+        "topthink/think-swoole": "3.1.2",
+        "firebase/php-jwt": "^5.0",
+        "overtrue/wechat": "3.3.33",
+        "xaboy/form-builder": "2.0.15",
+        "phpoffice/phpexcel": "^1.8",
+        "topthink/think-queue": "^3.0",
+        "topthink/think-image": "^1.0",
+        "aliyuncs/oss-sdk-php": "^2.3",
+        "qiniu/php-sdk": "^7.2",
+        "gregwar/captcha": "^1.1",
+        "endroid/qr-code": "^3.8",
+        "phpoffice/phpspreadsheet": "^1.12",
+        "riverslei/payment": "^5.1",
+        "lizhichao/word": "^2.1",
+        "joypack/tencent-map": "^1.0",
+        "obs/esdk-obs-php": "^3.21",
+        "ucloud/ufile-php-sdk": "^1.0",
+        "swoole/ide-helper": "^4.8",
+        "alibabacloud/dysmsapi-20170525": "2.0.9",
+        "fastknife/ajcaptcha": "^1.1",
+        "aws/aws-sdk-php": "^3.301",
+        "ucloud/ucloud-sdk-php": "^0.3.5",
+        "topthink/think-trace": "^1.6",
+        "cweagans/composer-patches": "^1.7"
+    },
+    "require-dev": {
+
+        "symfony/var-dumper": "^4.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "app",
+            "crmeb\\": "crmeb",
+            "think\\queue\\": "vendor/topthink/think-queue/src/queue/"
+        },
+        "psr-0": {
+            "": "extend/"
+        },
+        "classmap": [
+            "vendor/topthink/think-queue/src/facade/Queue.php"
+        ]
+    },
+    "config": {
+        "preferred-install": "dist",
+        "allow-plugins": {
+            "cweagans/composer-patches": true
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@php think service:discover",
+            "@php think vendor:publish"
+        ]
+    },
+    "extra": {
+        "patches": {
+            "doctrine/cache": {
+                "CRMEB file cache path compatibility": "patches/vendor/doctrine-cache-crmeb.patch"
+            },
+            "riverslei/payment": {
+                "CRMEB Alipay and PHP 7.4+ compatibility fixes": "patches/vendor/riverslei-payment-crmeb.patch"
+            },
+            "topthink/framework": {
+                "CRMEB route group boundary compatibility": "patches/vendor/topthink-framework-crmeb.patch"
+            },
+            "topthink/think-swoole": {
+                "CRMEB packaged source parity": "patches/vendor/topthink-think-swoole-crmeb.patch"
+            },
+            "topthink/think-queue": {
+                "CRMEB autoload compatibility on Windows WSL mounts": "patches/vendor/topthink-think-queue-crmeb.patch"
+            },
+            "topthink/think-trace": {
+                "CRMEB disables trace injection": "patches/vendor/topthink-think-trace-crmeb.patch"
+            },
+            "ucloud/ufile-php-sdk": {
+                "CRMEB packaged source parity": "patches/vendor/ucloud-ufile-php-sdk-crmeb.patch"
+            },
+            "xaboy/form-builder": {
+                "CRMEB form component compatibility fixes": "patches/vendor/xaboy-form-builder-crmeb.patch"
+            }
+        }
+    }
+}

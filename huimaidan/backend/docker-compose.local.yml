@@ -1,0 +1,104 @@
+# 惠买单后端本地开发部署配置（macOS / Linux 通用）
+# 使用方法：
+#   1. 确保 Docker Desktop 已安装并启用 Rosetta（macOS ARM64）
+#   2. 在项目根目录执行：docker-compose -f docker-compose.local.yml up -d
+#   3. 首次启动需导入数据库：见 README.md 或 install/docker-compose/README.md
+#   4. 访问：http://127.0.0.1:8324
+#
+# 注意：PHP 服务使用 linux/amd64 平台以兼容 swoole_loader73.so（CRMEB 加密代码）
+
+version: "3.8"
+
+services:
+  mysql:
+    container_name: huimaidan_mysql
+    image: mysql:8.0
+    platform: linux/arm64
+    restart: unless-stopped
+    ports:
+      - "3366:3306"
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: crmeb
+      MYSQL_USER: crmeb
+      MYSQL_PASSWORD: root
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
+      --max_allowed_packet=128M
+      --default-authentication-plugin=mysql_native_password
+      --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+    volumes:
+      - ./.docker/mysql/data:/var/lib/mysql
+      - ./.docker/mysql/log:/var/log/mysql
+    networks:
+      - huimaidan_net
+
+  redis:
+    container_name: huimaidan_redis
+    image: redis:7-alpine
+    platform: linux/arm64
+    restart: unless-stopped
+    ports:
+      - "6399:6379"
+    volumes:
+      - ./.docker/redis/data:/data
+      - ./install/docker-compose/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass root
+    networks:
+      - huimaidan_net
+
+  php:
+    container_name: huimaidan_php
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - "8324:8324"
+    environment:
+      TZ: Asia/Shanghai
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+      - ./runtime:/var/www/temp
+    command: >
+      sh -c "rm -f runtime/swoole.pid runtime/swoole.log && php think swoole start"
+    networks:
+      - huimaidan_net
+
+  queue:
+    container_name: huimaidan_queue
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      TZ: Asia/Shanghai
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+      - ./runtime:/var/www/temp
+    command: >
+      sh -c "php think queue:listen --tries=2"
+    networks:
+      - huimaidan_net
+
+networks:
+  huimaidan_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.10.0/24
+          gateway: 192.168.10.1

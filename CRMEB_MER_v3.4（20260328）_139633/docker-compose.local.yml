@@ -1,0 +1,86 @@
+version: "3.8"
+
+services:
+  mysql:
+    container_name: crmeb_factory_mysql
+    image: mysql:5.7
+    platform: linux/amd64
+    restart: unless-stopped
+    ports:
+      - "3467:3306"
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: crmeb
+      MYSQL_USER: crmeb
+      MYSQL_PASSWORD: root
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
+      --max_allowed_packet=128M
+      --default-authentication-plugin=mysql_native_password
+      --sql-mode=NO_ENGINE_SUBSTITUTION
+    volumes:
+      - ./.docker/mysql/data:/var/lib/mysql
+      - ./.docker/mysql/log:/var/log/mysql
+    networks:
+      - crmeb_factory_net
+
+  redis:
+    container_name: crmeb_factory_redis
+    image: redis:7-alpine
+    platform: linux/arm64
+    restart: unless-stopped
+    ports:
+      - "6479:6379"
+    command: redis-server --requirepass root
+    volumes:
+      - ./.docker/redis/data:/data
+    networks:
+      - crmeb_factory_net
+
+  php:
+    container_name: crmeb_factory_php
+    image: backend-php
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - "8464:8324"
+    environment:
+      TZ: Asia/Shanghai
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+      - ./runtime:/var/www/temp
+    command: >
+      sh -c "rm -f runtime/swoole.pid runtime/swoole.log && php think swoole start"
+    networks:
+      - crmeb_factory_net
+
+  queue:
+    container_name: crmeb_factory_queue
+    image: backend-php
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      TZ: Asia/Shanghai
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+      - ./runtime:/var/www/temp
+    command: >
+      sh -c "php think queue:listen --tries=2"
+    networks:
+      - crmeb_factory_net
+
+networks:
+  crmeb_factory_net:
+    driver: bridge

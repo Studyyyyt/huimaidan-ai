@@ -1,0 +1,3042 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: app/controller/admin/circle/**/*.php, route/admin/circle.php, app/common/repositories/circle/**/*.php, app/common/dao/circle/**/*.php, app/common/model/circle/**/*.php, app/validate/admin/*Circle*.php, crmeb/services/circle/**/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/common/dao/circle/CircleAgentDao.php
+app/common/dao/circle/CircleBrokerageCheckoutDao.php
+app/common/dao/circle/CircleDao.php
+app/common/dao/circle/CircleFinancialRecordDao.php
+app/common/model/circle/Circle.php
+app/common/model/circle/CircleAgent.php
+app/common/model/circle/CircleBrokerageCheckout.php
+app/common/model/circle/CircleFinancialRecord.php
+app/common/repositories/circle/CircleAgentRepository.php
+app/common/repositories/circle/CircleBrokerageCheckoutRepository.php
+app/common/repositories/circle/CircleFinancialRecordRepository.php
+app/common/repositories/circle/CircleRepository.php
+app/controller/admin/circle/Circle.php
+app/controller/admin/circle/CircleAgent.php
+app/controller/admin/circle/CircleBrokerageCheckout.php
+app/controller/admin/circle/CircleFinancialRecord.php
+app/validate/admin/CircleAgentValidate.php
+app/validate/admin/CircleBrokerageCheckoutValidate.php
+app/validate/admin/CircleValidate.php
+route/admin/circle.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/common/dao/circle/CircleAgentDao.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\common\dao\circle;
+14: 
+15: use app\common\dao\BaseDao;
+16: use app\common\model\circle\CircleAgent;
+17: 
+18: class CircleAgentDao extends BaseDao
+19: {
+20:     const STATUS = [
+21:         'REVIEW' => 0,    // 待审核，默认状态
+22:         'APPROVER' => 1,  // 审核通过
+23:         'REJECTED' => -1, // 审核拒绝
+24:         'REVOKED' => -2   // 撤销
+25:     ];
+26: 
+27:     const TYPE = [
+28:         "REGION" => 0, // 区域
+29:         "MERCHANT" => 1, // 商户
+30:     ];
+31: 
+32:     protected function getModel(): string
+33:     {
+34:         return CircleAgent::class;
+35:     }
+36: 
+37:     public function search(array $where, $isCount = false)
+38:     {
+39:         if($isCount) {
+40:             $query = ($this->getModel()::getDB())->alias('c')->join('user u', 'u.uid = c.uid', 'left');
+41:         } else {
+42:             $query = ($this->getModel()::getDB())->field('c.*,u.nickname')->alias('c')->join('user u', 'u.uid = c.uid', 'left');
+43:         }
+44:         $query->when(isset($where['uid']) && $where['uid'] !== '', function ($query) use ($where) {
+45:             $query->where('c.uid', $where['uid']);
+46:         })->when(isset($where['name']) && $where['name'] !== '', function ($query) use ($where) {
+47:             $query->whereLike('c.name', "%{$where['name']}%");
+48:         })->when(isset($where['phone']) && $where['phone'] !== '', function ($query) use ($where) {
+49:             $query->where('c.phone', $where['phone']);
+50:         })->when(isset($where['create_time']) && !empty($where['create_time']), function ($query) use ($where) {
+51:             $where['create_time'][0] = $where['create_time'][0] . ' 00:00:00';
+52:             $where['create_time'][1] = $where['create_time'][1] . ' 23:59:59';
+53:             $query->whereBetween('c.create_time', $where['create_time']);
+54:         })->when(isset($where['status']) && $where['status'] !== '', function ($query) use ($where) {
+55:             $query->where('c.status', $where['status']);
+56:         })->when(isset($where['nickname']) && $where['nickname'] !== '', function ($query) use ($where) {
+57:             $query->whereLike('u.nickname', "%{$where['nickname']}%");
+58:         })->when(isset($where['user_phone']) && $where['user_phone'] !== '', function ($query) use ($where) {
+59:             $query->where('u.phone', $where['user_phone']);
+60:         })->when(isset($where['type']) && $where['type'] !== '', function ($query) use ($where) {
+61:             $query->where('c.type', $where['type']);
+62:         })->when(isset($where['is_apply']) && $where['is_apply'] !== '', function ($query) use ($where) {
+63:             $query->where('c.business_name','<>', '');
+64:         });
+65: 
+66:         $query->order('c.create_time DESC');
+67: 
+68:         return $query;
+69:     }
+70: }
+</file>
+
+<file path="app/common/dao/circle/CircleBrokerageCheckoutDao.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\common\dao\circle;
+14: 
+15: use app\common\dao\BaseDao;
+16: use app\common\model\circle\CircleBrokerageCheckout;
+17: 
+18: class CircleBrokerageCheckoutDao extends BaseDao
+19: {
+20:     const AUDIT_STATUS = [
+21:         'REVIEW' => 0,    // 待审核，默认状态
+22:         'APPROVER' => 1,  // 审核通过
+23:         'REJECTED' => -1, // 审核拒绝
+24:         'REVOKED' => -2   // 撤销
+25:     ];
+26: 
+27:     const STATUS = [
+28:         'NO_CREDITED' => 0, // 未到帐
+29:         'CREDITED' => 1,    // 已到帐
+30:     ];
+31: 
+32:     protected function getModel(): string
+33:     {
+34:         return CircleBrokerageCheckout::class;
+35:     }
+36: 
+37:     public function search(array $where)
+38:     {
+39:         $query = ($this->getModel()::getDB());
+40: 
+41:         $query->when(isset($where['agent_id']) && $where['agent_id'] !== '', function ($query) use ($where) {
+42:             $query->where('agent_id', $where['agent_id']);
+43:         })->when(isset($where['agent_phone']) && $where['agent_phone'] !== '', function ($query) use ($where) {
+44:             $query->where('agent_phone', $where['agent_phone']);
+45:         })->when(isset($where['withdrawal_type']) && $where['withdrawal_type'] !== '', function ($query) use ($where) {
+46:             $query->where('withdrawal_type', $where['withdrawal_type']);
+47:         })->when(isset($where['audit_status']) && $where['audit_status'] !== '', function ($query) use ($where) {
+48:             $query->where('audit_status', $where['audit_status']);
+49:         })->when(isset($where['status']) && $where['status'] !== '', function ($query) use ($where) {
+50:             $query->where('status', $where['status']);
+51:         })->when(isset($where['withdrawal_sn']) && $where['withdrawal_sn'] !== '', function ($query) use ($where) {
+52:             $query->where('withdrawal_sn', $where['withdrawal_sn']);
+53:         })->when(isset($where['create_time']) && !empty($where['create_time']), function ($query) use ($where) {
+54:             $where['create_time'][0] = $where['create_time'][0] . ' 00:00:00';
+55:             $where['create_time'][1] = $where['create_time'][1] . ' 23:59:59';
+56:             $query->whereBetween('create_time', $where['create_time']);
+57:         })->when(isset($where['agent_name']) && $where['agent_name'] !== '', function ($query) use ($where) {
+58:             $query->whereLike('agent_name', "%{$where['agent_name']}%");
+59:         });
+60: 
+61:         $query->order('create_time DESC');
+62: 
+63:         return $query;
+64:     }
+65: }
+</file>
+
+<file path="app/common/dao/circle/CircleDao.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\common\dao\circle;
+14: 
+15: use app\common\dao\BaseDao;
+16: use crmeb\traits\CategoresDao;
+17: use app\common\model\circle\Circle;
+18: 
+19: class CircleDao extends BaseDao
+20: {
+21:     use CategoresDao;
+22: 
+23:     const TYPE = [
+24:         "REGION" => 0, // 区域
+25:         "MERCHANT" => 1, // 商户
+26:     ];
+27: 
+28:     protected function getModel(): string
+29:     {
+30:         return Circle::class;
+31:     }
+32: 
+33:     public function search(array $where)
+34:     {
+35:         $query = ($this->getModel()::getDB());
+36: 
+37:         $query->when(isset($where['circle_agent_id']) && $where['circle_agent_id'] !== '', function ($query) use ($where) {
+38:             $query->where('circle_agent_id', $where['circle_agent_id']);
+39:         })->when(isset($where['name']) && $where['name'] !== '', function ($query) use ($where) {
+40:             $query->whereLike('name', "%{$where['name']}%");
+41:         })->when(isset($where['create_time']) && !empty($where['create_time']), function ($query) use ($where) {
+42:             $query->whereBetween('create_time', $where['create_time']);
+43:         })->when(isset($where['status']) && $where['status'] !== '', function ($query) use ($where) {
+44:             $query->where('status', $where['status']);
+45:         })->when(isset($where['type']) && $where['type'] !== '', function ($query) use ($where) {
+46:             $query->where('type', $where['type']);
+47:         });
+48: 
+49:         $query->order('sort DESC, create_time DESC');
+50: 
+51:         return $query;
+52:     }
+53: 
+54:     public function getStatus(): string
+55:     {
+56:         return 'status';
+57:     }
+58: 
+59:     public function getAllOptions($status = 1, $level = null, $type = '', $circleAgentId = 0)
+60:     {
+61:         $field = $this->getParentId().',name, sort';
+62:         $query = ($this->getModel()::getDB());
+63:         $query->when($status,function($query)use($status){
+64:                 $query->where($this->getStatus(),$status);
+65:             })->when(($level != '' && $level != null),function($query)use($level){
+66:                 $query->where($this->getLevel(),'<',$level);
+67:             })->when((isset($type) && $type !== ''), function ($query) use ($type) {
+68:                 $query->where('type', $type);
+69:             })->when((isset($circleAgentId) && $circleAgentId !== 0), function ($query) use ($circleAgentId) {
+70:                 $query->where('circle_agent_id', $circleAgentId);
+71:             });
+72:         return $query->order('sort DESC,'.$this->getPk().' DESC')->column($field, $this->getPk());
+73:     }
+74: }
+</file>
+
+<file path="app/common/dao/circle/CircleFinancialRecordDao.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\common\dao\circle;
+14: 
+15: use app\common\dao\BaseDao;
+16: use app\common\model\circle\CircleFinancialRecord;
+17: 
+18: class CircleFinancialRecordDao extends BaseDao
+19: {
+20: 
+21:     protected function getModel(): string
+22:     {
+23:         return CircleFinancialRecord::class;
+24:     }
+25: 
+26:     public function search(array $where)
+27:     {
+28:         $query = ($this->getModel()::getDB())->field(
+29:             'c.*, o.create_time as order_create_time, o.status as order_status, o.pay_price as order_total_price'
+30:         )->alias('c')->join('store_order o', 'o.order_id = c.order_id', 'left');
+31: 
+32:         $query->when(isset($where['circle_id']) && $where['circle_id'] !== '', function ($query) use ($where) {
+33:             $query->where('c.circle_id', $where['circle_id']);
+34:         })->when(isset($where['mer_id']) && $where['mer_id'] !== '', function ($query) use ($where) {
+35:             $query->where('c.mer_id', $where['mer_id']);
+36:         })->when(isset($where['agent_id']) && $where['agent_id'] !== '', function ($query) use ($where) {
+37:             $query->where('c.agent_id', $where['agent_id']);
+38:         })->when(isset($where['order_id']) && $where['order_id'] !== '', function ($query) use ($where) {
+39:             $query->where('c.order_id', $where['order_id']);
+40:         })->when(isset($where['order_sn']) && $where['order_sn'] !== '', function ($query) use ($where) {
+41:             $query->where('c.order_sn', $where['order_sn']);
+42:         })->when(isset($where['order_status']) && $where['order_status'] !== '', function ($query) use ($where) {
+43:             $query->where('o.status', $where['order_status']);
+44:         })->when(isset($where['order_time']) && !empty($where['order_time']), function ($query) use ($where) {
+45:             $where['order_time'][0] = $where['order_time'][0] . ' 00:00:00';
+46:             $where['order_time'][1] = $where['order_time'][1] . ' 23:59:59';
+47:             $query->whereBetween('o.create_time', $where['order_time']);
+48:         })->when(isset($where['circle_name']) && $where['circle_name'] !== '', function ($query) use ($where) {
+49:             $query->whereLike('c.circle_name', "%{$where['circle_name']}%");
+50:         })->when(isset($where['mer_name']) && $where['mer_name'] !== '', function ($query) use ($where) {
+51:             $query->whereLike('c.mer_name', "%{$where['mer_name']}%");
+52:         })->when(isset($where['agent_name']) && $where['agent_name'] !== '', function ($query) use ($where) {
+53:             $query->whereLike('c.agent_name', "%{$where['agent_name']}%");
+54:         });
+55: 
+56:         $query->order('c.create_time DESC');
+57: 
+58:         return $query;
+59:     }
+60: }
+</file>
+
+<file path="app/common/model/circle/Circle.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\common\model\circle;
+14: 
+15: use app\common\model\BaseModel;
+16: use app\common\model\system\merchant\Merchant;
+17: 
+18: class Circle extends BaseModel
+19: {
+20:     protected $updateTime = 'update_time';
+21: 
+22:     const SYSTEMC_COMMISSION = [
+23:         0 => 'one_agent_commission',
+24:         1 => 'two_agent_commission',
+25:         2 => 'three_agent_commission',
+26:     ];
+27: 
+28:     public static function tablePk(): ?string
+29:     {
+30:         return 'circle_id';
+31:     }
+32: 
+33:     public static function tableName(): string
+34:     {
+35:         return 'circle';
+36:     }
+37: 
+38:     public function getCommissionRateAttr($value, $data)
+39:     {
+40:         return ($data['commission_type'] == 0) ? systemConfig(self::SYSTEMC_COMMISSION[$data['level']]) : $value;
+41:     }
+42: 
+43:     public function circleAgent()
+44:     {
+45:         return $this->hasOne(CircleAgent::class, 'circle_agent_id', 'circle_agent_id')
+46:             ->field('circle_agent_id, name, phone, qualification, create_time, status')
+47:             ->where('status', 1);
+48:     }
+49: 
+50:     public function merchant()
+51:     {
+52:         $data = $this->getData();
+53:         $type = $data['type'];
+54:         if($type == 0) {
+55:             return $this->hasMany(Merchant::class, 'region_id', 'circle_id')->field('mer_id,mer_name,region_id,business_id,status');
+56:         }
+57:         if ($type == 1) {
+58:             return $this->hasMany(Merchant::class, 'business_id', 'circle_id')->field('mer_id,mer_name,region_id,business_id,status');
+59:         }
+60:     }
+61: 
+62:     public function parent()
+63:     {
+64:         return $this->hasOne(Circle::class, 'circle_id', 'pid')
+65:             ->field('name, circle_id, circle_agent_id, pid, commission_type, commission_rate, level, status, type');
+66:     }
+67: 
+68:     public function getMerchantCountAttr()
+69:     {
+70:         return $this->merchant()->count();
+71:     }
+72: }
+</file>
+
+<file path="app/common/model/circle/CircleAgent.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace app\common\model\circle;
+ 14: 
+ 15: use app\common\model\BaseModel;
+ 16: use app\common\model\user\User;
+ 17: use app\common\model\system\admin\Admin;
+ 18: 
+ 19: class CircleAgent extends BaseModel
+ 20: {
+ 21:     protected $updateTime = 'update_time';
+ 22: 
+ 23:     public static function tablePk(): ?string
+ 24:     {
+ 25:         return 'circle_agent_id';
+ 26:     }
+ 27: 
+ 28:     public static function tableName(): string
+ 29:     {
+ 30:         return 'circle_agent';
+ 31:     }
+ 32: 
+ 33:     public function setQualificationAttr($value)
+ 34:     {
+ 35:         return is_array($value) ? json_encode($value) : $value;
+ 36:     }
+ 37: 
+ 38:     public function getQualificationAttr($value)
+ 39:     {
+ 40:         return $value ? json_decode($value, true) : [];
+ 41:     }
+ 42: 
+ 43:     public function setExtendAttr($value)
+ 44:     {
+ 45:         return is_array($value) ? json_encode($value) : $value;
+ 46:     }
+ 47: 
+ 48:     public function getExtendAttr($value)
+ 49:     {
+ 50:         return $value ? json_decode($value, true) : [];
+ 51:     }
+ 52: 
+ 53:     public function user()
+ 54:     {
+ 55:         return $this->hasOne(User::class, 'uid', 'uid')->field('uid, nickname, phone, avatar');
+ 56:     }
+ 57: 
+ 58:     public function circle()
+ 59:     {
+ 60:         return $this->hasMany(Circle::class, 'circle_agent_id', 'circle_agent_id')
+ 61:             ->field('circle_id, name, circle_agent_id, commission_type, commission_rate, level, status, type')
+ 62:             ->append(['merchant_count']);
+ 63:     }
+ 64: 
+ 65:     public function auditAdmin()
+ 66:     {
+ 67:         return $this->hasOne(Admin::class, 'admin_id', 'audit_admin_id')->field('admin_id, real_name, account');
+ 68:     }
+ 69: 
+ 70:     public function admin()
+ 71:     {
+ 72:         return $this->hasOne(Admin::class, 'circle_agent_id', 'circle_agent_id')
+ 73:             ->field('admin_id, real_name, account, circle_agent_id')
+ 74:             ->where('is_agent', '>', 0);
+ 75:     }
+ 76:     /**
+ 77:      * 商户数量
+ 78:      *
+ 79:      * @return void
+ 80:      */
+ 81:     public function getMerchantCountAttr()
+ 82:     {
+ 83:         $num = 0;
+ 84: 
+ 85:         $circle = $this->circle->toArray();
+ 86:         if($circle) {
+ 87:             $num = array_sum(array_column($circle, 'merchant_count'));
+ 88:         }
+ 89: 
+ 90:         return $num;
+ 91:     }
+ 92:     /**
+ 93:      * 订单数量
+ 94:      *
+ 95:      * @return void
+ 96:      */
+ 97:     public function getOrderCountAttr()
+ 98:     {
+ 99:         $id = $this->circle_agent_id;
+100:         $count = CircleFinancialRecord::where('agent_id', $id)->where('status', '<>', -1)->group('order_id')->count();
+101: 
+102:         return $count;
+103:     }
+104:     /**
+105:      * 总提成
+106:      *
+107:      * @return void
+108:      */
+109:     public function getTotalAmountAttr()
+110:     {
+111:         $id = $this->circle_agent_id;
+112:         $amount = CircleFinancialRecord::where('agent_id', $id)->where('status', '<>', -1)->sum('amount');
+113: 
+114:         return $amount;
+115:     }
+116:     /**
+117:      * 冻结提成
+118:      *
+119:      * @return void
+120:      */
+121:     public function getFrozenAmountAttr()
+122:     {
+123:         $id = $this->circle_agent_id;
+124:         $amount = CircleFinancialRecord::where('agent_id', $id)->where('status', 0)->sum('amount');
+125: 
+126:         return $amount;
+127:     }
+128: 
+129: }
+</file>
+
+<file path="app/common/model/circle/CircleBrokerageCheckout.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\common\model\circle;
+14:         
+15: use app\common\model\BaseModel;
+16: use app\common\model\system\admin\Admin;
+17: 
+18: class CircleBrokerageCheckout extends BaseModel
+19: {
+20:     protected $updateTime = 'update_time';
+21: 
+22:     public static function tablePk(): ?string
+23:     {
+24:         return 'checkout_id';
+25:     }
+26:     
+27:     public static function tableName(): string
+28:     {
+29:         return 'circle_brokerage_checkout';
+30:     }
+31: 
+32:     public function getTransferVoucherAttr($value)
+33:     {
+34:         return json_decode($value, true);
+35:     }
+36: 
+37:     public function agent()
+38:     {
+39:         return $this->hasOne(CircleAgent::class, 'circle_agent_id', 'agent_id')->field('circle_agent_id,uid');
+40:     }
+41: 
+42:     public function admin()
+43:     {
+44:         return $this->hasMany(Admin::class, 'admin_id', 'audit_admin_id')->field('admin_id, real_name, account');
+45:     }
+46: }
+</file>
+
+<file path="app/common/model/circle/CircleFinancialRecord.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\common\model\circle;
+14:         
+15: use app\common\model\BaseModel;
+16: 
+17: class CircleFinancialRecord extends BaseModel
+18: {
+19:     protected $updateTime = 'update_time';
+20: 
+21:     public static function tablePk(): ?string
+22:     {
+23:         return 'record_id';
+24:     }
+25:     
+26:     public static function tableName(): string
+27:     {
+28:         return 'circle_financial_record';
+29:     }
+30: 
+31:     public function circleAgent()
+32:     {
+33:         return $this->hasOne(CircleAgent::class, 'circle_agent_id', 'agent_id')
+34:             ->field('circle_agent_id, name, phone, qualification, create_time, status, balance, update_time')
+35:             ->where('status', 1);
+36:     }
+37: }
+</file>
+
+<file path="app/common/repositories/circle/CircleAgentRepository.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace app\common\repositories\circle;
+ 14: 
+ 15: use think\facade\Db;
+ 16: use think\exception\ValidateException;
+ 17: use app\common\dao\circle\CircleAgentDao;
+ 18: use app\common\repositories\BaseRepository;
+ 19: use app\common\repositories\system\admin\AdminRepository;
+ 20: use app\common\repositories\system\merchant\MerchantRepository;
+ 21: use app\common\repositories\system\auth\RoleRepository;
+ 22: 
+ 23: class CircleAgentRepository extends BaseRepository
+ 24: {
+ 25:     const IS_AGENT = [
+ 26:         CircleAgentDao::TYPE['REGION'] => 1, // 区域
+ 27:         CircleAgentDao::TYPE['MERCHANT'] => 2, // 商户
+ 28:     ];
+ 29: 
+ 30:     public function __construct(CircleAgentDao $dao)
+ 31:     {
+ 32:         $this->dao = $dao;
+ 33:     }
+ 34:     /**
+ 35:      * 获取代理列表
+ 36:      *
+ 37:      * @param int $page
+ 38:      * @param int $limit
+ 39:      * @param array $where
+ 40:      * @param array $with
+ 41:      * @return void
+ 42:      */
+ 43:     public function getList(int $page = 1, int $limit = 10, array $where, array $with = [])
+ 44:     {
+ 45:         $query = $this->dao->search($where)
+ 46:             ->when(!empty($with), function ($query) use ($with) {
+ 47:                 $query->with($with);
+ 48:             });
+ 49: 
+ 50:         $count = $query->count();
+ 51:         $list = $query->page($page, $limit)->select();
+ 52: 
+ 53:         // 取各个状态的总数
+ 54:         if (isset($where['status'])) {
+ 55:             unset($where['status']);
+ 56:         }
+ 57:         $typeTotal = $this->dao->search($where, true)->field("count(c.circle_agent_id)AS`all`,ifnull(sum(if(c.status=" . CircleAgentDao::STATUS['REVIEW'] . ",1,0)), 0)AS review,ifnull(sum(if(c.status=" . CircleAgentDao::STATUS['APPROVER'] . ",1,0)), 0)AS approver,ifnull(sum(if(c.status=" . CircleAgentDao::STATUS['REJECTED'] . ",1,0)), 0)AS rejected,ifnull(sum(if(c.status=" . CircleAgentDao::STATUS['REVOKED'] . ",1,0)), 0)AS revoked")->select()->toArray();
+ 58:         $typeTotal = array_shift($typeTotal);
+ 59: 
+ 60:         return compact('list', 'count', 'typeTotal');
+ 61:     }
+ 62:     /**
+ 63:      * 创建代理
+ 64:      *
+ 65:      * @param int $uid
+ 66:      * @param array $data
+ 67:      * @return void
+ 68:      */
+ 69:     public function create(int $uid, array $data)
+ 70:     {
+ 71:         $oldInfo = $this->dao->getWhere(['type' => $data['type'], 'uid' => $uid, 'status' => [CircleAgentDao::STATUS['REVIEW'], CircleAgentDao::STATUS['APPROVER']]]);
+ 72:         if ($oldInfo) {
+ 73:             throw new ValidateException('您已有一条入驻申请正在审核中或已通过，无需重复提交');
+ 74:         }
+ 75:         $data['uid'] = $uid;
+ 76: 
+ 77:         return $this->dao->create($data);
+ 78:     }
+ 79:     /**
+ 80:      * 更新代理
+ 81:      *
+ 82:      * @param int $id
+ 83:      * @param int $uid
+ 84:      * @param array $data
+ 85:      * @return void
+ 86:      */
+ 87:     public function update(int $id, int $uid, array $data)
+ 88:     {
+ 89:         $info = $this->dao->get($id);
+ 90:         if (!$info) {
+ 91:             throw new ValidateException('记录不存在!');
+ 92:         }
+ 93:         if ($info['uid'] != $uid) {
+ 94:             throw new ValidateException('无权限操作');
+ 95:         }
+ 96:         if (!in_array($info['status'], [CircleAgentDao::STATUS['REJECTED'], CircleAgentDao::STATUS['REVOKED']])) {
+ 97:             throw new ValidateException('状态异常，无法修改');
+ 98:         }
+ 99: 
+100:         $data['audit_time'] = null;
+101:         $data['audit_reason'] = '';
+102:         $data['audit_admin_id'] = 0;
+103:         $data['status'] = CircleAgentDao::STATUS['REVIEW'];
+104:         $data['extend'] = $data['extend'] ? json_encode($data['extend']) : [];
+105:         $data['qualification'] = $data['qualification'] ? json_encode($data['qualification']) : [];
+106:         $data['update_time'] = date('Y-m-d H:i:s');
+107: 
+108:         return $this->dao->update($id, $data);
+109:     }
+110:     /**
+111:      * 撤销代理
+112:      *
+113:      * @param int $id
+114:      * @param int $uid
+115:      * @return void
+116:      */
+117:     public function revoke($id, $uid)
+118:     {
+119:         $info = $this->dao->get($id);
+120:         if (!$info) {
+121:             throw new ValidateException('记录不存在!');
+122:         }
+123:         if ($info['uid'] != $uid) {
+124:             throw new ValidateException('无权限操作');
+125:         }
+126:         if ($info['status'] != CircleAgentDao::STATUS['REVIEW']) {
+127:             throw new ValidateException('状态异常，无法撤销');
+128:         }
+129: 
+130:         $data['status'] = CircleAgentDao::STATUS['REVOKED'];
+131:         $data['update_time'] = date('Y-m-d H:i:s');
+132: 
+133:         return $this->dao->update($id, $data);
+134:     }
+135:     /**
+136:      * 后台创建代理
+137:      *
+138:      * @param int $adminId
+139:      * @param array $data
+140:      * @return void
+141:      */
+142:     public function adminCreate(int $adminId, array $data)
+143:     {
+144:         if ($data['uid']) {
+145:             $oldInfo = $this->dao->getWhere([
+146:                 'type' => $data['type'],
+147:                 'uid' => $data['uid'],
+148:                 'status' => [CircleAgentDao::STATUS['REVIEW'], CircleAgentDao::STATUS['APPROVER']]
+149:             ]);
+150:             if ($oldInfo) {
+151:                 throw new ValidateException('该用户已有一条入驻申请正在审核中或已通过，无需重复提交');
+152:             }
+153:         }
+154:         $data['status'] = CircleAgentDao::STATUS['APPROVER'];
+155:         $data['audit_admin_id'] = $adminId;
+156:         $data['audit_time'] = date('Y-m-d H:i:s');
+157:         $data['status'] = CircleAgentDao::STATUS['APPROVER'];
+158: 
+159:         return Db::transaction(function () use ($data) {
+160:             $res = $this->dao->create($data);
+161:             // 后台添加默认审核通过,生成商圈管理员账号
+162:             $this->circleUserAdmin($res->circle_agent_id, $data);
+163: 
+164:             return true;
+165:         });
+166:     }
+167:     /**
+168:      * 后台更新代理
+169:      *
+170:      * @param int $id
+171:      * @param int $adminId
+172:      * @param array $data
+173:      * @return void
+174:      */
+175:     public function adminUpdate(int $id, int $adminId, array $data)
+176:     {
+177:         $info = $this->dao->get($id);
+178:         if (!$info) {
+179:             throw new ValidateException('记录不存在!');
+180:         }
+181:         if (!$info['uid'] && $data['uid']) {
+182:             $oldInfo = $this->dao->getWhere([
+183:                 'type' => $data['type'],
+184:                 'uid' => $data['uid'],
+185:                 'status' => [CircleAgentDao::STATUS['REVIEW'], CircleAgentDao::STATUS['APPROVER']]
+186:             ]);
+187:             if ($oldInfo) {
+188:                 throw new ValidateException('该用户已有一条入驻申请正在审核中或已通过，无需重复提交');
+189:             }
+190:         }
+191:         if ($info['status'] !== CircleAgentDao::STATUS['APPROVER']) {
+192:             throw new ValidateException('状态异常，无法修改');
+193:         }
+194:         $data['audit_admin_id'] = $adminId;
+195:         $data['audit_time'] = date('Y-m-d H:i:s');
+196:         $data['extend'] = $data['extend'] ? json_encode($data['extend']) : [];
+197:         $data['qualification'] = $data['qualification'] ? json_encode($data['qualification']) : [];
+198:         $data['update_time'] = date('Y-m-d H:i:s');
+199: 
+200:         return Db::transaction(function () use ($id, $data) {
+201:             $this->dao->update($id, $data);
+202:             // 后台添加默认审核通过,生成商圈管理员账号
+203:             $this->circleUserAdmin($id, $data, true);
+204: 
+205:             return true;
+206:         });
+207:     }
+208:     /**
+209:      * 后台审核代理
+210:      *
+211:      * @param int $id
+212:      * @param int $adminId
+213:      * @param array $data
+214:      * @return void
+215:      */
+216:     public function audit($id, int $adminId, array $data)
+217:     {
+218:         $info = $this->dao->get($id);
+219:         if (!$info) {
+220:             throw new ValidateException('记录不存在!');
+221:         }
+222:         if ($info['status'] != CircleAgentDao::STATUS['REVIEW']) {
+223:             throw new ValidateException('状态异常，无法审核');
+224:         }
+225: 
+226:         $data['audit_admin_id'] = $adminId;
+227:         $data['audit_time'] = date('Y-m-d H:i:s');
+228:         $data['update_time'] = date('Y-m-d H:i:s');
+229: 
+230:         return Db::transaction(function () use ($id, $data, $info) {
+231:             $this->dao->update($id, $data);
+232:             // 审核通过后生成商圈管理员账号
+233:             if ($data['status'] == CircleAgentDao::STATUS['APPROVER']) {
+234:                 $this->circleUserAdmin($id, $info->toArray());
+235:                 // type为商户，则自动创建组织商户
+236:                 if ($info['type'] == CircleAgentDao::TYPE['MERCHANT']) {
+237:                     // 创建组织商户
+238:                     $circleRepository = app()->make(CircleRepository::class);
+239:                     $circleRepository->create([
+240:                         "pid" => 0,
+241:                         "type" => 1,
+242:                         "role_id" => app()->make(RoleRepository::class)->getWhere(['is_default' => 1, 'is_agent' => 2, 'status' => 1])->role_id ?? 0,
+243:                         "name" => $info['business_name'],
+244:                         "circle_agent_id" => $id,
+245:                         "status" => 1,
+246:                         "is_show" => 1,
+247:                         "positioning_status" => 0,
+248:                         "business_store_category" => $info['business_store_category'],
+249:                         "business_store_type" => $info['business_store_type'],
+250:                         "merchant_ids" => []
+251:                     ]);
+252:                 }
+253:             }
+254: 
+255:             return true;
+256:         });
+257:     }
+258:     /**
+259:      * 后台删除代理
+260:      *
+261:      * @param int $id
+262:      * @return void
+263:      */
+264:     public function delete($id)
+265:     {
+266:         $info = $this->dao->get($id);
+267:         if (!$info) {
+268:             throw new ValidateException('记录不存在!');
+269:         }
+270:         if ($info['status'] !== CircleAgentDao::STATUS['APPROVER']) {
+271:             throw new ValidateException('状态异常，无法删除');
+272:         }
+273: 
+274:         return Db::transaction(function () use ($id) {
+275:             $this->dao->delete($id);
+276:             // 删除成功后清除该商户下的商圈管理员账号
+277:             app()->make(AdminRepository::class)->getSearch(['circle_agent_id' => $id, 'is_agent' => 1])->delete();
+278:             // 清除关联的商圈的关联关系
+279:             app()->make(CircleRepository::class)->search(['circle_agent_id' => $id])->update(['circle_agent_id' => 0]);
+280: 
+281:             return true;
+282:         });
+283:     }
+284:     /**
+285:      * 后台创建/更新商圈管理员账号
+286:      *
+287:      * @param int $circleAgentId
+288:      * @param array $data
+289:      * @param bool $isEdit
+290:      * @return void
+291:      */
+292:     protected function circleUserAdmin(int $circleAgentId, array $data, bool $isEdit = false)
+293:     {
+294:         $adminRepository = app()->make(AdminRepository::class);
+295: 
+296:         if (!$isEdit) {
+297:             $param['account'] = isset($data['account']) && !empty($data['account']) ? $data['account'] : $data['phone'];
+298:             $param['pwd'] = isset($data['password']) && !empty($data['password']) ? $data['password'] : '000000'; // 默认密码 000000
+299:             $param['pwd'] = $adminRepository->passwordEncode($param['pwd']);
+300:         }
+301:         $param['phone'] = $data['phone'];
+302:         $param['real_name'] = $data['name'];
+303:         $param['status'] = 1;
+304:         $param['roles'] = '';
+305:         $param['is_agent'] = self::IS_AGENT[$data['type']];
+306:         $param['circle_agent_id'] = $circleAgentId;
+307: 
+308:         if ($isEdit) {
+309:             return $adminRepository->search(['circle_agent_id' => $circleAgentId])->update($param);
+310:         }
+311: 
+312:         return $adminRepository->create($param);
+313:     }
+314:     /**
+315:      * 后台获取关联的商户列表
+316:      *
+317:      * @param int $id
+318:      * @param int $page
+319:      * @param int $limit
+320:      * @param array $where
+321:      * @return void
+322:      */
+323:     public function associatedMerchantList(int $id, int $page, int $limit, array $where)
+324:     {
+325:         $info = $this->dao->get($id);
+326:         if (!$info) {
+327:             throw new ValidateException('代理记录不存在!');
+328:         }
+329:         if (!$where['circle_id']) {
+330:             $circleIds = app()->make(CircleRepository::class)->getSearch(['circle_agent_id' => $id])->column('circle_id');
+331:         } else {
+332:             $circleIds = [$where['circle_id']];
+333:             unset($where['circle_id']);
+334:         }
+335: 
+336:         if (empty($circleIds)) {
+337:             return ['list' => [], 'count' => 0];
+338:         }
+339:         if ($info['type'] == CircleAgentDao::TYPE['REGION']) {
+340:             $where['region_id'] = $circleIds;
+341:         }
+342:         if ($info['type'] == CircleAgentDao::TYPE['MERCHANT']) {
+343:             $where['business_id'] = $circleIds;
+344:         }
+345:         $query = app()->make(MerchantRepository::class)->search($where);
+346: 
+347:         $count = $query->count();
+348:         $list = $query->page($page, $limit)->field('mer_id, mer_name,real_name, mer_phone, region_id,status,mer_state')
+349:             ->with(['merchantRegion'])->select();
+350: 
+351:         return compact('list', 'count');
+352:     }
+353:     /**
+354:      * 获取代理的结算方式
+355:      *
+356:      * @param int $id
+357:      * @return void
+358:      */
+359:     public function getSettlementMethod(int $id)
+360:     {
+361:         $where['circle_agent_id'] = $id;
+362:         $field = 'circle_agent_id,payment_method, payment_name, payment_account, payment_bank, payment_qr_img';
+363: 
+364:         $info = $this->dao->getWhere($where, $field);
+365:         if (!$info) {
+366:             throw new ValidateException('记录不存在!');
+367:         }
+368: 
+369:         return $info;
+370:     }
+371:     /**
+372:      * 设置代理的结算方式
+373:      *
+374:      * @param int $id
+375:      * @param array $data
+376:      * @return void
+377:      */
+378:     public function setSettlementMethod(int $id, array $data)
+379:     {
+380:         $info = $this->dao->get($id);
+381:         if (!$info) {
+382:             throw new ValidateException('记录不存在!');
+383:         }
+384: 
+385:         $data['update_time'] = date('Y-m-d H:i:s');
+386: 
+387:         return $this->dao->update($id, $data);
+388:     }
+389:     /**
+390:      * 获取代理下拉列表
+391:      *
+392:      * @param string $type
+393:      * @return void
+394:      */
+395:     public function options(string $type)
+396:     {
+397:         $where['type'] = $type;
+398:         $where['status'] = CircleAgentDao::STATUS['APPROVER'];
+399: 
+400:         return $this->dao->search($where)->column('circle_agent_id, name');
+401:     }
+402:     /**
+403:      * 重置密码
+404:      *
+405:      * @param int $id
+406:      * @return void
+407:      */
+408:     public function resetPassword(int $id)
+409:     {
+410:         $info = $this->dao->get($id);
+411:         if (!$info) {
+412:             throw new ValidateException('记录不存在!');
+413:         }
+414: 
+415:         $adminRepository = app()->make(AdminRepository::class);
+416:         $adminInfo = $adminRepository->getWhere(['circle_agent_id' => $id, 'is_agent' => self::IS_AGENT[$info['type']]]);
+417:         if (!$adminInfo) {
+418:             throw new ValidateException('管理员账号不存在!');
+419:         }
+420: 
+421:         $data['pwd'] = '000000'; // 默认密码 000000
+422:         $data['pwd'] = $adminRepository->passwordEncode($data['pwd']);
+423:         $data['update_time'] = date('Y-m-d H:i:s');
+424: 
+425:         return $adminRepository->update($adminInfo['admin_id'], $data);
+426:     }
+427: }
+</file>
+
+<file path="app/common/repositories/circle/CircleBrokerageCheckoutRepository.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace app\common\repositories\circle;
+ 14: 
+ 15: use think\facade\Db;
+ 16: use think\exception\ValidateException;
+ 17: use app\common\repositories\BaseRepository;
+ 18: use app\common\dao\circle\CircleBrokerageCheckoutDao;
+ 19: 
+ 20: class CircleBrokerageCheckoutRepository extends BaseRepository
+ 21: {
+ 22:     public function __construct(CircleBrokerageCheckoutDao $dao)
+ 23:     {
+ 24:         $this->dao = $dao;
+ 25:     }
+ 26: 
+ 27:     public function getList(int $page = 1, int $limit = 10, array $where, array $with = [])
+ 28:     {
+ 29:         $query = $this->dao->search($where)
+ 30:             ->when(!empty($with), function ($query) use ($with) {
+ 31:                 $query->with($with);
+ 32:             });
+ 33: 
+ 34:         $count = $query->count();
+ 35:         $list = $query->page($page, $limit)->select();
+ 36: 
+ 37:         return compact('list', 'count');
+ 38:     }
+ 39: 
+ 40:     public function create(array $data)
+ 41:     {
+ 42:         $agentInfo = app()->make(CircleAgentRepository::class)->get($data['agent_id']);
+ 43:         if(!$agentInfo) {
+ 44:             throw new ValidateException('代理商不存在');
+ 45:         }
+ 46:         if(!$agentInfo['payment_name'] && !$agentInfo['payment_account']) {
+ 47:             throw new ValidateException('未设置结算方式，无法申请结算');
+ 48:         }
+ 49: 
+ 50:         if((float)$agentInfo->balance < (float)$data['withdrawal_amount']) {
+ 51:             throw new ValidateException('余额不足');
+ 52:         }
+ 53: 
+ 54:         $data['agent_name'] = $agentInfo->name;
+ 55:         $data['agent_phone'] = $agentInfo->phone;
+ 56:         $data['withdrawal_sn'] = $this->getSn();
+ 57:         $data['withdrawal_type'] = $agentInfo->payment_method;
+ 58:         $data['withdrawal_name'] = $agentInfo->payment_name;
+ 59:         $data['withdrawal_account'] = $agentInfo->payment_account;
+ 60:         $data['withdrawal_qr_img'] = $agentInfo->payment_qr_img;
+ 61: 
+ 62:         return Db::transaction(function () use ($data) {
+ 63:             $this->dao->create($data);
+ 64:             // 提交成功，代理商余额减少
+ 65:             app()->make(CircleAgentRepository::class)->decField($data['agent_id'], 'balance', $data['withdrawal_amount']);
+ 66: 
+ 67:             return true;
+ 68:         });
+ 69:     }
+ 70: 
+ 71:     public function revoke(int $id)
+ 72:     {
+ 73:         $info = $this->dao->get($id);
+ 74:         if(!$info) {
+ 75:             throw new ValidateException('提现记录不存在');
+ 76:         }
+ 77: 
+ 78:         if ($info['audit_status'] != CircleBrokerageCheckoutDao::AUDIT_STATUS['REVIEW']) {
+ 79:             throw new ValidateException('审核状态异常，无法撤销');
+ 80:         }
+ 81: 
+ 82:         $data['audit_status'] = CircleBrokerageCheckoutDao::AUDIT_STATUS['REVOKED'];
+ 83:         $data['update_time'] = date('Y-m-d H:i:s');
+ 84: 
+ 85:         return Db::transaction(function () use ($id, $data, $info) {
+ 86:             $this->dao->update($id, $data);
+ 87:             // 撤销后，返还代理商余额
+ 88:             app()->make(CircleAgentRepository::class)->incField($info['agent_id'], 'balance', $info['withdrawal_amount']);
+ 89: 
+ 90:             return true;
+ 91:         });
+ 92:     }
+ 93: 
+ 94:     public function remark(int $id, array $data)
+ 95:     {
+ 96:         $info = $this->dao->get($id);
+ 97:         if(!$info) {
+ 98:             throw new ValidateException('提现记录不存在');
+ 99:         }
+100: 
+101:         $data['update_time'] = date('Y-m-d H:i:s');
+102:         return $this->dao->update($id, $data);
+103:     }
+104: 
+105:     public function audit(int $id, int $adminId, array $data)
+106:     {
+107:         $info = $this->dao->get($id);
+108:         if(!$info) {
+109:             throw new ValidateException('提现记录不存在');
+110:         }
+111: 
+112:         if ($info['audit_status'] != CircleBrokerageCheckoutDao::AUDIT_STATUS['REVIEW']) {
+113:             throw new ValidateException('审核状态异常，无法审核');
+114:         }
+115: 
+116:         $data['audit_admin_id'] = $adminId;
+117:         $data['audit_time'] = date('Y-m-d H:i:s');
+118:         $data['update_time'] = date('Y-m-d H:i:s');
+119: 
+120:         return Db::transaction(function () use ($id, $data, $info) {
+121:             $this->dao->update($id, $data);
+122:             // 审核驳回后，返还代理商余额
+123:             if($data['audit_status'] == CircleBrokerageCheckoutDao::AUDIT_STATUS['REJECTED']) {
+124:                 app()->make(CircleAgentRepository::class)->incField($info['agent_id'], 'balance', $info['withdrawal_amount']);
+125:             }
+126: 
+127:             return true;
+128:         });
+129:     }
+130: 
+131:     public function transfer(int $id, array $data)
+132:     {
+133:         $info = $this->dao->get($id);
+134:         if(!$info) {
+135:             throw new ValidateException('提现记录不存在');
+136:         }
+137: 
+138:         if ($info['audit_status'] != CircleBrokerageCheckoutDao::AUDIT_STATUS['APPROVER']) {
+139:             throw new ValidateException('审核状态异常，无法转账');
+140:         }
+141:         if ($info['status'] != CircleBrokerageCheckoutDao::STATUS['NO_CREDITED']) {
+142:             throw new ValidateException('已经转账成功，无需重复操作');
+143:         }
+144: 
+145:         $data['update_time'] = date('Y-m-d H:i:s');
+146:         $data['transfer_voucher'] = json_encode($data['transfer_voucher']);
+147:         $data['status'] = CircleBrokerageCheckoutDao::STATUS['CREDITED'];
+148: 
+149:         return $this->dao->update($id, $data);
+150:     }
+151: 
+152:     public function platformRemark(int $id, array $data)
+153:     {
+154:         $info = $this->dao->get($id);
+155:         if(!$info) {
+156:             throw new ValidateException('提现记录不存在');
+157:         }
+158: 
+159:         $data['update_time'] = date('Y-m-d H:i:s');
+160: 
+161:         return $this->dao->update($id, $data);
+162:     }
+163: 
+164:     protected function getSn()
+165:     {
+166:         // 获取当前时间的微秒和秒部分
+167:         list($msec, $sec) = explode(' ', microtime());
+168: 
+169:         // 将微秒和秒转换为毫秒，并格式化为整数
+170:         $msectime = number_format((floatval($msec) + floatval($sec)) * 1000, 0, '', '');
+171: 
+172:         // 生成订单编号：前缀 + 毫秒时间戳 + 随机数
+173:         // 保证随机数在特定范围内，避免生成重复的订单编号
+174:         $orderId = 'cbc' . $msectime . mt_rand(10000, max(intval($msec * 10000) + 10000, 98369));
+175: 
+176:         return $orderId;
+177:     }
+178: }
+</file>
+
+<file path="app/common/repositories/circle/CircleFinancialRecordRepository.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace app\common\repositories\circle;
+ 14: 
+ 15: use think\facade\Db;
+ 16: use app\common\repositories\BaseRepository;
+ 17: use app\common\dao\circle\CircleFinancialRecordDao;
+ 18: 
+ 19: class CircleFinancialRecordRepository extends BaseRepository
+ 20: {
+ 21:     public function __construct(CircleFinancialRecordDao $dao)
+ 22:     {
+ 23:         $this->dao = $dao;
+ 24:     }
+ 25: 
+ 26:     public function getList(int $page = 1, int $limit = 10, array $where, array $with = [])
+ 27:     {
+ 28:         $query = $this->dao->search($where)
+ 29:             ->when(!empty($with), function ($query) use ($with) {
+ 30:                 $query->with($with);
+ 31:             });
+ 32: 
+ 33:         $count = $query->count();
+ 34:         $list = $query->page($page, $limit)->select();
+ 35: 
+ 36:         return compact('list', 'count');
+ 37:     }
+ 38: 
+ 39:     public function insertAll($orderInfo)
+ 40:     {
+ 41:         if ($orderInfo->pay_price == 0) {
+ 42:             return false;
+ 43:         }
+ 44:         // 商户信息
+ 45:         $merchant = $orderInfo->merchant;
+ 46:         if(!$merchant) {
+ 47:             return false;
+ 48:         }
+ 49:         // 计算平台抽成
+ 50:         $commissionRate = (float)($merchant->commission_switch ? bcdiv($merchant->commission_rate, 100, 2) : $merchant->merchantCategory->commission_rate);
+ 51:         if (!$commissionRate) {
+ 52:             return false;
+ 53:         }
+ 54:         $commissionPrice = bcmul($orderInfo->pay_price, $commissionRate, 2);
+ 55:         // 商圈信息
+ 56:         $circle = $merchant->merchantRegion;
+ 57:         if (!$circle) {
+ 58:             return false;
+ 59:         }
+ 60: 
+ 61:         $data = [];
+ 62:         $circleName = '';
+ 63:         if ($circle->level == 1) { // 两层
+ 64:             // 一级商圈
+ 65:             $firstCircle = $circle->parent;
+ 66:             $firstCircleAgent = $firstCircle->circleAgent;
+ 67:             if ($firstCircleAgent && $firstCircle && $firstCircle->status) {
+ 68:                 $amount = bcmul($commissionPrice, bcdiv(bcsub($firstCircle->commission_rate, $circle->commission_rate), 100, 2), 2);
+ 69:                 if($firstCircle->type == 0) {
+ 70:                     $data[] = [
+ 71:                         'circle_id' => $firstCircle->circle_id,
+ 72:                         'circle_name' => $firstCircle->name,
+ 73:                         'mer_id' => $merchant->mer_id,
+ 74:                         'mer_name' => $merchant->mer_name,
+ 75:                         'agent_id' => $firstCircleAgent->circle_agent_id,
+ 76:                         'agent_name' => $firstCircleAgent->name,
+ 77:                         'record_sn' => $this->getSn(),
+ 78:                         'order_id' => $orderInfo->order_id,
+ 79:                         'order_sn' => $orderInfo->order_sn,
+ 80:                         'user_id' => $orderInfo->uid,
+ 81:                         'user_info' => $orderInfo->user->nickname ?? '游客',
+ 82:                         'amount' => $amount
+ 83:                     ];
+ 84:                 }
+ 85:             }
+ 86:             $circleName = $firstCircle->name . '/';
+ 87:         }
+ 88:         if ($circle->level == 2) { // 三层
+ 89:             // 一级商圈
+ 90:             $firstCircle = $circle->parent->parent;
+ 91:             $firstCircleAgent = $firstCircle->circleAgent;
+ 92:             if ($firstCircleAgent && $firstCircle && $firstCircle->status) {
+ 93:                 $amount = bcmul($commissionPrice, bcdiv(bcsub($firstCircle->commission_rate, $circle->parent->commission_rate), 100, 2), 2);
+ 94:                 if($firstCircle->type == 0) {
+ 95:                     $data[] = [
+ 96:                         'circle_id' => $firstCircle->circle_id,
+ 97:                         'circle_name' => $firstCircle->name,
+ 98:                         'mer_id' => $merchant->mer_id,
+ 99:                         'mer_name' => $merchant->mer_name,
+100:                         'agent_id' => $firstCircleAgent->circle_agent_id,
+101:                         'agent_name' => $firstCircleAgent->name,
+102:                         'record_sn' => $this->getSn(),
+103:                         'order_id' => $orderInfo->order_id,
+104:                         'order_sn' => $orderInfo->order_sn,
+105:                         'user_id' => $orderInfo->uid,
+106:                         'user_info' => $orderInfo->user->nickname ?? '游客',
+107:                         'amount' => $amount
+108:                     ];
+109:                 }
+110:             }
+111:             // 二级商圈
+112:             $secondCircle = $circle->parent;
+113:             $secondCircleAgent = $secondCircle->circleAgent;
+114:             if ($secondCircleAgent && $secondCircle && $secondCircle->status) {
+115:                 $amount = bcmul($commissionPrice, bcdiv(bcsub($secondCircle->commission_rate, $circle->commission_rate), 100, 2), 2);
+116:                 if($secondCircle->type == 0) {
+117:                     $data[] = [
+118:                         'circle_id' => $secondCircle->circle_id,
+119:                         'circle_name' => $firstCircle->name . '/' . $secondCircle->name,
+120:                         'mer_id' => $merchant->mer_id,
+121:                         'mer_name' => $merchant->mer_name,
+122:                         'agent_id' => $secondCircleAgent->circle_agent_id,
+123:                         'agent_name' => $secondCircleAgent->name,
+124:                         'record_sn' => $this->getSn(),
+125:                         'order_id' => $orderInfo->order_id,
+126:                         'order_sn' => $orderInfo->order_sn,
+127:                         'user_id' => $orderInfo->uid,
+128:                         'user_info' => $orderInfo->user->nickname ?? '游客',
+129:                         'amount' => $amount
+130:                     ];
+131:                 }
+132:             }
+133:             $circleName = $firstCircle->name . '/' . $secondCircle->name . '/';
+134:         }
+135:         // 当前层级商圈
+136:         $circleAgent = $circle->circleAgent;
+137:         if ($circleAgent && $circle && $circle->status) {
+138:             $amount = bcmul($commissionPrice, bcdiv($circle->commission_rate, 100, 2), 2);
+139:             if($circle->type == 0) {
+140:                 $data[] = [
+141:                     'circle_id' => $circle->circle_id,
+142:                     'circle_name' => $circleName . $circle->name,
+143:                     'mer_id' => $merchant->mer_id,
+144:                     'mer_name' => $merchant->mer_name,
+145:                     'agent_id' => $circleAgent->circle_agent_id,
+146:                     'agent_name' => $circleAgent->name, 
+147:                     'record_sn' => $this->getSn(),
+148:                     'order_id' => $orderInfo->order_id,
+149:                     'order_sn' => $orderInfo->order_sn,
+150:                     'user_id' => $orderInfo->uid,
+151:                     'user_info' => $orderInfo->user->nickname ?? '游客',
+152:                     'amount' => $amount
+153:                 ];
+154:             }
+155:         }
+156: 
+157:         return $this->dao->insertAll($data);
+158:     }
+159: 
+160:     public function defrost($order)
+161:     {
+162:         $recodes = $this->dao->getSearch(['order_id' => $order->order_id, 'status' => 0])->select();
+163:         if ($recodes->isEmpty()) {
+164:             return false;
+165:         }
+166: 
+167:         Db::transaction(function () use ($recodes) {
+168:             foreach ($recodes as $recod) {
+169:                 // 解冻流水
+170:                 $recod->status = 1;
+171:                 $recod->save();
+172:                 // 增加商圈代理商余额
+173:                 $circleAgent = $recod->circleAgent;
+174:                 if ($circleAgent) {
+175:                     $circleAgent->balance += $recod->amount;
+176:                     $circleAgent->update_time = date('Y-m-d H:i:s');
+177:                     $circleAgent->save();
+178:                 }
+179:             }
+180:         });
+181:     }
+182: 
+183:     public function invalid($order)
+184:     {
+185:         $recodes = $this->dao->getSearch(['order_id' => $order->order_id, 'status' => 0])->select();
+186:         if ($recodes->isEmpty()) {
+187:             return false;
+188:         }
+189: 
+190:         Db::transaction(function () use ($recodes, $order) {
+191:             foreach ($recodes as $recod) {
+192:                 // 作废流水
+193:                 $recod->status = -1;
+194:                 $recod->save();
+195:             }
+196:             // 部分退款重新计算商圈提成
+197:             if ($order->status == 0) {
+198:                 $newOrder = $order;
+199:                 $orderProduct = $newOrder->orderProduct;
+200:                 $refundPrice = 0;
+201:                 foreach ($orderProduct as $product) {
+202:                     if (in_array($product->is_refund, [2, 3])) {
+203:                         $unitPrice = bcdiv($product->total_price, $product->product_num, 2); // 单价
+204:                         // 已退款金额 = 单价 * （总数量 - 可退数量）
+205:                         $refundPrice += bcmul($unitPrice, bcsub($product->product_num, $product->refund_num), 2);
+206:                     }
+207:                 }
+208:                 // 更新订单总价，减去已退款金额
+209:                 $newOrder->total_price = bcsub($newOrder->total_price, $refundPrice, 2);
+210:                 // 重新计算商圈提成
+211:                 $this->insertAll($newOrder);
+212:                 unset($newOrder);
+213:             }
+214:         });
+215:     }
+216: 
+217:     protected function getSn()
+218:     {
+219:         // 获取当前时间的微秒和秒部分
+220:         list($msec, $sec) = explode(' ', microtime());
+221: 
+222:         // 将微秒和秒转换为毫秒，并格式化为整数
+223:         $msectime = number_format((floatval($msec) + floatval($sec)) * 1000, 0, '', '');
+224: 
+225:         // 生成订单编号：前缀 + 毫秒时间戳 + 随机数
+226:         // 保证随机数在特定范围内，避免生成重复的订单编号
+227:         $orderId = 'cfr' . $msectime . mt_rand(10000, max(intval($msec * 10000) + 10000, 98369));
+228: 
+229:         return $orderId;
+230:     }
+231: }
+</file>
+
+<file path="app/common/repositories/circle/CircleRepository.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace app\common\repositories\circle;
+ 14: 
+ 15: use think\facade\Db;
+ 16: use app\common\dao\circle\CircleDao;
+ 17: use crmeb\traits\CategoresRepository;
+ 18: use think\exception\ValidateException;
+ 19: use app\common\repositories\BaseRepository;
+ 20: use app\common\repositories\system\admin\AdminRepository;
+ 21: use app\common\repositories\system\merchant\MerchantRepository;
+ 22: use app\common\repositories\system\auth\RoleRepository;
+ 23: 
+ 24: class CircleRepository extends BaseRepository
+ 25: {
+ 26:     use CategoresRepository;
+ 27: 
+ 28:     const IS_AGENT = [
+ 29:         CircleDao::TYPE['REGION'] => 1, // 区域
+ 30:         CircleDao::TYPE['MERCHANT'] => 2, // 商户
+ 31:     ];
+ 32: 
+ 33:     const LIST_FIELDS = 'circle_id,pid,name,circle_agent_id,commission_rate,sort,status,commission_type,level,type';
+ 34: 
+ 35:     const SYSTEMC_COMMISSION = [
+ 36:         0 => 'one_agent_commission',
+ 37:         1 => 'two_agent_commission',
+ 38:         2 => 'three_agent_commission',
+ 39:     ];
+ 40: 
+ 41:     public function __construct(CircleDao $dao)
+ 42:     {
+ 43:         $this->dao = $dao;
+ 44:     }
+ 45:     /**
+ 46:      * 获取组织列表
+ 47:      *
+ 48:      * @param array $where
+ 49:      * @param array $with
+ 50:      * @return void
+ 51:      */
+ 52:     public function getList(array $where, array $with = [], int $page, int $limit)
+ 53:     {
+ 54:         $query = $this->dao->search($where)
+ 55:             ->when(!empty($with), function ($query) use ($with) {
+ 56:                 $query->with($with);
+ 57:             });
+ 58: 
+ 59:         $count = $query->count();
+ 60:         if($where['type'] == CircleDao::TYPE['REGION']) {
+ 61:             $list = formatCategory($query->field(self::LIST_FIELDS)->append(['merchant_count'])->select()->toArray(), $this->dao->getPk());
+ 62:         }
+ 63:         if($where['type'] == CircleDao::TYPE['MERCHANT']) {
+ 64:             $list = $query->page($page, $limit)->append(['merchant_count'])->select();
+ 65:         }
+ 66: 
+ 67:         return compact('list', 'count');
+ 68:     }
+ 69:     /**
+ 70:      * 创建组织
+ 71:      *
+ 72:      * @param array $data
+ 73:      * @return void
+ 74:      */
+ 75:     public function create(array $data)
+ 76:     {
+ 77:         if($data['pid'] && !$this->dao->exists($data['pid'])) {
+ 78:             throw new ValidateException('上级商圈不存在!');
+ 79:         }
+ 80: 
+ 81:         if ($data['pid'] && ($this->getLevelById($data['pid']) >= $this->dao->getMaxLevel())) {
+ 82:             throw new ValidateException('最多' . $this->dao->getMaxLevel() . '级!');
+ 83:         }
+ 84:         $data[$this->dao->getPath()] = $this->getPathById($data[$this->dao->getParentId()]);
+ 85:         $data[$this->dao->getLevel()] = $this->getLevelById($data[$this->dao->getParentId()]);
+ 86:         $this->checkRate($data);
+ 87:         // 检查身份权限数据
+ 88:         $this->checkRole($data);
+ 89:         return Db::transaction(function () use ($data) {
+ 90:             $res = $this->dao->create($data);
+ 91:             // 商圈创建后更新商圈管理员账号所属商圈ID
+ 92:             $this->updateAdminRegionIds($data['circle_agent_id'], $res->circle_id, true);
+ 93: 
+ 94:             $merchantIds = $data['merchant_ids'];
+ 95:             unset($data['merchant_ids']);
+ 96:             if($merchantIds) {
+ 97:                 $merchantRepository = app()->make(MerchantRepository::class);
+ 98:                 // 更新店铺所属区域id
+ 99:                 if ($data['type'] == CircleDao::TYPE['REGION']) {
+100:                     $merchantRepository->search(['region_id' => $res->circle_id])->update(['region_id' => 0]);
+101:                     $merchantRepository->search(['mer_id' => $merchantIds])->update(['region_id' => $res->circle_id]);
+102:                 }
+103:                 // 更新店铺所属商户id
+104:                 if ($data['type'] == CircleDao::TYPE['MERCHANT']) {
+105:                     $merchantRepository->search(['business_id' => $res->circle_id])->update(['business_id' => 0]);
+106:                     $merchantRepository->search(['mer_id' => $merchantIds])->update(['business_id' => $res->circle_id]);
+107:                 }
+108:             }
+109: 
+110:             return true;
+111:         });
+112:     }
+113:     /**
+114:      * 更新组织
+115:      *
+116:      * @param integer $id
+117:      * @param array $data
+118:      * @return void
+119:      */
+120:     public function update(int $id, array $data)
+121:     {
+122:         $info = $this->dao->get($id);
+123:         if (!$info) {
+124:             throw new ValidateException('记录不存在!');
+125:         }
+126:         if($data['pid'] && !$this->dao->exists($data['pid'])) {
+127:             throw new ValidateException('上级商圈不存在!');
+128:         }
+129:         if ($data['pid'] && ($this->getLevelById($data['pid']) >= $this->dao->getMaxLevel())) {
+130:             throw new ValidateException('最多' . $this->dao->getMaxLevel() . '级!');
+131:         }
+132:         if ($this->dao->checkChangeToChild($id, $data['pid'])) {
+133:             throw new ValidateException('无法修改到当前分类到子集，请先修改子类');
+134:         }
+135:         if (!$this->checkChildLevel($id, $data['pid'])) {
+136:             throw new ValidateException('子类超过最高等级限制，请先修改子类');
+137:         }
+138: 
+139:         $data[$this->dao->getPath()] = $this->getPathById($data[$this->dao->getParentId()]);
+140:         $data[$this->dao->getLevel()] = $this->getLevelById($data[$this->dao->getParentId()]);
+141:         $this->checkRate($data, $id, $info);
+142:         // 检查身份权限数据
+143:         $this->checkRole($data);
+144: 
+145:         $data['update_time'] = date('Y-m-d H:i:s');
+146:         $data['commission_rate'] = $data['commission_type'] == 0 ? 0 : $data['commission_rate'];
+147:         unset($data['type']);
+148: 
+149:         return Db::transaction(function () use ($id, $data, $info) {
+150:             if ($data['circle_agent_id'] !== $info->circle_agent_id) {
+151:                 if($info['circle_agent_id']) {
+152:                     // 清除原商圈管理员所属商圈ID
+153:                     $this->updateAdminRegionIds($info['circle_agent_id'], $id, false);
+154:                 }
+155:                 // 更新新商圈管理员账号所属商圈ID
+156:                 $this->updateAdminRegionIds($data['circle_agent_id'], $id, true);
+157:             }
+158: 
+159:             $merchantIds = $data['merchant_ids'];
+160:             unset($data['merchant_ids']);
+161:             if($merchantIds) {
+162:                 $merchantRepository = app()->make(MerchantRepository::class);
+163:                 // 更新店铺所属区域id
+164:                 if ($info['type'] == CircleDao::TYPE['REGION']) {
+165:                     $merchantRepository->search(['region_id' => $info['circle_id']])->update(['region_id' => 0]);
+166:                     $merchantRepository->search(['mer_id' => $merchantIds])->update(['region_id' => $id]);
+167:                 }
+168:                 // 更新店铺所属商户id
+169:                 if ($info['type'] == CircleDao::TYPE['MERCHANT']) {
+170:                     $merchantRepository->search(['business_id' => $info['circle_id']])->update(['business_id' => 0]);
+171:                     $merchantRepository->search(['mer_id' => $merchantIds])->update(['business_id' => $id]);
+172:                 }
+173:             }
+174: 
+175:             $this->dao->update($id, $data);
+176: 
+177:             return true;
+178:         });
+179:     }
+180:     /**
+181:      * 删除组织
+182:      *
+183:      * @param integer $id
+184:      * @return void
+185:      */
+186:     public function delete(int $id)
+187:     {
+188:         $info = $this->dao->get($id);
+189:         if (!$info) {
+190:             throw new ValidateException('记录不存在!');
+191:         }
+192:         if ($this->dao->hasChild($id)) {
+193:             throw new ValidateException('该商圈存在子集，请先处理子集');
+194:         }
+195: 
+196:         return Db::transaction(function () use ($id, $info) {
+197:             if($info['circle_agent_id']) {
+198:                 // 清除原商圈管理员所属商圈ID
+199:                 $this->updateAdminRegionIds($info['circle_agent_id'], $id, false);
+200:             }
+201:             // 商圈删除后释放商户所属商圈
+202:             app()->make(MerchantRepository::class)->search(['region_id' => $info['circle_id']])->update(['region_id' => 0]);
+203:             $this->dao->delete($id);
+204: 
+205:             return true;
+206:         });
+207:     }
+208:     /**
+209:      * 切换组织状态
+210:      *
+211:      * @param integer $id
+212:      * @param array $data
+213:      * @return void
+214:      */
+215:     public function switch(int $id, array $data)
+216:     {
+217:         $info = $this->dao->get($id);
+218:         if (!$info) {
+219:             throw new ValidateException('记录不存在!');
+220:         }
+221: 
+222:         $info->status = $data['status'];
+223: 
+224:         return $info->save();
+225:     }
+226:     /**
+227:      * 获取商圈下关联的店铺列表
+228:      *
+229:      * @param integer $id
+230:      * @param integer $page
+231:      * @param integer $limit
+232:      * @param array $where
+233:      * @return void
+234:      */
+235:     public function associatedMerchantList($id, $page, $limit, $where)
+236:     {
+237:         $info = $this->dao->get($id);
+238:         if (!$info) {
+239:             throw new ValidateException('商圈记录不存在!');
+240:         }
+241:         if($info['type'] == CircleDao::TYPE['REGION']) {
+242:             $where['region_id'] = $id;
+243:         }
+244:         if($info['type'] == CircleDao::TYPE['MERCHANT']) {
+245:             $where['business_id'] = $id;
+246:         }
+247:         $query = app()->make(MerchantRepository::class)->search($where);
+248: 
+249:         $count = $query->count();
+250:         $list = $query->page($page, $limit)->field('mer_id, mer_name, real_name ,mer_phone, region_id,status,mer_state')->select();
+251: 
+252:         return compact('list', 'count');
+253:     }
+254:     /**
+255:      * 更新商圈管理员所属商圈ID
+256:      *
+257:      * @param integer $circleAgentId
+258:      * @param integer $regionIds
+259:      * @param integer $roleId
+260:      * @param bool $isAdd
+261:      * @return void
+262:      */
+263:     protected function updateAdminRegionIds(int $circleAgentId, int $regionIds, bool $isAdd = true)
+264:     {
+265:         $adminRepository = app()->make(AdminRepository::class);
+266:         $adminInfo = $adminRepository->getSearch(['circle_agent_id' => $circleAgentId])->find();
+267: 
+268:         $adminRegionIds = $adminInfo->region_ids ?: [];
+269:         if (in_array($regionIds, $adminRegionIds) && !$isAdd) {
+270:             $adminRegionIds = array_diff($adminRegionIds, [$regionIds]);
+271:         } else {
+272:             $adminRegionIds[] = $regionIds;
+273:         }
+274: 
+275:         $adminInfo->region_ids = implode(',', $adminRegionIds);
+276: 
+277:         return $adminInfo->save();
+278:     }
+279:     /**
+280:      * 检查身份权限数据
+281:      *
+282:      * @param array $data
+283:      * @return void
+284:      */
+285:     private function checkRole(array $data)
+286:     {
+287:         // 检查身份权限数据
+288:         $role = app()->make(RoleRepository::class)->get($data['role_id']);
+289:         if (!$role) {
+290:             throw new ValidateException('身份权限数据不存在!');
+291:         }
+292:         if (self::IS_AGENT[$data['type']] != $role['is_agent']) {
+293:             throw new ValidateException('组织类型和身份权限类型不匹配!');
+294:         }
+295:     }
+296:     /**
+297:      * 检查提成比例
+298:      *
+299:      * @param array $data
+300:      * @param integer $id
+301:      * @param array $info
+302:      * @return void
+303:      */
+304:     private function checkRate($data, $id = 0, $info = null)
+305:     {
+306:         if($data['type'] == CircleDao::TYPE['MERCHANT']) {
+307:             return false;
+308:         }
+309:         if ($data['pid'] && $data['commission_type']) {
+310:             $this->checkParentLevelRate($data['commission_rate'], $data['pid']);
+311:         }
+312:         // 存在子级时，检查当前层级提成比例是否低于子级层级提成比例
+313:         if ($id && $info['level'] != 2) {
+314:             $this->checkChildLevelRate($data['commission_rate'], $id);
+315:         }
+316:     }
+317:     /**
+318:      * 检查父级层级提成比例
+319:      *
+320:      * @param float $rate
+321:      * @param int $pid
+322:      * @return void
+323:      */
+324:     private function checkParentLevelRate(float $rate, int $pid)
+325:     {
+326:         $parentRateInfo = $this->dao->getWhere(['circle_id' => $pid], 'commission_type, commission_rate, level');
+327:         if($rate > $parentRateInfo['commission_rate']) {
+328:             throw new ValidateException("子级提成比例【{$rate}】不能大于父级提成比例【{$parentRateInfo['commission_rate']}】，请重新设置!");
+329:         }
+330: 
+331:         return true;
+332:     }
+333:     /**
+334:      * 检查子级层级提成比例
+335:      *
+336:      * @param float $rate
+337:      * @param int $id
+338:      * @return void
+339:      */
+340:     private function checkChildLevelRate(float $rate, int $id)
+341:     {
+342:         $childRateInfo = $this->dao->getSearch(['pid' => $id])->field('circle_id, name, commission_type, commission_rate, level')->select()->toArray();
+343:         if(!$childRateInfo) {
+344:             return true;
+345:         }
+346: 
+347:         foreach ($childRateInfo as $child) {
+348:             if($child['commission_rate'] > $rate) {
+349:                 throw new ValidateException("当前层级提成比例【{$rate}】不能小于子级【{$child['name']}】的提成比例【{$child['commission_rate']}】，请先修改子级设置!");
+350:             }
+351:         }
+352: 
+353:         return true;
+354:     }
+355: }
+</file>
+
+<file path="app/controller/admin/circle/Circle.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace app\controller\admin\circle;
+ 14: 
+ 15: use think\App;
+ 16: use crmeb\basic\BaseController;
+ 17: use app\validate\admin\CircleValidate;
+ 18: use app\common\repositories\circle\CircleRepository;
+ 19: 
+ 20: class Circle extends BaseController
+ 21: {
+ 22:     protected $repository;
+ 23:     protected $validate;
+ 24: 
+ 25:     public function __construct(App $app, CircleRepository $repository, CircleValidate $validate)
+ 26:     {
+ 27:         parent::__construct($app);
+ 28:         $this->repository = $repository;
+ 29:         $this->validate = $validate;
+ 30:     }
+ 31: 
+ 32:     protected function getRepository()
+ 33:     {
+ 34:         return $this->repository;
+ 35:     }
+ 36: 
+ 37:     protected function getValidate()
+ 38:     {
+ 39:         return $this->validate;
+ 40:     }
+ 41:     /**
+ 42:      * 获取组织列表
+ 43:      *
+ 44:      * @return void
+ 45:      */
+ 46:     public function list()
+ 47:     {
+ 48:         $where = $this->request->params(['circle_agent_id', 'name', 'status', 'type']);
+ 49:         [$page, $limit] = $this->getPage();
+ 50: 
+ 51:         return app('json')->success($this->getRepository()->getList($where, ['circleAgent'], $page, $limit));
+ 52:     }
+ 53:     /**
+ 54:      * 获取组织详情
+ 55:      *
+ 56:      * @param int $id
+ 57:      * @return void
+ 58:      */
+ 59:     public function detail($id)
+ 60:     {
+ 61:         if (!$id) {
+ 62:             return app('json')->fail('参数错误');
+ 63:         }
+ 64: 
+ 65:         $data = $this->getRepository()->getWith($id, ['circleAgent', 'merchant', 'parent', 'parent.parent']);
+ 66:         if (!$data) {
+ 67:             return app('json')->fail('数据不存在');
+ 68:         }
+ 69: 
+ 70:         return app('json')->success($data);
+ 71:     }
+ 72:     /**
+ 73:      * 创建组织
+ 74:      *
+ 75:      * @return void
+ 76:      */
+ 77:     public function create()
+ 78:     {
+ 79:         $data = $this->request->params([
+ 80:             ['pid', 0],
+ 81:             'name',
+ 82:             'circle_agent_id',
+ 83:             'commission_type',
+ 84:             'commission_rate',
+ 85:             ['sort', 0],
+ 86:             ['status', 1],
+ 87:             'merchant_ids',
+ 88:             'type',
+ 89:             'role_id',
+ 90:             'business_store_category',
+ 91:             'business_store_type'
+ 92:         ]);
+ 93: 
+ 94:         $validate = $this->getValidate();
+ 95:         if (!$validate->add($data)) {
+ 96:             return app('json')->fail($validate->getError());
+ 97:         }
+ 98: 
+ 99:         $res = $this->getRepository()->create($data);
+100:         if (!$res) {
+101:             return app('json')->fail('添加失败', $res);
+102:         }
+103: 
+104:         return app('json')->success('添加成功', $res);
+105:     }
+106:     /**
+107:      * 更新组织
+108:      *
+109:      * @param int $id
+110:      * @return void
+111:      */
+112:     public function update($id)
+113:     {
+114:         if (!$id) {
+115:             return app('json')->fail('参数错误');
+116:         }
+117: 
+118:         $data = $this->request->params([
+119:             ['pid', 0],
+120:             'name',
+121:             'circle_agent_id',
+122:             'commission_type',
+123:             'commission_rate',
+124:             ['sort', 0],
+125:             ['status', 1],
+126:             'merchant_ids',
+127:             'type',
+128:             'role_id',
+129:             'business_store_category',
+130:             'business_store_type',
+131:         ]);
+132: 
+133:         $validate = $this->getValidate();
+134:         if (!$validate->edit($data)) {
+135:             return app('json')->fail($validate->getError());
+136:         }
+137: 
+138:         $res = $this->getRepository()->update($id, $data);
+139:         if (!$res) {
+140:             return app('json')->fail('修改失败', $res);
+141:         }
+142: 
+143:         return app('json')->success('修改成功');
+144:     }
+145:     /**
+146:      * 删除组织
+147:      *
+148:      * @param int $id
+149:      * @return void
+150:      */
+151:     public function delete($id)
+152:     {
+153:         if (!$id) {
+154:             return app('json')->fail('参数错误');
+155:         }
+156: 
+157:         $res = $this->getRepository()->delete($id);
+158:         if (!$res) {
+159:             return app('json')->fail('删除失败');
+160:         }
+161: 
+162:         return app('json')->success('删除成功');
+163:     }
+164:     /**
+165:      * 切换组织状态
+166:      *
+167:      * @param int $id
+168:      * @return void
+169:      */
+170:     public function switch($id)
+171:     {
+172:         if (!$id) {
+173:             return app('json')->fail('参数错误');
+174:         }
+175: 
+176:         $data = $this->request->params(['status']);
+177: 
+178:         $validate = $this->getValidate();
+179:         if (!$validate->switch($data)) {
+180:             return app('json')->fail($validate->getError());
+181:         }
+182: 
+183:         $res = $this->getRepository()->switch($id, $data);
+184:         if (!$res) {
+185:             return app('json')->fail('切换失败');
+186:         }
+187: 
+188:         return app('json')->success('切换成功');
+189:     }
+190:     /**
+191:      * 获取关联商户列表
+192:      *
+193:      * @param int $id
+194:      * @return void
+195:      */
+196:     public function associatedMerchantList($id)
+197:     {
+198:         if (!$id) {
+199:             return app('json')->fail('参数错误');
+200:         }
+201: 
+202:         [$page, $limit] = $this->getPage();
+203:         $where = $this->request->params(['keyword']);
+204: 
+205:         return app('json')->success($this->getRepository()->associatedMerchantList($id, $page, $limit, $where));
+206:     }
+207:     /**
+208:      * 获取组织选项
+209:      *
+210:      * @return void
+211:      */
+212:     public function options()
+213:     {
+214:         $where = $this->request->params([['type', 0], ['status', 1]]);
+215:         $adminInfo = $this->request->adminInfo();
+216:         if($adminInfo['circle_agent_id']) {
+217:             $where['circle_agent_id'] = $adminInfo['circle_agent_id'];
+218:         }
+219: 
+220:         $data = $this->getRepository()->search($where)->field('circle_id as value,pid,name as label')->select();
+221: 
+222:         return app('json')->success($data);
+223:     }
+224: }
+</file>
+
+<file path="app/controller/admin/circle/CircleAgent.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace app\controller\admin\circle;
+ 14: 
+ 15: use think\App;
+ 16: use crmeb\basic\BaseController;
+ 17: use app\validate\admin\CircleAgentValidate;
+ 18: use app\common\repositories\circle\CircleAgentRepository;
+ 19: 
+ 20: class CircleAgent extends BaseController
+ 21: {
+ 22:     protected $repository;
+ 23:     protected $validate;
+ 24: 
+ 25:     public function __construct(App $app, CircleAgentRepository $repository, CircleAgentValidate $validate)
+ 26:     {
+ 27:         parent::__construct($app);
+ 28:         $this->repository = $repository;
+ 29:         $this->validate = $validate;
+ 30:     }
+ 31: 
+ 32:     protected function getRepository()
+ 33:     {
+ 34:         return $this->repository;
+ 35:     }
+ 36: 
+ 37:     protected function getValidate()
+ 38:     {
+ 39:         return $this->validate;
+ 40:     }
+ 41:     /**
+ 42:      * 获取代理列表
+ 43:      *
+ 44:      * @return void
+ 45:      */
+ 46:     public function list()
+ 47:     {
+ 48:         $where = $this->request->params(['type', 'name', 'phone', 'uid', 'user_phone', 'nickname', 'is_apply', 'status', ['create_time', []]]);
+ 49:         [$page, $limit] = $this->getPage();
+ 50: 
+ 51:         return app('json')->success($this->getRepository()->getList($page, $limit, $where, ['circle', 'admin', 'auditAdmin']));
+ 52:     }
+ 53:     /**
+ 54:      * 获取代理详情
+ 55:      *
+ 56:      * @param int $id
+ 57:      * @return void
+ 58:      */
+ 59:     public function detail($id)
+ 60:     {
+ 61:         if (!$id) {
+ 62:             return app('json')->fail('参数错误');
+ 63:         }
+ 64: 
+ 65:         $data = $this->getRepository()->getWith($id, ['circle', 'user', 'admin', 'auditAdmin'])
+ 66:             ->append(['merchant_count', 'order_count', 'total_amount', 'frozen_amount']);
+ 67:         if (!$data) {
+ 68:             return app('json')->fail('数据不存在');
+ 69:         }
+ 70: 
+ 71:         return app('json')->success($data);
+ 72:     }
+ 73:     /**
+ 74:      * 添加代理
+ 75:      *
+ 76:      * @return void
+ 77:      */
+ 78:     public function create()
+ 79:     {
+ 80:         $data = $this->request->params(['type', 'name', 'phone', 'qualification', 'remark', 'uid', 'business_name', 'account', 'password', ['extend', []]]);
+ 81: 
+ 82:         $validate = $this->getValidate();
+ 83:         if (!$validate->add($data)) {
+ 84:             return app('json')->fail($validate->getError());
+ 85:         }
+ 86: 
+ 87:         $res = $this->getRepository()->adminCreate($this->request->adminId(), $data);
+ 88:         if (!$res) {
+ 89:             return app('json')->fail('添加失败', $res);
+ 90:         }
+ 91: 
+ 92:         return app('json')->success('添加成功');
+ 93:     }
+ 94:     /**
+ 95:      * 修改代理
+ 96:      *
+ 97:      * @param int $id
+ 98:      * @return void
+ 99:      */
+100:     public function update($id)
+101:     {
+102:         if (!$id) {
+103:             return app('json')->fail('参数错误');
+104:         }
+105: 
+106:         $data = $this->request->params(['type', 'name', 'phone', 'qualification', 'remark', 'uid', 'business_name',['extend', []]]);
+107: 
+108:         $validate = $this->getValidate();
+109:         if (!$validate->edit($data)) {
+110:             return app('json')->fail($validate->getError());
+111:         }
+112: 
+113:         $res = $this->getRepository()->adminUpdate($id, $this->request->adminId(), $data);
+114:         if (!$res) {
+115:             return app('json')->fail('修改失败', $res);
+116:         }
+117: 
+118:         return app('json')->success('修改成功');
+119:     }
+120:     /**
+121:      * 审核代理
+122:      *
+123:      * @param int $id
+124:      * @return void
+125:      */
+126:     public function audit($id)
+127:     {
+128:         if (!$id) {
+129:             return app('json')->fail('参数错误');
+130:         }
+131: 
+132:         $data = $this->request->params(['status', 'audit_reason']);
+133:         $validate = $this->getValidate();
+134:         if (!$validate->audit($data)) {
+135:             return app('json')->fail($validate->getError());
+136:         }
+137: 
+138:         $res = $this->getRepository()->audit($id, $this->request->adminId(), $data);
+139:         if (!$res) {
+140:             return app('json')->fail('审核失败', $res);
+141:         }
+142:         return app('json')->success('审核成功');
+143:     }
+144:     /**
+145:      * 删除代理
+146:      *
+147:      * @param int $id
+148:      * @return void
+149:      */
+150:     public function delete($id)
+151:     {
+152:         if (!$id) {
+153:             return app('json')->fail('参数错误');
+154:         }
+155: 
+156:         $res = $this->getRepository()->delete($id);
+157:         if (!$res) {
+158:             return app('json')->fail('删除失败', $res);
+159:         }
+160:         return app('json')->success('删除成功');
+161:     }
+162:     /**
+163:      * 获取关联商户列表
+164:      *
+165:      * @param int $id
+166:      * @return void
+167:      */
+168:     public function associatedMerchantList($id)
+169:     {
+170:         if (!$id) {
+171:             return app('json')->fail('参数错误');
+172:         }
+173: 
+174:         [$page, $limit] = $this->getPage();
+175:         $where = $this->request->params(['keyword', 'circle_id']);
+176: 
+177:         return app('json')->success($this->getRepository()->associatedMerchantList($id, $page, $limit, $where));
+178:     }
+179:     /**
+180:      * 获取结算方式
+181:      *
+182:      * @param int $id
+183:      * @return void
+184:      */
+185:     public function getSettlementMethod($id)
+186:     {
+187:         if (!$id) {
+188:             return app('json')->fail('参数错误');
+189:         }
+190: 
+191:         return app('json')->success($this->getRepository()->getSettlementMethod($id));
+192:     }
+193:     /**
+194:      * 设置结算方式
+195:      *
+196:      * @param int $id
+197:      * @return void
+198:      */
+199:     public function setSettlementMethod($id)
+200:     {
+201:         if (!$id) {
+202:             return app('json')->fail('参数错误');
+203:         }
+204: 
+205:         $adminInfo = $this->request->adminInfo();
+206:         if($id != $adminInfo['circle_agent_id']) {
+207:             return app('json')->fail('登录账号非商圈代理身份，无权操作');
+208:         }
+209: 
+210:         $data = $this->request->params(['payment_method', 'payment_name', 'payment_account', 'payment_bank', 'payment_qr_img']);
+211:         $validate = $this->getValidate();
+212:         if (!$validate->setSettlementMethod($data)) {
+213:             return app('json')->fail($validate->getError());
+214:         }
+215: 
+216:         $res = $this->getRepository()->setSettlementMethod($id, $data);
+217:         if (!$res) {
+218:             return app('json')->fail('设置失败');
+219:         }
+220: 
+221:         return app('json')->success('设置成功');
+222:     }
+223:     /**
+224:      * 获取代理下拉列表
+225:      *
+226:      * @param int $type
+227:      * @return void
+228:      */
+229:     public function options()
+230:     {
+231:         $type = $this->request->param('type', 0);
+232:         if($type == '') {
+233:             return app('json')->fail('参数错误');
+234:         }
+235: 
+236:         $res = $this->getRepository()->options($type);
+237:         if (!$res) {
+238:             return app('json')->fail('获取失败');
+239:         }
+240: 
+241:         return app('json')->success($res);
+242:     }
+243: 
+244:     /**
+245:      * 重置密码
+246:      *
+247:      * @return void
+248:      */
+249:     public function resetPassword(int $id)
+250:     {
+251:         if (!$id) {
+252:             return app('json')->fail('参数错误');
+253:         }
+254: 
+255:         $res = $this->getRepository()->resetPassword($id);
+256:         if (!$res) {
+257:             return app('json')->fail('重置失败');
+258:         }
+259: 
+260:         return app('json')->success('重置成功');
+261:     }
+262: }
+</file>
+
+<file path="app/controller/admin/circle/CircleBrokerageCheckout.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: namespace app\controller\admin\circle;
+ 14: 
+ 15: use think\App;
+ 16: use crmeb\basic\BaseController;
+ 17: use think\exception\ValidateException;
+ 18: use app\common\repositories\circle\CircleAgentRepository;
+ 19: use app\common\repositories\circle\CircleBrokerageCheckoutRepository;
+ 20: use app\validate\admin\CircleBrokerageCheckoutValidate;
+ 21: 
+ 22: class CircleBrokerageCheckout extends BaseController
+ 23: {
+ 24:     protected $repository;
+ 25:     protected $validate;
+ 26: 
+ 27:     public function __construct(
+ 28:         App $app,
+ 29:         CircleBrokerageCheckoutRepository $repository,
+ 30:         CircleBrokerageCheckoutValidate $validate
+ 31:     ) {
+ 32:         parent::__construct($app);
+ 33:         $this->repository = $repository;
+ 34:         $this->validate = $validate;
+ 35:     }
+ 36: 
+ 37:     public function getRepository()
+ 38:     {
+ 39:         return $this->repository;
+ 40:     }
+ 41: 
+ 42:     public function getValidate()
+ 43:     {
+ 44:         return $this->validate;
+ 45:     }
+ 46: 
+ 47:     public function list()
+ 48:     {
+ 49:         $where = $this->request->params(['agent_id', 'agent_phone', 'create_time', 'audit_status', 'status', 'withdrawal_type', 'withdrawal_sn']);
+ 50:         [$page, $limit] = $this->getPage();
+ 51: 
+ 52:         return app('json')->success($this->getRepository()->getList($page, $limit, $where));
+ 53:     }
+ 54: 
+ 55:     public function detail($id)
+ 56:     {
+ 57:         if (!$id) {
+ 58:             return app('json')->fail('参数错误');
+ 59:         }
+ 60: 
+ 61:         $data = $this->getRepository()->getWith($id, ['agent', 'agent.user', 'admin']);
+ 62:         if (!$data) {
+ 63:             return app('json')->fail('数据不存在');
+ 64:         }
+ 65: 
+ 66:         return app('json')->success($data);
+ 67:     }
+ 68:     /**
+ 69:      * 商圈提交结算get
+ 70:      *
+ 71:      * @return void
+ 72:      */
+ 73:     public function create()
+ 74:     {
+ 75:         $agentId = $this->request->param('agent_id');
+ 76:         if (!$agentId) {
+ 77:             return app('json')->fail('参数错误');
+ 78:         }
+ 79:         $data = app()->make(CircleAgentRepository::class)->getWith($agentId)->append(['frozen_amount'])->toArray();
+ 80:         if (!$data) {
+ 81:             return app('json')->fail('数据不存在');
+ 82:         }
+ 83:         // if(!$data['payment_name'] && !$data['payment_account']) {
+ 84:         //     throw new ValidateException('未设置结算方式，无法申请结算');
+ 85:         // }
+ 86:         $data['total_amount'] = bcadd($data['frozen_amount'], $data['balance'], 2);
+ 87: 
+ 88:         return app('json')->success($data);
+ 89:     }
+ 90:     /**
+ 91:      * 商圈提交结算申请
+ 92:      *
+ 93:      * @return void
+ 94:      */
+ 95:     public function save()
+ 96:     {
+ 97:         $data = $this->request->params(['agent_id', 'withdrawal_amount', 'withdrawal_type']);
+ 98:         $validate = $this->getValidate();
+ 99:         if (!$validate->add($data)) {
+100:             return app('json')->fail($validate->getError());
+101:         }
+102: 
+103:         if (!$this->isCircleAgent()) {
+104:             return app('json')->fail('不是商圈账号，无法操作');
+105:         }
+106: 
+107:         $res = $this->getRepository()->create($data);
+108:         if (!$res) {
+109:             return app('json')->fail('添加申请失败', $res);
+110:         }
+111: 
+112:         return app('json')->success('添加申请成功');
+113:     }
+114:     /**
+115:      * 商圈撤销结算申请
+116:      *
+117:      * @param integer $id
+118:      * @return void
+119:      */
+120:     public function revoke(int $id)
+121:     {
+122:         if (!$id) {
+123:             return app('json')->fail('参数错误');
+124:         }
+125: 
+126:         if (!$this->isCircleAgent()) {
+127:             return app('json')->fail('不是商圈账号，无法操作');
+128:         }
+129: 
+130:         $res = $this->getRepository()->revoke($id);
+131:         if (!$res) {
+132:             return app('json')->fail('撤销失败', $res);
+133:         }
+134: 
+135:         return app('json')->success('撤销成功');
+136:     }
+137:     /**
+138:      * 商圈备注
+139:      *
+140:      * @param integer $id
+141:      * @return void
+142:      */
+143:     public function remark(int $id)
+144:     {
+145:         if (!$id) {
+146:             return app('json')->fail('参数错误');
+147:         }
+148: 
+149:         if (!$this->isCircleAgent()) {
+150:             return app('json')->fail('不是商圈账号，无法操作');
+151:         }
+152: 
+153:         $data = $this->request->params([['remark', '']]);
+154:         if (!isset($data['remark']) || $data['remark'] == '') {
+155:             return app('json')->fail('备注不能为空');
+156:         }
+157: 
+158:         $res = $this->getRepository()->remark($id, $data);
+159:         if (!$res) {
+160:             return app('json')->fail('备注失败', $res);
+161:         }
+162: 
+163:         return app('json')->success('备注成功');
+164:     }
+165:     /**
+166:      * 平台审核
+167:      * audit_status 0待审核 1审核通过 -1审核拒绝 -2撤销
+168:      *
+169:      * @param integer $id
+170:      * @return void
+171:      */
+172:     public function audit(int $id)
+173:     {
+174:         if (!$id) {
+175:             return app('json')->fail('参数错误');
+176:         }
+177: 
+178:         $data = $this->request->params(['audit_status', 'audit_reason']);
+179:         $validate = $this->getValidate();
+180:         if (!$validate->audit($data)) {
+181:             return app('json')->fail($validate->getError());
+182:         }
+183: 
+184:         if ($this->isCircleAgent()) {
+185:             return app('json')->fail('不是平台账号，无法操作');
+186:         }
+187: 
+188:         $res = $this->getRepository()->audit($id, $this->request->adminId(), $data);
+189:         if (!$res) {
+190:             return app('json')->fail('审核失败', $res);
+191:         }
+192:         return app('json')->success('审核成功');
+193:     }
+194:     /**
+195:      * 平台转账
+196:      *
+197:      * @param integer $id
+198:      * @return void
+199:      */
+200:     public function transfer(int $id)
+201:     {
+202:         if (!$id) {
+203:             return app('json')->fail('参数错误');
+204:         }
+205: 
+206:         $data = $this->request->params(['transfer_voucher', 'transfer_remark']);
+207:         $validate = $this->getValidate();
+208:         if (!$validate->transfer($data)) {
+209:             return app('json')->fail($validate->getError());
+210:         }
+211:         if ($this->isCircleAgent()) {
+212:             return app('json')->fail('不是平台账号，无法操作');
+213:         }
+214: 
+215:         $res = $this->getRepository()->transfer($id, $data);
+216:         if (!$res) {
+217:             return app('json')->fail('转账失败', $res);
+218:         }
+219:         return app('json')->success('转账成功');
+220:     }
+221:     /**
+222:      * 平台备注
+223:      *
+224:      * @param integer $id
+225:      * @return void
+226:      */
+227:     public function platformRemark(int $id)
+228:     {
+229:         if (!$id) {
+230:             return app('json')->fail('参数错误');
+231:         }
+232: 
+233:         if ($this->isCircleAgent()) {
+234:             return app('json')->fail('不是商圈账号，无法操作');
+235:         }
+236: 
+237:         $data = $this->request->params([['platform_remark', '']]);
+238:         if (!isset($data['platform_remark']) || $data['platform_remark'] == '') {
+239:             return app('json')->fail('备注不能为空');
+240:         }
+241: 
+242:         $res = $this->getRepository()->platformRemark($id, $data);
+243:         if (!$res) {
+244:             return app('json')->fail('备注失败', $res);
+245:         }
+246:         return app('json')->success('备注成功');
+247:     }
+248: 
+249:     protected function isCircleAgent()
+250:     {
+251:         return $this->request->isAgent() == 1;
+252:     }
+253: }
+</file>
+
+<file path="app/controller/admin/circle/CircleFinancialRecord.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace app\controller\admin\circle;
+14: 
+15: use think\App;
+16: use crmeb\basic\BaseController;
+17: use app\common\repositories\circle\CircleFinancialRecordRepository;
+18: 
+19: class CircleFinancialRecord extends BaseController
+20: {
+21:     protected $repository;
+22: 
+23:     public function __construct(App $app, CircleFinancialRecordRepository $repository)
+24:     {
+25:         parent::__construct($app);
+26:         $this->repository = $repository;
+27:     }
+28: 
+29:     protected function getRepository()
+30:     {
+31:         return $this->repository;
+32:     }
+33: 
+34:     public function list()
+35:     {
+36:         $where = $this->request->params(['circle_id', 'mer_name', 'agent_id', 'order_time', 'order_sn', 'order_id', 'order_status']);
+37:         [$page, $limit] = $this->getPage();
+38: 
+39:         return app('json')->success($this->getRepository()->getList($page, $limit, $where));
+40:     }
+41: }
+</file>
+
+<file path="app/validate/admin/CircleAgentValidate.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: namespace app\validate\admin;
+12: 
+13: use EasyWeChat\Support\Arr;
+14: use think\Validate;
+15: 
+16: class CircleAgentValidate extends Validate
+17: {
+18:     protected $rule = [
+19:         'type|类型' => 'require|number|in:0,1',
+20:         'uid|用户ID' => 'number|gt:0',
+21:         'name|姓名' => 'require|max:64',
+22:         'phone|电话' => 'require|mobile|gt:0',
+23:         'qualification|申请资质' => 'array|max:10',
+24:         'remark|说明' => 'max:255',
+25:         'extend|扩展表单' => 'array',
+26:         'status|状态' => 'require|in:1,-1',
+27:         'audit_reason|审核原因' => 'requireIf:status,-1|max:255',
+28:         'payment_method|结算方式' => 'require|number|in:0,1,2',
+29:         'payment_name|结算账户姓名' => 'require|max:16',
+30:         'payment_account|结算账号' => 'require|max:30',
+31:         'payment_bank|开户行' => 'requireIf:payment_method,0|max:30',
+32:         'payment_qr_img|收款二维码图片' => 'requireIn:payment_method,1,2|max:200',
+33:         'account|账号' => 'requireIf:type,1|max:30',
+34:         'password|密码' => 'requireIf:type,1|max:30'
+35:     ];
+36: 
+37:     protected $scene = [
+38:         'create' => ['type', 'uid', 'name', 'phone', 'qualification', 'remark', 'extend', 'account', 'password'],
+39:         'edit' => ['type', 'name', 'phone', 'qualification', 'remark', 'extend', 'uid'],
+40:         'audit' => ['status', 'audit_reason'],
+41:         'settlementMethod' => ['payment_method', 'payment_name', 'payment_account', 'payment_bank', 'payment_qr_img']
+42:     ];
+43: 
+44:     /**
+45:      * 验证某个字段包含某个值的时候必须
+46:      *
+47:      * @param string $value 配送方式
+48:      * @param string $rule 验证规则
+49:      * @param array $data 验证数据
+50:      * @return void
+51:      */
+52:     protected function requireIn(string $value, string $rule, array $data = [])
+53:     {
+54:         $rule = explode(',', $rule);
+55:         if(in_array($data['payment_method'], [$rule[1], $rule[2]]) && $value === '') {
+56:             return false;
+57:         }
+58: 
+59:         return true;
+60:     }
+61: 
+62:     public function add(array $data): bool
+63:     {
+64:         if (!$this->scene('create')->check($data)) {
+65:             return false;
+66:         }
+67: 
+68:         return true;
+69:     }
+70: 
+71:     public function edit(array $data): bool
+72:     {
+73:         if (!$this->scene('edit')->check($data)) {
+74:             return false;
+75:         }
+76: 
+77:         return true;
+78:     }
+79: 
+80:     public function audit(array $data): bool
+81:     {
+82:         if (!$this->scene('audit')->check($data)) {
+83:             return false;
+84:         }
+85: 
+86:         return true;
+87:     }
+88: 
+89:     public function setSettlementMethod(array $data)
+90:     {
+91:         if (!$this->scene('settlementMethod')->check($data)) {
+92:             return false;
+93:         }
+94: 
+95:         return true;
+96:     }
+97: }
+</file>
+
+<file path="app/validate/admin/CircleBrokerageCheckoutValidate.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: namespace app\validate\admin;
+12: 
+13: use EasyWeChat\Support\Arr;
+14: use think\Validate;
+15: 
+16: class CircleBrokerageCheckoutValidate extends Validate
+17: {
+18:     protected $rule = [
+19:         'agent_id|商圈代理ID' => 'require|number|gt:0',
+20:         'withdrawal_amount|提现金额' => 'require|float',
+21:         'withdrawal_type|提现方式' => 'require|number|in:0,1,2',
+22:         'audit_status|审核状态' => 'require|in:1,-1',
+23:         'audit_reason|审核原因' => 'requireIf:audit_status,-1|max:200',
+24:         'transfer_voucher|转账凭证' => 'require|array|max:9',
+25:         'transfer_remark|转账备注' => 'max:200',
+26:     ];
+27: 
+28:     protected $scene = [
+29:         'create' => ['agent_id', 'withdrawal_amount', 'withdrawal_type'],
+30:         'apply' => ['audit_status', 'audit_reason'],
+31:         'voucher' => ['transfer_voucher', 'transfer_remark']
+32:     ];
+33: 
+34:     public function add(array $data): bool
+35:     {
+36:         if (!$this->scene('create')->check($data)) {
+37:             return false;
+38:         }
+39: 
+40:         return true;
+41:     }
+42: 
+43:     public function audit(array $data): bool
+44:     {
+45:         if (!$this->scene('apply')->check($data)) {
+46:             return false;
+47:         }
+48: 
+49:         return true;
+50:     }
+51: 
+52:     public function transfer(array $data): bool
+53:     {
+54:         if (!$this->scene('voucher')->check($data)) {
+55:             return false;
+56:         }
+57: 
+58:         return true;
+59:     }
+60: }
+</file>
+
+<file path="app/validate/admin/CircleValidate.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: namespace app\validate\admin;
+12: 
+13: use think\Validate;
+14: 
+15: class CircleValidate extends Validate
+16: {
+17:     protected $rule = [
+18:         'pid|上级组织ID' => 'requireIf:type,0|number|egt:0',
+19:         'name|组织名称' => 'require|max:64',
+20:         'circle_agent_id|区域代理ID' => 'requireIf:type,0|number|gt:0',
+21:         'circle_agent_id|商户管理ID' => 'requireIf:type,1|number|gt:0',
+22:         'commission_type|佣金类型' => 'requireIf:type,0|number|in:0,1',
+23:         'commission_rate|佣金比例' => 'requireIf:commission_type,1|float|between:0,100',
+24:         'sort|排序' => 'number',
+25:         'status|状态' => 'number|in:0,1',
+26:         'merchant_ids|关联商户ID' => 'array',
+27:         'type|组织类型' => 'require|number|in:0,1',
+28:         'role_id|身份权限ID' => 'require|number|gt:0',
+29:         'business_store_category|商户店铺分类' => 'requireIf:type,1',
+30:         'business_store_type|商户店铺类型' => 'requireIf:type,1'
+31:     ];
+32: 
+33:     protected $scene = [
+34:         'add' => ['pid','name','circle_agent_id','commission_type','commission_rate','sort','status', 'merchant_ids', 'type', 'role_id', 'business_store_category', 'business_store_type'],
+35:         'edit' => ['pid','name','circle_agent_id','commission_type','commission_rate','sort','status', 'merchant_ids', 'type', 'role_id', 'business_store_category', 'business_store_type'],
+36:         'switch' => ['status']
+37:     ];
+38: 
+39:     public function add(array $data): bool
+40:     {
+41:         if (!$this->scene('add')->check($data)) {
+42:             return false;
+43:         }
+44: 
+45:         return true;
+46:     }
+47: 
+48:     public function edit(array $data): bool
+49:     {
+50:         if (!$this->scene('edit')->check($data)) {
+51:             return false;
+52:         }
+53: 
+54:         return true;
+55:     }
+56: 
+57:     public function switch(array $data): bool
+58:     {
+59:         if (!$this->scene('switch')->check($data)) {
+60:             return false;
+61:         }
+62: 
+63:         return true;
+64:     }
+65: }
+</file>
+
+<file path="route/admin/circle.php">
+  1: <?php
+  2: // +----------------------------------------------------------------------
+  3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  4: // +----------------------------------------------------------------------
+  5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  6: // +----------------------------------------------------------------------
+  7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  8: // +----------------------------------------------------------------------
+  9: // | Author: CRMEB Team <admin@crmeb.com>
+ 10: // +----------------------------------------------------------------------
+ 11: 
+ 12: use think\facade\Route;
+ 13: use app\common\middleware\AdminAuthMiddleware;
+ 14: use app\common\middleware\AdminTokenMiddleware;
+ 15: use app\common\middleware\AllowOriginMiddleware;
+ 16: use app\common\middleware\LogMiddleware;
+ 17: 
+ 18: Route::group(function () {
+ 19:     //商圈
+ 20:     Route::group('circle', function () {
+ 21:         Route::get('list', '/list')->name('systemCircleList')->option([
+ 22:             '_alias' => '商圈列表',
+ 23:         ]);
+ 24:         Route::get('detail/:id', '/detail')->name('systemCircleDetail')->option([
+ 25:             '_alias' => '商圈详情',
+ 26:         ]);
+ 27:         Route::post('create', '/create')->name('systemCircleCreate')->option([
+ 28:             '_alias' => '商圈添加',
+ 29:         ]);
+ 30:         Route::post('update/:id', '/update')->name('systemCircleUpdate')->option([
+ 31:             '_alias' => '商圈编辑',
+ 32:         ]);
+ 33:         Route::delete('delete/:id', '/delete')->name('systemCircleDelete')->option([
+ 34:             '_alias' => '商圈删除',
+ 35:         ]);
+ 36:         Route::post('switch/:id', '/switch')->name('systemCircleSwitch')->option([
+ 37:             '_alias' => '商圈状态切换',
+ 38:         ]);
+ 39:         Route::get('merchantList/:id', '/associatedMerchantList')->name('systemCircleMerchantList')->option([
+ 40:             '_alias' => '关联商户列表',
+ 41:         ]);
+ 42:         Route::get('options', '/options');
+ 43:     })->prefix('admin.circle.Circle')->option([
+ 44:         '_path' => ['/business-zones/index', '/merchant/index'],
+ 45:         '_auth' => true,
+ 46:     ]);
+ 47:     // --------------- 代理相关 ---------------
+ 48:     // 代理公共接口
+ 49:     Route::group('circle/agent', function () {
+ 50:         Route::get('list', '/list')->name('systemCircleAgentList')->option([
+ 51:             '_alias' => '商圈代理列表',
+ 52:         ]);
+ 53:         Route::get('detail/:id', '/detail')->name('systemCircleAgentDetail')->option([
+ 54:             '_alias' => '商圈代理详情',
+ 55:         ]);
+ 56:     })->prefix('admin.circle.CircleAgent')->option([
+ 57:         '_path' => ['/business-zones/agents', '/merchant/admin-list'],
+ 58:         '_auth' => false,
+ 59:     ]);
+ 60:     // 商圈代理
+ 61:     Route::group('circle/agent', function () {
+ 62:         Route::post('create', '/create')->name('systemCircleAgentCreate')->option([
+ 63:             '_alias' => '商圈代理添加',
+ 64:         ]);
+ 65:         Route::post('update/:id', '/update')->name('systemCircleAgentUpdate')->option([
+ 66:             '_alias' => '商圈代理编辑',
+ 67:         ]);
+ 68:         Route::delete('delete/:id', '/delete')->name('systemCircleAgentDelete')->option([
+ 69:             '_alias' => '商圈代理删除',
+ 70:         ]);
+ 71:         Route::get('merchantList/:id', '/associatedMerchantList')->name('systemCircleAgentMerchant')->option([
+ 72:             '_alias' => '关联商户列表',
+ 73:         ]);
+ 74:         Route::get('options', '/options')->name('systemCircleAgentOptions')->option([
+ 75:             '_alias' => '代理选项',
+ 76:         ]);
+ 77:         Route::post('resetPwd/:id', '/resetPassword')->name('systemCircleAgentResetPassword')->option([
+ 78:             '_alias' => '重置密码',
+ 79:         ]);
+ 80:     })->prefix('admin.circle.CircleAgent')->option([
+ 81:         '_path' => ['/business-zones/agents', '/merchant/admin-list'],
+ 82:         '_auth' => true,
+ 83:     ]);
+ 84:     // 代理审核
+ 85:     Route::group('circle/agent', function () {
+ 86:         Route::post('audit/:id', '/audit')->name('systemCircleAgentAudit')->option([
+ 87:             '_alias' => '商圈代理审核',
+ 88:         ]);
+ 89:     })->prefix('admin.circle.CircleAgent')->option([
+ 90:         '_path' => ['/business-zones/agent-review', '/merchant/review'],
+ 91:         '_auth' => true,
+ 92:     ]);
+ 93:     // 商圈结算方式
+ 94:     Route::group('circle/agent', function () {
+ 95:         Route::get('settlementMethod/:id', '/getSettlementMethod')->name('systemCircleAgentGetSettlementMethod')->option([
+ 96:             '_alias' => '结算方式get',
+ 97:         ]);
+ 98:         Route::post('settlementMethod/:id', '/setSettlementMethod')->name('systemCircleAgentSetSettlementMethod')->option([
+ 99:             '_alias' => '结算方式post',
+100:         ]);
+101:     })->prefix('admin.circle.CircleAgent')->option([
+102:         '_path' => '/accounts/zoneAgent/settlementAccount',
+103:         '_auth' => true,
+104:     ]);
+105:     // --------------- 结算相关 ---------------
+106:     // 结算公共接口
+107:     Route::group('circle/checkout', function () {
+108:         Route::get('list', '/list')->name('systemCircleCheckoutList')->option([
+109:             '_alias' => '结算记录列表',
+110:         ]);
+111:         Route::get('detail/:id', '/detail')->name('systemCircleCheckoutDetail')->option([
+112:             '_alias' => '结算记录详情',
+113:         ]);
+114:     })->prefix('admin.circle.CircleBrokerageCheckout')->option([
+115:         '_auth' => false,
+116:     ]);
+117:     // 平台结算审核
+118:     Route::group('circle/checkout', function () {
+119:         Route::post('audit/:id', '/audit')->name('systemCircleCheckoutAudit')->option([
+120:             '_alias' => '平台结算审核',
+121:         ]);
+122:         Route::post('transfer/:id', '/transfer')->name('systemCircleCheckoutTransfer')->option([
+123:             '_alias' => '平台转账',
+124:         ]);
+125:         Route::post('platformRemark/:id', '/platformRemark')->name('systemCircleCheckoutPlatformRemark')->option([
+126:             '_alias' => '平台备注',
+127:         ]);
+128:     })->prefix('admin.circle.CircleBrokerageCheckout')->option([
+129:         '_path' => '/accounts/zoneAgent/settlementReview',
+130:         '_auth' => true,
+131:     ]);
+132:     // 商圈申请结算
+133:     Route::group('circle/checkout', function () {
+134:         Route::get('create', '/create')->name('systemCircleCheckoutCreate')->option([
+135:             '_alias' => '商圈申请结算获取余额',
+136:         ]);
+137:         Route::post('create', '/save')->name('systemCircleCheckoutSave')->option([
+138:             '_alias' => '商圈申请结算提交',
+139:         ]);
+140:         Route::post('revoke/:id', '/revoke')->name('systemCircleCheckoutRevoke')->option([
+141:             '_alias' => '商圈撤销结算',
+142:         ]);
+143:         Route::post('remark/:id', '/remark')->name('systemCircleCheckoutRemark')->option([
+144:             '_alias' => '商圈备注',
+145:         ]);
+146:     })->prefix('admin.circle.CircleBrokerageCheckout')->option([
+147:         '_path' => '/accounts/zoneAgent/settlementApply',
+148:         '_auth' => true,
+149:     ]);
+150:     //  --------------- 提成流水 ---------------
+151:     // 提成流水
+152:     Route::group('circle/financialRecord', function () {
+153:         Route::get('list', '/list')->name('systemCircleFinancialRecordList')->option([
+154:             '_alias' => '商圈提成流水列表',
+155:         ]);
+156:     })->prefix('admin.circle.CircleFinancialRecord')->option([
+157:         '_path' => '/accounts/zoneAgent/commissionRecord',
+158:         '_auth' => true,
+159:     ]);
+160: })->middleware(AllowOriginMiddleware::class)
+161:     ->middleware(AdminTokenMiddleware::class, true)
+162:     ->middleware(AdminAuthMiddleware::class)
+163:     ->middleware(LogMiddleware::class);
+</file>
+
+</files>

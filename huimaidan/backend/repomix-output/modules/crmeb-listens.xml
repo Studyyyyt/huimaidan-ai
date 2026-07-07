@@ -1,0 +1,2476 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+The content has been processed where line numbers have been added.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: **/*.php
+- Files matching these patterns are excluded: vendor/**, runtime/**, backup/**, public/uploads/**, public/system/**, public/mer/**, public/kefu/**, public/static/**, public/statics/**, public/assets/**, install/**/*.sql, install/swoole-loader/**, install/**/*.zip, view/*.zip, repomix-output/**, repomix-output.*, .env, .env.*, .constant, *.key, *.pem, *.pam, cert_*, config/crmeb.php, crmeb/basic/BaseAuth.php, crmeb/basic/BaseController.php, crmeb/basic/BaseManager.php, crmeb/basic/BaseMessage.php, crmeb/basic/BaseStorage.php, crmeb/basic/BaseUpload.php, .idea/**, .vscode/**, .phpstorm.meta.php
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Line numbers have been added to the beginning of each line
+- Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+AuthCancelActivityListen.php
+AuthCancelPresellOrderListen.php
+AuthTakeOrderListen.php
+AutoCancelGroupOrderListen.php
+AutoCheckCouponListen.php
+AutoClearIntegralListen.php
+AutoOrderProfitsharingListen.php
+AutoOrderProfitsharingStatusListen.php
+AutoOrderReplyListen.php
+AutoSendPayOrderSmsListen.php
+AutoUnLockBrokerageListen.php
+AutoUnLockIntegralListen.php
+AutoUnlockMerchantMoneyListen.php
+AutoUpDownShelvesListen.php
+CloseUserSvipListen.php
+CompanyExtractStatusListen.php
+CreateOperateLogListen.php
+CreateTimerListen.php
+DataScreenListen.php
+ExcelFileDelListen.php
+GuaranteeCountListen.php
+InitSwooleLockListen.php
+MerchantApplyMentsCheckListen.php
+MerchantApplyMentsRatekListen.php
+MiniOrderShippingListen.php
+pay/BarCodePayStatusListen.php
+pay/MealSuccessListen.php
+pay/OrderPaySuccessListen.php
+pay/PresellPaySuccessListen.php
+pay/UserOrderSuccessListen.php
+pay/UserRechargeSuccessListen.php
+ProductGroupStatusCheckListen.php
+ProductPresellStatusListen.php
+QueueListen.php
+RefundOrderAgreeListen.php
+SeckillTImeCheckListen.php
+SendSvipCouponListen.php
+SumCountListen.php
+SwooleTaskListen.php
+SwooleWorkerExitListen.php
+SyncBroadcastStatusListen.php
+SyncHotRankingListen.php
+SyncMerchantMarginStatusListen.php
+SyncQueueStatusListen.php
+SyncSmsResultCodeListen.php
+SyncSpreadStatusListen.php
+SyncUserCountContentListen.php
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="AuthCancelActivityListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: 
+17: use app\common\repositories\store\order\PresellOrderRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: use crmeb\jobs\AutoChangeStatusActivityJob;
+20: use crmeb\services\TimerService;
+21: use Swoole\Timer;
+22: use think\facade\Log;
+23: use think\facade\Queue;
+24: 
+25: class AuthCancelActivityListen extends TimerService implements ListenerInterface
+26: {
+27: 
+28:     public function handle($event): void
+29:     {
+30:         $this->tick(1000 * 60 * 60 * 2, function () {
+31:             try {
+32:                 Queue::push(AutoChangeStatusActivityJob::class,[]);
+33:             } catch (\Exception $e) {
+34: 
+35:             }
+36:         });
+37:     }
+38: }
+</file>
+
+<file path="AuthCancelPresellOrderListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: 
+17: use app\common\repositories\store\order\PresellOrderRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: use crmeb\services\TimerService;
+20: use Swoole\Timer;
+21: use think\facade\Log;
+22: 
+23: class AuthCancelPresellOrderListen extends TimerService implements ListenerInterface
+24: {
+25: 
+26:     public function handle($event): void
+27:     {
+28:         $this->tick(1000 * 60 * 1.5, function () {
+29:             $presellOrderRepository = app()->make(PresellOrderRepository::class);
+30:             $ids = $presellOrderRepository->getTimeOutIds(date('Y-m-d H:i:s'));
+31:             foreach ($ids as $id) {
+32:                 try {
+33:                     $presellOrderRepository->cancel($id);
+34:                 } catch (\Exception $e) {
+35:                     Log::info('自动关闭尾款订单失败' . var_export($id, 1));
+36:                 }
+37:             }
+38:         });
+39:     }
+40: }
+</file>
+
+<file path="AuthTakeOrderListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: 
+17: use app\common\repositories\store\order\StoreOrderRepository;
+18: use app\common\repositories\store\order\StoreOrderStatusRepository;
+19: use crmeb\interfaces\ListenerInterface;
+20: use crmeb\jobs\OrderReplyJob;
+21: use crmeb\services\TimerService;
+22: use Swoole\Timer;
+23: use think\facade\Log;
+24: use think\facade\Queue;
+25: 
+26: class AuthTakeOrderListen extends TimerService implements ListenerInterface
+27: {
+28: 
+29:     public function handle($event): void
+30:     {
+31:         $this->tick(1000 * 60 * 60, function () {
+32:             $storeOrderRepository = app()->make(StoreOrderRepository::class);
+33:             request()->clearCache();
+34:             /**
+35:              *  设置自动确认收获的时间默认为 15
+36:              *  查询确认收货 15天前发货，再向前查询15天；
+37:              *  超过这个时间未处理的订单将不做处理，
+38:              *  比如：发货时间 10-1 ； 自动确认时间：15天，当10-15日查询的范围：9-15 ～ 10-15 期间未处理订单，9-15日以前订单不做处理
+39:              */
+40:             $timer = ((int)systemConfig('auto_take_order_timer')) ?: 15;
+41:             $end = date('Y-m-d H:i:s', strtotime("- $timer day"));
+42:             $start = date('Y-m-d H:i:s', strtotime("- 15 day",strtotime($end)));
+43:             $ids = app()->make(StoreOrderStatusRepository::class)->getTimeoutDeliveryOrder($start,$end);
+44:             foreach ($ids as $id) {
+45:                 try {
+46:                     $storeOrderRepository->takeOrder($id);
+47:                     Queue::push(OrderReplyJob::class, $id);
+48:                 } catch (\Exception $e) {
+49:                     Log::error('自动收货失败:['. $id .']'. $e->getMessage());
+50:                 }
+51:             }
+52:         });
+53:     }
+54: }
+</file>
+
+<file path="AutoCancelGroupOrderListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: 
+17: use app\common\repositories\store\order\StoreGroupOrderRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: use crmeb\services\TimerService;
+20: use Swoole\Timer;
+21: use think\facade\Log;
+22: 
+23: class AutoCancelGroupOrderListen extends TimerService implements ListenerInterface
+24: {
+25: 
+26:     public function handle($event): void
+27:     {
+28:         $this->tick(60000, function () {
+29:             $storeGroupOrderRepository = app()->make(StoreGroupOrderRepository::class);
+30:             request()->clearCache();
+31:             $timer = ((int)systemConfig('auto_close_order_timer')) ?: 15;
+32:             $time = date('Y-m-d H:i:s', strtotime("- $timer minutes"));
+33:             $groupOrderIds = $storeGroupOrderRepository->getTimeOutIds($time);
+34:             foreach ($groupOrderIds as $id) {
+35:                 try {
+36:                     $storeGroupOrderRepository->cancel($id);
+37:                 } catch (\Exception $e) {
+38:                     Log::info('自动关闭订单失败' . var_export($id, 1));
+39:                 }
+40:             }
+41:         });
+42:     }
+43: }
+</file>
+
+<file path="AutoCheckCouponListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: 
+16: use app\common\repositories\community\CommunityTopicRepository;
+17: use app\common\repositories\store\coupon\StoreCouponUserRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: use crmeb\services\TimerService;
+20: 
+21: class AutoCheckCouponListen extends TimerService implements ListenerInterface
+22: {
+23: 
+24:     public function handle($event): void
+25:     {
+26:         $this->tick(1000 * 30, function () {
+27:             app()->make(StoreCouponUserRepository::class)->failCoupon();
+28:         });
+29:     }
+30: }
+</file>
+
+<file path="AutoClearIntegralListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: 
+17: use app\common\model\user\User;
+18: use app\common\repositories\store\IntegralRepository;
+19: use app\common\repositories\user\UserBillRepository;
+20: use app\common\repositories\user\UserRepository;
+21: use crmeb\interfaces\ListenerInterface;
+22: use crmeb\jobs\ClearUserIntegralJob;
+23: use crmeb\jobs\SendSmsJob;
+24: use crmeb\services\TimerService;
+25: use Swoole\Timer;
+26: use think\facade\Cache;
+27: use think\facade\Db;
+28: use think\facade\Queue;
+29: 
+30: class AutoClearIntegralListen extends TimerService implements ListenerInterface
+31: {
+32: 
+33:     public function handle($event): void
+34:     {
+35:         //TODO 自动清除积分
+36:         $this->tick(1000 * 60 * 20, function () {
+37:             request()->clearCache();
+38:             if (!systemConfig('integral_status')) return;
+39:             $make = app()->make(IntegralRepository::class);
+40:             $end = $make->getTimeoutDay();
+41:             if ($end == strtotime(date('Y-m-d') . ' 00:00:00')) {
+42:                 $start = $make->getInvalidDay();
+43:                 $make->clearTimeoutDay();
+44:                 if ($start) {
+45:                     $startTime = date('Y-m-d H:i:s', $start);
+46:                     $endTime = date('Y-m-d H:i:s', $end);
+47:                     User::getDB()->where('integral', '>', 0)->field('uid')->chunk(1000, function ($users) use ($startTime, $endTime) {
+48:                         foreach ($users as $user) {
+49:                             $uid = $user['uid'];
+50:                             Queue::later(1800, ClearUserIntegralJob::class, compact('uid', 'startTime', 'endTime'));
+51:                         }
+52:                         usleep(100);
+53:                     });
+54:                 }
+55:             } else if ($end < strtotime('+15 day')) {
+56:                 $make1 = app()->make(UserBillRepository::class);
+57:                 $invalidDay = $make->getInvalidDay();
+58:                 $cache = Cache::store('file');
+59:                 $checkKey = 'integral_check';
+60:                 if ($cache->has($checkKey)) {
+61:                     return;
+62:                 }
+63:                 $endTime = $end;
+64:                 $startTime = date('Y-m-d H:i:s', $invalidDay);
+65:                 User::getDB()->where('integral', '>', 0)->where('phone', '<>', '')->field('uid,phone,integral')->chunk(1000, function ($users) use ($endTime, $startTime, $invalidDay, $end, $make1, $cache) {
+66:                     foreach ($users as $user) {
+67:                         $cacheKey = 'integral_sms' . $user['uid'];
+68:                         if ($cache->has($cacheKey)) {
+69:                             continue;
+70:                         }
+71:                         $integral = $user['integral'];
+72:                         if ($integral > 0 && $invalidDay) {
+73:                             $validIntegral = $make1->validIntegral($user['uid'], $startTime, $endTime);
+74:                             if ($integral > $validIntegral) {
+75:                                 $nextClearIntegral = (int)bcsub($integral, $validIntegral, 0);
+76:                                 $cache->set($cacheKey, 1, 3600 * 24 * 20);
+77:                                 Queue::push(SendSmsJob::class, [
+78:                                     'tempId' => 'INTEGRAL_INVALID',
+79:                                     'id' => [
+80:                                         'integral' => $nextClearIntegral,
+81:                                         'phone' => $user['phone'],
+82:                                         'date' => $endTime
+83:                                     ]
+84:                                 ]);
+85:                                 continue;
+86:                             }
+87:                         }
+88:                         $cache->set($cacheKey, 1, 3600 * 24 * 2);
+89:                     }
+90:                     usleep(200);
+91:                 });
+92:                 $cache->set($checkKey, 1, 3600 * 24 * 1);
+93:             }
+94:         });
+95:     }
+96: }
+</file>
+
+<file path="AutoOrderProfitsharingListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: 
+16: use think\facade\Log;
+17: use app\common\repositories\store\order\StoreOrderProfitsharingRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: use crmeb\jobs\OrderProfitsharingJob;
+20: use crmeb\services\TimerService;
+21: use think\facade\Queue;
+22: 
+23: class AutoOrderProfitsharingListen extends TimerService implements ListenerInterface
+24: {
+25: 
+26:     public function handle($event): void
+27:     {
+28:         //1000 * 60 * 20
+29:         $this->tick(1000 * 60 * 20, function () {
+30:             request()->clearCache();
+31:             $day = (int)systemConfig('sys_refund_timer') ?: 15;
+32:             $time = date('Y-m-d H:i:s',strtotime('-' . $day . ' day'));
+33:             //$time = date('Y-m-d H:i:s', time());
+34:             $ids = app()->make(StoreOrderProfitsharingRepository::class)->getAutoProfitsharing($time);
+35:             foreach ($ids as $id) {
+36:                 Log::info('自动分账监听开始'.$id);
+37:                 Queue::push(OrderProfitsharingJob::class, $id);
+38:             }
+39:         });
+40:     }
+41: }
+</file>
+
+<file path="AutoOrderProfitsharingStatusListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: 
+16: use think\facade\Log;
+17: use crmeb\jobs\OrderProfitsharingStatusJob;
+18: use app\common\repositories\store\order\StoreOrderProfitsharingRepository;
+19: use crmeb\interfaces\ListenerInterface;
+20: use crmeb\jobs\OrderProfitsharingJob;
+21: use crmeb\services\TimerService;
+22: use think\facade\Queue;
+23: 
+24: class AutoOrderProfitsharingStatusListen extends TimerService implements ListenerInterface
+25: {
+26: 
+27:     public function handle($event): void
+28:     {
+29:         $this->tick(1000 * 60 * 2, function () {
+30:             request()->clearCache();
+31:             $storeOrderProfitsharingRepository = app()->make(StoreOrderProfitsharingRepository::class);
+32:             $ids = $storeOrderProfitsharingRepository->getSearch([])->where('status',2)->column('profitsharing_id');
+33:             foreach ($ids as $id) {
+34:                 Queue::push(OrderProfitsharingStatusJob::class, $id);
+35:             }
+36:         });
+37:     }
+38: }
+</file>
+
+<file path="AutoOrderReplyListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: 
+17: use app\common\repositories\store\order\StoreOrderRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: use crmeb\jobs\OrderReplyJob;
+20: use crmeb\services\TimerService;
+21: use Swoole\Timer;
+22: use think\facade\Queue;
+23: 
+24: class AutoOrderReplyListen extends TimerService implements ListenerInterface
+25: {
+26: 
+27:     public function handle($event): void
+28:     {
+29:         $this->tick(1000 * 60 * 60, function () {
+30:             request()->clearCache();
+31:             if (systemConfig('open_auto_reply') === '0') {
+32:                 return;
+33:             }
+34:             $storeOrderRepository = app()->make(StoreOrderRepository::class);
+35:             $time = date('Y-m-d H:i:s', strtotime('- 7 day'));
+36:             $ids = $storeOrderRepository->getFinishTimeoutIds($time);
+37:             foreach ($ids as $id) {
+38:                 Queue::push(OrderReplyJob::class, $id);
+39:             }
+40:         });
+41:     }
+42: }
+</file>
+
+<file path="AutoSendPayOrderSmsListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: 
+17: use app\common\repositories\store\order\StoreGroupOrderRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: use crmeb\jobs\SendSmsJob;
+20: use crmeb\services\TimerService;
+21: use Swoole\Timer;
+22: use think\facade\Queue;
+23: 
+24: class AutoSendPayOrderSmsListen extends TimerService implements ListenerInterface
+25: {
+26: 
+27:     public function handle($event): void
+28:     {
+29:         $this->tick(1000 * 60 * 5, function () {
+30:             $storeGroupOrderRepository = app()->make(StoreGroupOrderRepository::class);
+31:             $time = date('Y-m-d H:i:s', strtotime("- 10 minutes"));
+32:             $groupOrderIds = $storeGroupOrderRepository->getTimeOutIds($time, true);
+33:             foreach ($groupOrderIds as $id) {
+34:                 Queue::push(SendSmsJob::class, [
+35:                     'tempId' => 'ORDER_PAY_FALSE',
+36:                     'id' => $id
+37:                 ]);
+38:                 $storeGroupOrderRepository->isRemind($id);
+39:             }
+40:         });
+41:     }
+42: }
+</file>
+
+<file path="AutoUnLockBrokerageListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: 
+17: use app\common\repositories\user\UserBillRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: use crmeb\services\TimerService;
+20: use Swoole\Timer;
+21: use think\facade\Db;
+22: 
+23: class AutoUnLockBrokerageListen extends TimerService implements ListenerInterface
+24: {
+25: 
+26:     public function handle($event): void
+27:     {
+28:         //TODO 自动解冻佣金
+29:         $this->tick(1000 * 60 * 20, function () {
+30:             $userBill = app()->make(UserBillRepository::class);
+31:             request()->clearCache();
+32:             $timer = ((int)systemConfig('lock_brokerage_timer'));
+33:             $time = date('Y-m-d H:i:s', $timer ? strtotime("- $timer day") : time());
+34:             $bills = $userBill->getTimeoutBrokerageBill($time);
+35:             Db::transaction(function () use ($userBill, $bills) {
+36:                 foreach ($bills as $bill) {
+37:                     if ($bill->number > 0 && $bill->user) {
+38:                         $brokerage = bcsub($bill->number, $userBill->refundBrokerage($bill->link_id, $bill->uid), 2);
+39:                         if ($brokerage > 0) {
+40:                             $bill->user->brokerage_price = bcadd($bill->user->brokerage_price, $brokerage, 2);
+41:                             $bill->user->save();
+42:                         }
+43:                     }
+44:                     $bill->status = 1;
+45:                     $bill->balance = $bill->user ? $bill->user->brokerage_price : 0;
+46:                     $bill->save();
+47:                 }
+48:             });
+49:         });
+50:     }
+51: }
+</file>
+
+<file path="AutoUnLockIntegralListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: 
+17: use app\common\repositories\user\UserBillRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: use crmeb\services\TimerService;
+20: use Swoole\Timer;
+21: use think\facade\Db;
+22: 
+23: class AutoUnLockIntegralListen extends TimerService implements ListenerInterface
+24: {
+25: 
+26:     public function handle($event): void
+27:     {
+28:         //TODO 自动解冻积分
+29:         $this->tick(1000 * 60 * 20, function () {
+30:             $userBill = app()->make(UserBillRepository::class);
+31:             request()->clearCache();
+32:             $timer = ((int)systemConfig('integral_freeze'));
+33:             $time = date('Y-m-d H:i:s', $timer ? strtotime("- $timer day") : time());
+34:             $bills = $userBill->getTimeoutIntegralBill($time);
+35:             Db::transaction(function () use ($userBill, $bills) {
+36:                 foreach ($bills as $bill) {
+37:                     if($bill->user){
+38:                         if ($bill->number > 0) {
+39:                             $integral = bcsub($bill->number, $userBill->refundIntegral($bill->link_id, $bill->uid), 2);
+40:                             if ($integral > 0) {
+41:                                 $bill->user->integral = bcadd($bill->user->integral, $integral, 2);
+42:                                 $bill->user->save();
+43:                             }
+44:                         }
+45:                     }
+46:                     $bill->status = 1;
+47:                     $bill->balance = $bill->user->integral ?? 0;
+48:                     $bill->save();
+49:                 }
+50:             });
+51:         });
+52:     }
+53: }
+</file>
+
+<file path="AutoUnlockMerchantMoneyListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: 
+16: use app\common\repositories\system\merchant\MerchantRepository;
+17: use app\common\repositories\user\UserBillRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: use crmeb\services\TimerService;
+20: use think\facade\Db;
+21: 
+22: class AutoUnlockMerchantMoneyListen extends TimerService implements ListenerInterface
+23: {
+24:     public function handle($event): void
+25:     {
+26:         $this->tick(1000 * 60 * 20, function () {
+27:             request()->clearCache();
+28:             $userBill = app()->make(UserBillRepository::class);
+29:             $timer = ((int)systemConfig('mer_lock_time'));
+30:             $time = date('Y-m-d H:i:s', $timer ? strtotime("- $timer day") : time());
+31:             $bills = $userBill->getTimeoutMerchantMoneyBill($time);
+32:             $merchant = app()->make(MerchantRepository::class);
+33:             foreach ($bills as $bill) {
+34:                 Db::transaction(function () use ($bill, $merchant) {
+35:                     $merchant->addMoney($bill->mer_id, $bill->number);
+36:                     $bill->status = 1;
+37:                     $bill->save();
+38:                 });
+39:             }
+40:         });
+41:     }
+42: }
+</file>
+
+<file path="AutoUpDownShelvesListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: namespace crmeb\listens;
+13: 
+14: use app\common\repositories\store\product\ProductRepository;
+15: use crmeb\interfaces\ListenerInterface;
+16: use crmeb\services\RedisCacheService;
+17: use crmeb\services\TimerService;
+18: use think\facade\Cache;
+19: use think\facade\Log;
+20: 
+21: class AutoUpDownShelvesListen extends TimerService implements ListenerInterface
+22: {
+23: 
+24:     /**
+25:      * 自动上下架
+26:      * @param $event
+27:      * @return void
+28:      * @author FerryZhao
+29:      * @day 2024/4/3
+30:      */
+31:     public function handle($event): void
+32:     {
+33:         $this->tick(1000 * 5, function () {
+34:             try {
+35:                 $today = strtotime("today");
+36:                 $time = time() + 60;
+37:                 $redis = app()->make(RedisCacheService::class);
+38:                 $status = Cache::get(ProductRepository::AUTO_TIME_STATUS);
+39:                 $productRepository = app()->make(ProductRepository::class);
+40:                 if ($status) {
+41:                     $times = $redis->zRangeByScore(ProductRepository::AUTO_PREFIX_SET.ProductRepository::AUTO_ON_TIME,$today,$time);
+42:                     if ($times) {
+43:                         $productUpIds = $productRepository->autoSwitchShow($times,ProductRepository::AUTO_ON_TIME);
+44:                         Log::info('自动上架商品：'.$productUpIds);
+45:                     }
+46:                     $times = $redis->zRangeByScore(ProductRepository::AUTO_PREFIX_SET.ProductRepository::AUTO_OFF_TIME,$today,$time);
+47:                     if ($times) {
+48:                         $productDownIds = $productRepository->autoSwitchShow($times,ProductRepository::AUTO_OFF_TIME);
+49:                         Log::info('自动下架商品：'.$productDownIds);
+50:                     }
+51:                 } else {
+52:                     $productUpIds = $productRepository->getSearch([])
+53:                         ->whereNotNull('auto_on_time')
+54:                         ->where([
+55:                             ['is_show', '=', 2],
+56:                         ])->column('auto_on_time','product_id');
+57: 
+58:                     $productRepository->bathAutoOntime($productUpIds,$productRepository::AUTO_ON_TIME);
+59:                     $productDownIds = $productRepository->getSearch([])
+60:                         ->whereNotNull('auto_off_time')
+61:                         ->where([
+62:                             ['is_show', '=', 1],
+63:                             ['auto_off_time', '<>', 0],
+64:                             ['auto_off_time', '<=', time()],
+65:                         ])
+66:                         ->column('product_id','auto_off_time');
+67:                     $productRepository->bathAutoOntime($productDownIds,$productRepository::AUTO_OFF_TIME);
+68:                     Cache::set(ProductRepository::AUTO_TIME_STATUS,1);
+69:                 }
+70:             } catch (\Exception $e) {
+71:                 Log::error('商品自动上下架失败' . var_export($e, true));
+72:             }
+73:         });
+74:     }
+75: }
+</file>
+
+<file path="CloseUserSvipListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: use crmeb\interfaces\ListenerInterface;
+16: use crmeb\jobs\CloseUserSvipJob;
+17: use crmeb\services\TimerService;
+18: use think\facade\Queue;
+19: 
+20: class CloseUserSvipListen extends TimerService implements ListenerInterface
+21: {
+22: 
+23:     public function handle($event): void
+24:     {
+25:         $this->tick(1000 * 60 * 15, function () {
+26:             request()->clearCache();
+27:             Queue::push(CloseUserSvipJob::class,[]);
+28:         });
+29:     }
+30: }
+</file>
+
+<file path="CompanyExtractStatusListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: namespace crmeb\listens;
+13: 
+14: use app\common\repositories\user\UserExtractRepository;
+15: use crmeb\interfaces\ListenerInterface;
+16: 
+17: class CompanyExtractStatusListen implements ListenerInterface
+18: {
+19:     public function handle($data): void
+20:     {
+21:         app()->make(UserExtractRepository::class)->updateStatus($data);
+22:     }
+23: }
+</file>
+
+<file path="CreateOperateLogListen.php">
+ 1: <?php
+ 2: 
+ 3: namespace crmeb\listens;
+ 4: 
+ 5: use app\common\repositories\system\operate\OperateLogRepository;
+ 6: use crmeb\interfaces\ListenerInterface;
+ 7: use think\facade\Log;
+ 8: 
+ 9: class CreateOperateLogListen implements ListenerInterface
+10: {
+11:     public function handle($event): void
+12:     {
+13:         try {
+14:             app()->make(OperateLogRepository::class)->recordLog($event['category'], $event['data'], $event['mer_id'] ?? 0);
+15:         } catch (\Throwable $throwable) {
+16:             Log::error(['message' => $throwable->getMessage(), 'file' => $throwable->getFile(), 'line' => $throwable->getLine()]);
+17:         }
+18: 
+19:     }
+20: }
+</file>
+
+<file path="CreateTimerListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: use crmeb\interfaces\ListenerInterface;
+17: use Swoole\Process;
+18: use Swoole\Server;
+19: 
+20: class CreateTimerListen implements ListenerInterface
+21: {
+22: 
+23:     public function handle($event): void
+24:     {
+25:         $process = new Process(function () {
+26:             app()->event->trigger('create_timer');
+27:         }, false, 0, true);
+28: 
+29:         app()->make(Server::class)->addProcess($process);
+30:     }
+31: }
+</file>
+
+<file path="DataScreenListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: 
+16: use app\common\repositories\system\DataScreenRepository;
+17: use crmeb\interfaces\ListenerInterface;
+18: use think\facade\Cache;
+19: 
+20: class DataScreenListen  implements ListenerInterface
+21: {
+22: 
+23:     public function handle($data): void
+24:     {
+25:         app()->make(DataScreenRepository::class)->clearCache();
+26:     }
+27: }
+</file>
+
+<file path="ExcelFileDelListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace crmeb\listens;
+14: 
+15: use app\common\repositories\store\ExcelRepository;
+16: use crmeb\services\TimerService;
+17: use Swoole\Timer;
+18: use think\facade\Log;
+19: use crmeb\interfaces\ListenerInterface;
+20: 
+21: class ExcelFileDelListen extends TimerService implements ListenerInterface
+22: {
+23:     public function handle($event): void
+24:     {
+25:         $this->tick(1000 * 60 * 60, function () {
+26:             $make = app()->make(ExcelRepository::class);
+27:             $time = date('Y-m-d H:i:s', strtotime("-" . 3 . " day"));
+28:             $data = $make->getDelByTime($time);
+29:             foreach ($data as $id => $path) {
+30:                 try {
+31:                     $make->del($id, $path);
+32:                 } catch (\Exception $e) {
+33:                     Log::info('自动删除导出文件失败' . var_export($id, true));
+34:                 }
+35:             }
+36:         });
+37:     }
+38: }
+</file>
+
+<file path="GuaranteeCountListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: namespace crmeb\listens;
+14: 
+15: use crmeb\interfaces\ListenerInterface;
+16: use crmeb\jobs\GauaranteeCountJob;
+17: use crmeb\services\TimerService;
+18: use think\facade\Log;
+19: 
+20: class GuaranteeCountListen extends TimerService implements ListenerInterface
+21: {
+22:     public function handle($event): void
+23:     {
+24:         $this->tick(1000 * 60 * 15, function () {
+25:             try {
+26:                 queue(GauaranteeCountJob::class,[]);
+27:             } catch (\Exception $e) {
+28:                 Log::info('自动更新保障服务数量失败' . var_export($e, true));
+29:             }
+30:         });
+31:     }
+32: }
+</file>
+
+<file path="InitSwooleLockListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: 
+17: use crmeb\interfaces\ListenerInterface;
+18: use crmeb\utils\Start;
+19: use Swoole\Lock;
+20: 
+21: class InitSwooleLockListen implements ListenerInterface
+22: {
+23: 
+24:     public function handle($event): void
+25:     {
+26:         $GLOBALS['_swoole_order_lock'] = [];
+27:         $locks = array_merge(['default'], config('swoole.locks'));
+28:         foreach ($locks as $lock) {
+29:             $GLOBALS['_swoole_order_lock'][$lock] = new Lock(SWOOLE_MUTEX);
+30:         }
+31:         app()->make(Start::class)->show();
+32:     }
+33: }
+</file>
+
+<file path="MerchantApplyMentsCheckListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: use app\common\repositories\system\merchant\MerchantApplymentsRepository;
+17: use crmeb\services\TimerService;
+18: use Swoole\Timer;
+19: use think\facade\Log;
+20: use crmeb\interfaces\ListenerInterface;
+21: 
+22: class MerchantApplyMentsCheckListen extends TimerService implements ListenerInterface
+23: {
+24:     public function handle($event): void
+25:     {
+26:         //申请状态: 0.平台未提交，-1.平台驳回，10.平台提交审核中，11.需用户操作 ，20.已完成，30.已冻结，40.驳回
+27:         $make =  app()->make(MerchantApplymentsRepository::class);
+28: 
+29:         $this->tick(1000 * 60 * 30, function () use($make) {
+30:             $ret = $make->getSearch(['is_del' => 0])->where('status','in',[10,11,30])->select();
+31:             try {
+32:                 foreach ($ret as $item) {
+33:                     $make->check($item);
+34:                 }
+35:             } catch (\Exception $e) {
+36:                 Log::info('自动查询分账商户审核失败' . date('Y-m-d H:i:s', time()));
+37:             }
+38:         });
+39:     }
+40: }
+</file>
+
+<file path="MerchantApplyMentsRatekListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: use app\common\repositories\system\merchant\MerchantRepository;
+17: use app\common\repositories\system\merchant\MerchantApplymentsRepository;
+18: use crmeb\services\TimerService;
+19: use Swoole\Timer;
+20: use think\facade\Log;
+21: use crmeb\interfaces\ListenerInterface;
+22: 
+23: class MerchantApplyMentsRatekListen extends TimerService implements ListenerInterface
+24: {
+25:     public function handle($event): void
+26:     {
+27:         $this->tick(1000 * 60 * 60 * 24, function () {
+28:             try {
+29:                 app()->make(MerchantRepository::class)->getSubjectRate();
+30:             } catch (\Exception $e) {
+31:                 Log::info('自动查询分账商户分账比例失败' . date('Y-m-d H:i:s', time()));
+32:             }
+33:         });
+34:     }
+35: }
+</file>
+
+<file path="MiniOrderShippingListen.php">
+  1: <?php
+  2: 
+  3: namespace crmeb\listens;
+  4: 
+  5: use app\common\repositories\store\order\OrderStatus;
+  6: use app\common\repositories\store\order\StoreGroupOrderRepository;
+  7: use app\common\repositories\store\order\StoreOrderRepository;
+  8: use app\common\repositories\user\UserRepository;
+  9: use app\common\repositories\wechat\WechatUserRepository;
+ 10: use crmeb\interfaces\ListenerInterface;
+ 11: use crmeb\jobs\MiniOrderShippingJob;
+ 12: use crmeb\services\MiniProgramService;
+ 13: use think\exception\ValidateException;
+ 14: use think\facade\Log;
+ 15: use think\facade\Queue;
+ 16: 
+ 17: /**
+ 18:  * 小程序发货信息管理事件
+ 19:  * Class MiniOrderShippingListen
+ 20:  * @author yyw @date 2023/10/19
+ 21:  */
+ 22: class MiniOrderShippingListen implements ListenerInterface
+ 23: {
+ 24:     public function handle($event): void
+ 25:     {
+ 26:         [$order_type, $order, $delivery_type, $delivery_id, $delivery_name] = $event;
+ 27:         $order_shipping_open = systemConfig('order_shipping_open', 0);  // 小程序发货信息管理服务开关
+ 28:         if (empty($order) || !$order_shipping_open) {
+ 29:             return;
+ 30:         }
+ 31:         try {
+ 32:             $this->pushDeliveryMiniOrder($order_type, $order, $delivery_type, $delivery_id, $delivery_name);
+ 33:         } catch (\Exception $exception) {
+ 34:             Log::error([
+ 35:                 'title' => '小程序发发货管理异常',
+ 36:                 'message' => $exception->getMessage(),
+ 37:                 'file' => $exception->getFile(),
+ 38:                 'line' => $exception->getLine()
+ 39:             ]);
+ 40:         }
+ 41:     }
+ 42: 
+ 43:     public function pushDeliveryMiniOrder($order_type, $order, $delivery_type = 1, $delivery_id = '', $delivery_name = '')
+ 44:     {
+ 45:         $secs = 0;
+ 46:         //判断订单是否拆单
+ 47:         $delivery_mode = 1;
+ 48:         $is_all_delivered = true;
+ 49: 
+ 50:         switch ($order_type) {
+ 51:             case 'product':
+ 52:                 $order_id = (int)$order['order_id'];
+ 53:                 if ($order['pay_type'] != 2 && $order['pay_price'] <= 0) {
+ 54:                     return false;
+ 55:                 }
+ 56:                 $item_desc = '订单支付';
+ 57:                 $storeGroupOrderRepository = app()->make(StoreGroupOrderRepository::class);
+ 58:                 // 产找group 订单
+ 59:                 $group_order_info = $storeGroupOrderRepository->get($order['group_order_id']);
+ 60:                 if (empty($group_order_info)) {
+ 61:                     throw new ValidateException('用户订单异常');
+ 62:                 }
+ 63: 
+ 64:                 $order_sn = $group_order_info['group_order_sn'];
+ 65: 
+ 66:                 // 判断是不是拆单发货
+ 67:                 /** @var StoreOrderRepository $orderServices */
+ 68:                 $orderServices = app()->make(StoreOrderRepository::class);
+ 69:                 $order_son_count = $orderServices->query(['group_order_id' => $order['group_order_id'], 'status' => 0])->count();
+ 70:                 if ($order_son_count > 1) {
+ 71:                     $delivery_mode = 2;
+ 72:                     $is_all_delivered = $orderServices->checkSubOrderNotSend((int)$order['group_order_id'], $order_id);
+ 73:                 }
+ 74:                 $order_key = [
+ 75:                     'out_trade_no' => $order_sn
+ 76:                 ];
+ 77: 
+ 78:                 if ($order['order_type'] == 1) {
+ 79:                     $secs = 60;
+ 80:                 }
+ 81:                 if ($order['activity_type'] == 20) {    // 积分商品
+ 82:                     $path = '/pages/points_mall/integral_order_details?order_id=' . $order_id;
+ 83:                 } else {
+ 84:                     $path = '/pages/order_details/index?order_id=' . $order_id;
+ 85:                 }
+ 86:                 break;
+ 87:             case 'recharge':
+ 88:                 if ($order['recharge_type'] != 'routine' && $order['price'] <= 0) {   // 不是小程序订单终止
+ 89:                     return false;
+ 90:                 }
+ 91:                 $order_id = $order['order_id'];
+ 92:                 $delivery_type = 3;
+ 93:                 $item_desc = '用户充值' . $order['price'];
+ 94:                 $order_key = [
+ 95:                     'out_trade_no' => $order_id
+ 96:                 ];
+ 97:                 $secs = 60;
+ 98:                 $path = '/pages/users/user_bill/index';
+ 99:                 break;
+100:             case 'member':
+101:                 if ($order['pay_type'] != 'routine' && $order['pay_price'] <= 0) {
+102:                     return false;
+103:                 }
+104:                 $order_id = $order['order_sn'];
+105:                 $delivery_type = 3;
+106:                 $item_desc = '用户购买' . $order['member_type'] . '会员卡';
+107:                 $order_key = [
+108:                     'out_trade_no' => $order_id
+109:                 ];
+110:                 $secs = 60;
+111:                 $path = '/pages/annex/vip_center/index';
+112:                 break;
+113:             default:
+114:                 throw new ValidateException('订单类型异常');
+115:         }
+116: 
+117:         // 整理商品信息
+118:         $logistics_type = $this->getLogisticsType($delivery_type);
+119:         $shipping_list = $this->getShippingList($logistics_type, $item_desc, $order['user_phone'] ?? '', $delivery_id, $delivery_name);
+120:         //查找支付者openid
+121:         $payer_openid = $this->getPayerOpenid($order['uid']);
+122:         $queue_param = compact('order_key', 'logistics_type', 'shipping_list', 'payer_openid', 'path', 'delivery_mode', 'is_all_delivered');
+123: 
+124: //        MiniProgramService::create()->uploadShippingInfo($order_key, $logistics_type, $shipping_list, $payer_openid, $path, $delivery_mode, $is_all_delivered);
+125:         if ($secs) {
+126:             Queue::later($secs, MiniOrderShippingJob::class, $queue_param);
+127:         } else {
+128:             Queue::push(MiniOrderShippingJob::class, $queue_param);
+129:         }
+130:     }
+131: 
+132:     /**
+133:      * 转换发货类型
+134:      * @param string $delivery_type
+135:      * @return int
+136:      *
+137:      * @date 2023/10/18
+138:      * @author yyw
+139:      */
+140:     public function getLogisticsType(string $delivery_type)
+141:     {
+142: 
+143:         switch ($delivery_type) {
+144:             case OrderStatus::DELIVER_TYPE_SHIPPING:   // 发货
+145:             case OrderStatus::DELIVER_TYPE_DUMP:   //电子面单
+146:             case OrderStatus::DELIVER_TYPE_SHIP_MENT:   //商家寄件
+147:                 $logistics_type = 1;
+148:                 break;
+149:             case OrderStatus::DELIVER_TYPE_SAME_CITY:  // 同城
+150:             case OrderStatus::DELIVER_TYPE_DELIVERY:    // 送货
+151:                 $logistics_type = 2;
+152:                 break;
+153:             case OrderStatus::DELIVER_TYPE_VIRTUAL:    // 虚拟
+154:             case OrderStatus::DELIVER_TYPE_CARD_KEY:    // 卡密
+155:                 $logistics_type = 3;
+156:                 break;
+157:             case OrderStatus::DELIVER_TYPE_VERIFY:    // 自提
+158:                 $logistics_type = 4;
+159:                 break;
+160:             default:
+161:                 throw new ValidateException('发货类型异常');
+162:         }
+163: 
+164:         return $logistics_type;
+165:     }
+166: 
+167:     /**
+168:      * 获取商品发货信息
+169:      * @param string $logistics_type
+170:      * @param string $receiver_contact
+171:      * @param string $delivery_id
+172:      * @param string $delivery_name
+173:      * @return array|array[]
+174:      *
+175:      * @date 2023/10/18
+176:      * @author yyw
+177:      */
+178:     public function getShippingList(string $logistics_type, string $item_desc, string $receiver_contact = '', string $delivery_id = '', string $delivery_name = '')
+179:     {
+180:         if ($logistics_type == 1) {
+181:             return [
+182:                 [
+183:                     'tracking_no' => $delivery_id ?? '',
+184:                     'express_company' => $delivery_name ?? '',
+185:                     'contact' => [
+186:                         'receiver_contact' => $receiver_contact
+187:                     ],
+188:                     'item_desc' => $item_desc
+189:                 ]
+190:             ];
+191:         } else {
+192:             return [
+193:                 ['item_desc' => $item_desc]
+194:             ];
+195:         }
+196:     }
+197: 
+198:     /**
+199:      * 获取支付者openid
+200:      * @param int $uid
+201:      * @return mixed
+202:      * @throws \think\db\exception\DataNotFoundException
+203:      * @throws \think\db\exception\DbException
+204:      * @throws \think\db\exception\ModelNotFoundException
+205:      *
+206:      * @date 2023/10/18
+207:      * @author yyw
+208:      */
+209:     public function getPayerOpenid(int $uid)
+210:     {
+211:         $user = app()->make(UserRepository::class)->get($uid);
+212:         if (empty($user)) {
+213:             throw new ValidateException('用户异常');
+214:         }
+215:         $wechatUser = app()->make(WechatUserRepository::class)->get($user['wechat_user_id']);
+216:         if (empty($wechatUser)) {
+217:             throw new ValidateException('微信用户异常');
+218:         }
+219:         if (empty($wechatUser['routine_openid'])) {
+220:             throw new ValidateException('订单支付者不是小程序');
+221:         }
+222: 
+223:         return $wechatUser['routine_openid'];
+224:     }
+225: }
+</file>
+
+<file path="pay/BarCodePayStatusListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: namespace crmeb\listens\pay;
+12: 
+13: use app\common\repositories\store\order\StoreGroupOrderRepository;
+14: use app\common\repositories\store\order\StoreOrderRepository;
+15: use crmeb\interfaces\ListenerInterface;
+16: use crmeb\services\PayStatusService;
+17: use crmeb\services\TimerService;
+18: use think\facade\Cache;
+19: use think\facade\Log;
+20: 
+21: class BarCodePayStatusListen extends TimerService implements ListenerInterface
+22: {
+23:     public function handle($data): void
+24:     {
+25:         $this->tick(1000 * 3, function () {
+26:             try {
+27:                 // 从redis中获取数据
+28:                 $redisData = Cache::store('redis')->handler()->hGetAll('bar_code_pay');
+29:                 if($redisData) {
+30:                     Log::info('BarCodePayStatusListen 从redis中获取数据：' . json_encode($redisData));
+31:                     foreach($redisData as $key => $value) {
+32:                         // 从数据库中获取订单信息
+33:                         $groupOrder = app()->make(StoreGroupOrderRepository::class)->getWhere([
+34:                             'paid' => 0,
+35:                             'is_del' => 0,
+36:                             'group_order_sn' => $key
+37:                         ]);
+38:                         // 如果订单不存在，则删除redis中的数据
+39:                         if(!$groupOrder) {
+40:                             $redis = Cache::store('redis')->handler();
+41:                             $redis->hDel('bar_code_pay', $key);
+42:                             continue;
+43:                         }
+44:                         // 查询支付状态
+45:                         $payStatus = (new PayStatusService($value, $groupOrder->getPayParams()))->query();
+46:                         // 如果支付成功，则更新订单状态
+47:                         if (!empty($payStatus)) {
+48:                             app()->make(StoreOrderRepository::class)->paySuccess($groupOrder, 0, $payStatus, 1);
+49:                             // 删除redis中的数据
+50:                             $redis = Cache::store('redis')->handler();
+51:                             $redis->hDel('bar_code_pay', $key);
+52:                         }
+53:                     }
+54:                 }
+55:             } catch (\Exception $e) {
+56:                 Log::error('BarCodePayStatusListen 订单结果变更错误：' . $e->getMessage());
+57:             }
+58:         });
+59:     }
+60: }
+</file>
+
+<file path="pay/MealSuccessListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens\pay;
+15: 
+16: use app\common\repositories\system\serve\ServeOrderRepository;
+17: use crmeb\interfaces\ListenerInterface;
+18: 
+19: class MealSuccessListen implements ListenerInterface
+20: {
+21: 
+22:     public function handle($data): void
+23:     {
+24:         app()->make(ServeOrderRepository::class)->paySuccess($data);
+25:     }
+26: }
+</file>
+
+<file path="pay/OrderPaySuccessListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens\pay;
+15: 
+16: 
+17: use app\common\repositories\store\order\StoreGroupOrderRepository;
+18: use app\common\repositories\store\order\StoreOrderRepository;
+19: use crmeb\interfaces\ListenerInterface;
+20: use think\facade\Log;
+21: 
+22: class OrderPaySuccessListen implements ListenerInterface
+23: {
+24: 
+25:     public function handle($data): void
+26:     {
+27:         $orderSn = $data['order_sn'];
+28:         $is_combine = $data['is_combine'] ?? 0;
+29:         $groupOrder = app()->make(StoreGroupOrderRepository::class)->getWhere(['group_order_sn' => $orderSn]);
+30:         if (!$groupOrder || $groupOrder->paid == 1) return;
+31:         $orders = [];
+32:         if ($is_combine == 1) {
+33:             foreach ($data['data']['sub_orders'] as $order) {
+34:                 $orders['sub_orders'][$order['out_trade_no']] = $order;
+35:             }
+36:         } else {
+37:             $orders['transaction_id'] = $data['data']['transaction_id'] ?? $data['data']['trade_no'];
+38:         }
+39:         Log::info('OrderPaySuccessListen:支付成功回调执行' . var_export([$data,$groupOrder], 1));
+40:         app()->make(StoreOrderRepository::class)->paySuccess($groupOrder, $is_combine, $orders);
+41:     }
+42: 
+43:     public function ss()
+44:     {
+45:         halt('ss');
+46:     }
+47: }
+</file>
+
+<file path="pay/PresellPaySuccessListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens\pay;
+15: 
+16: 
+17: use app\common\repositories\store\order\PresellOrderRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: 
+20: class PresellPaySuccessListen implements ListenerInterface
+21: {
+22: 
+23:     public function handle($data): void
+24:     {
+25:         $orderSn = $data['order_sn'];
+26:         $is_combine = $data['is_combine'] ?? 0;
+27:         $order = app()->make(PresellOrderRepository::class)->getWhere(['presell_order_sn' => $orderSn]);
+28:         if (!$order || $order->paid == 1) return;
+29:         $orders = [];
+30:         if ($is_combine) {
+31:             foreach ($data['data']['sub_orders'] as $_order) {
+32:                 $orders[$_order['out_trade_no']] = $_order;
+33:             }
+34:         }
+35:         app()->make(PresellOrderRepository::class)->paySuccess($order, $is_combine, $orders);
+36:     }
+37: }
+</file>
+
+<file path="pay/UserOrderSuccessListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens\pay;
+15: 
+16: 
+17: use app\common\repositories\user\UserOrderRepository;
+18: use app\common\repositories\user\UserRechargeRepository;
+19: use crmeb\interfaces\ListenerInterface;
+20: 
+21: class UserOrderSuccessListen implements ListenerInterface
+22: {
+23: 
+24:     public function handle($data): void
+25:     {
+26:         app()->make(UserOrderRepository::class)->paySuccess($data);
+27:     }
+28: }
+</file>
+
+<file path="pay/UserRechargeSuccessListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens\pay;
+15: 
+16: 
+17: use app\common\repositories\user\UserRechargeRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: 
+20: class UserRechargeSuccessListen implements ListenerInterface
+21: {
+22: 
+23:     public function handle($data): void
+24:     {
+25:         $orderSn = $data['order_sn'];
+26:         app()->make(UserRechargeRepository::class)->paySuccess($orderSn);
+27:     }
+28: }
+</file>
+
+<file path="ProductGroupStatusCheckListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: use crmeb\services\TimerService;
+17: use Swoole\Timer;
+18: use think\facade\Log;
+19: use crmeb\interfaces\ListenerInterface;
+20: use app\common\repositories\store\product\ProductGroupBuyingRepository;
+21: 
+22: class ProductGroupStatusCheckListen extends TimerService implements ListenerInterface
+23: {
+24:     public function handle($event): void
+25:     {
+26:         $this->tick(1000 * 60, function () {
+27:             $make = app()->make(ProductGroupBuyingRepository::class);
+28:             try {
+29:                 $make->checkStatus(null);
+30:             } catch (\Exception $e) {
+31:                 Log::info('自动检测拼团结束失败' . date('Y-m-d H:i:s', time()). $e->getMessage());
+32:             }
+33:         });
+34:     }
+35: }
+</file>
+
+<file path="ProductPresellStatusListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: use app\common\repositories\store\order\PresellOrderRepository;
+17: use app\common\repositories\store\product\ProductPresellRepository;
+18: use crmeb\jobs\CheckProductPresellJob;
+19: use crmeb\jobs\SendSmsJob;
+20: use crmeb\services\TimerService;
+21: use Swoole\Timer;
+22: use think\facade\Log;
+23: use crmeb\interfaces\ListenerInterface;
+24: use think\facade\Queue;
+25: 
+26: class ProductPresellStatusListen extends TimerService implements ListenerInterface
+27: {
+28:     public function handle($event): void
+29:     {
+30:         $this->tick(1000 * 300, function () {
+31:             try {
+32:                 Queue::push(CheckProductPresellJob::class, []);
+33:             } catch (\Exception $e) {
+34:                 Log::info('自动更新失败');
+35:             }
+36:             try {
+37:                 $ids = app()->make(PresellOrderRepository::class)->sendSmsIds(date('Y-m-d H'));
+38:                 foreach ($ids as $id) {
+39:                     Queue::push(SendSmsJob::class, ['tempId' => 'PAY_PRESELL_CODE', 'id' => (int)$id]);
+40:                 }
+41:             } catch (\Exception $e) {
+42:                 Log::info('预售短信通知失败');
+43:             }
+44:         });
+45:     }
+46: }
+</file>
+
+<file path="QueueListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: 
+17: use crmeb\interfaces\ListenerInterface;
+18: use crmeb\services\TimerService;
+19: use Swoole\Process;
+20: use Swoole\Server;
+21: use Symfony\Component\Process\PhpExecutableFinder;
+22: 
+23: class QueueListen extends TimerService implements ListenerInterface
+24: {
+25:     public function handle($event): void
+26:     {
+27:         $process = new Process(function (Process $process) {
+28:             $process->exec((new PhpExecutableFinder)->find(false), [
+29:                 dirname(__DIR__, 2) . '/think', 'queue:listen', '--tries=2', '--queue=' . env('queue_name', 'default')
+30:             ]);
+31:         }, false, 0, true);
+32:         app()->make(Server::class)->addProcess($process);
+33:     }
+34: }
+</file>
+
+<file path="RefundOrderAgreeListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: use think\facade\Cache;
+17: use crmeb\services\TimerService;
+18: use Swoole\Timer;
+19: use think\facade\Log;
+20: use crmeb\interfaces\ListenerInterface;
+21: use app\common\repositories\store\order\StoreRefundOrderRepository;
+22: 
+23: class RefundOrderAgreeListen extends TimerService implements ListenerInterface
+24: {
+25:     public function handle($event): void
+26:     {
+27:         $this->tick(1000 * 60 * 5, function () {
+28:             $make = app()->make(StoreRefundOrderRepository::class);
+29:             request()->clearCache();
+30:             $merAgree = systemConfig('mer_refund_order_agree') ?: 7;
+31:             $time = date('Y-m-d H:i:s', strtotime('-' . $merAgree . ' day'));
+32:             $data = $make->getTimeOutIds($time);
+33:             foreach ($data as $id) {
+34:                 try {
+35:                     $make->adminRefund($id, ['status' => 3]);
+36:                 } catch (\Exception $e) {
+37:                     Log::info('自动退款失败' . var_export($id, true));
+38:                 }
+39:             }
+40:         });
+41:     }
+42: }
+</file>
+
+<file path="SeckillTImeCheckListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: use crmeb\services\TimerService;
+17: use Swoole\Timer;
+18: use think\facade\Log;
+19: use crmeb\interfaces\ListenerInterface;
+20: use app\common\repositories\store\StoreSeckillActiveRepository;
+21: use app\common\repositories\store\product\ProductAssistRepository;
+22: use app\common\repositories\store\product\ProductGroupRepository;
+23: use app\common\repositories\store\product\ProductPresellRepository;
+24: 
+25: class SeckillTImeCheckListen extends TimerService implements ListenerInterface
+26: {
+27:     public function handle($event): void
+28:     {
+29:         $this->tick(1000 * 60, function () {
+30:             $make = app()->make(StoreSeckillActiveRepository::class);
+31:             $make_1 = app()->make(ProductAssistRepository::class);
+32:             $make_2 = app()->make(ProductPresellRepository::class);
+33:             $make_3 = app()->make(ProductGroupRepository::class);
+34:             try {
+35:                 $make->valActiveStatus();//秒杀活动状态检查
+36:                 $make_1->valActiveStatus();
+37:                 $make_2->valActiveStatus();
+38:                 $make_3->valActiveStatus();
+39:             } catch (\Exception $e) {
+40:                 Log::info('自动检测秒杀结束失败' . date('Y-m-d H:i:s', time()));
+41:             }
+42:         });
+43:     }
+44: }
+</file>
+
+<file path="SendSvipCouponListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: use crmeb\interfaces\ListenerInterface;
+16: use crmeb\jobs\CloseSvipCouponJob;
+17: use crmeb\jobs\SendSvipCouponJob;
+18: use crmeb\services\TimerService;
+19: use think\facade\Cache;
+20: use think\facade\Queue;
+21: 
+22: class SendSvipCouponListen extends TimerService implements ListenerInterface
+23: {
+24: 
+25:     public function handle($event): void
+26:     {
+27:         $this->tick(1000 * 60 * 60 * 23, function () {
+28:             $day = date('d', time());
+29:             if ((int)$day === 1) {
+30:                 Queue::push(SendSvipCouponJob::class, []);
+31:             }
+32:             $nuxt = strtotime(date('Y-m-01', time()) . ' +1 month');
+33:             $last = strtotime(date('Y-m-d', $nuxt) . " -1 day");
+34: 
+35:             if ($last - time() < 300) {
+36:                 Queue::push(CloseSvipCouponJob ::class, []);
+37:             }
+38:         });
+39:     }
+40: }
+</file>
+
+<file path="SumCountListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: 
+16: use app\common\repositories\community\CommunityTopicRepository;
+17: use crmeb\interfaces\ListenerInterface;
+18: use crmeb\services\TimerService;
+19: 
+20: class SumCountListen extends TimerService implements ListenerInterface
+21: {
+22: 
+23:     public function handle($event): void
+24:     {
+25:         $this->tick(1000 * 10 * 5, function () {
+26:             app()->make(CommunityTopicRepository::class)->sumCountUse(null);
+27:         });
+28:     }
+29: }
+</file>
+
+<file path="SwooleTaskListen.php">
+  1: <?php
+  2: 
+  3: // +----------------------------------------------------------------------
+  4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+  5: // +----------------------------------------------------------------------
+  6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+  7: // +----------------------------------------------------------------------
+  8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+  9: // +----------------------------------------------------------------------
+ 10: // | Author: CRMEB Team <admin@crmeb.com>
+ 11: // +----------------------------------------------------------------------
+ 12: 
+ 13: 
+ 14: namespace crmeb\listens;
+ 15: 
+ 16: use app\common\repositories\store\service\StoreServiceLogRepository;
+ 17: use app\common\repositories\store\service\StoreServiceReplyRepository;
+ 18: use app\common\repositories\store\service\StoreServiceUserRepository;
+ 19: use app\common\repositories\system\admin\AdminLogRepository;
+ 20: use app\common\repositories\user\UserRepository;
+ 21: use app\common\repositories\user\UserVisitRepository;
+ 22: use app\webscoket\handler\UserHandler;
+ 23: use app\webscoket\Manager;
+ 24: use crmeb\interfaces\ListenerInterface;
+ 25: use crmeb\jobs\SendNewsJob;
+ 26: use crmeb\jobs\SendSmsJob;
+ 27: use Swoole\Server;
+ 28: use Swoole\Server\Task;
+ 29: use think\facade\Cache;
+ 30: use think\facade\Queue;
+ 31: 
+ 32: class SwooleTaskListen implements ListenerInterface
+ 33: {
+ 34:     /**
+ 35:      * @var Task
+ 36:      */
+ 37:     protected $task;
+ 38: 
+ 39:     public function handle($task): void
+ 40:     {
+ 41:         request()->clearCache();
+ 42:         $this->task = $task;
+ 43:         if (method_exists($this, $task->data['type']))
+ 44:             $this->{$task->data['type']}($task->data['data']);
+ 45:     }
+ 46: 
+ 47:     public function message(array $data)
+ 48:     {
+ 49:         $server = app()->make(Server::class);
+ 50:         $uid = is_array($data['uid']) ? $data['uid'] : [$data['uid']];
+ 51:         $except = $data['except'] ?? [];
+ 52:         if (!count($uid) && $data['type'] != 'user') {
+ 53:             $fds = $data['type'] == 'mer' ? Manager::merFd($data['mer_id'] ?? 0) : Manager::userFd(0);
+ 54:             foreach ($fds as $fd) {
+ 55:                 if (!in_array($fd, $except) && $server->isEstablished($fd) && $server->exist($fd))
+ 56:                     $server->push((int)$fd, json_encode($data['data']));
+ 57:             }
+ 58:         } else {
+ 59:             foreach ($uid as $id) {
+ 60:                 $fds = Manager::userFd(array_search($data['type'], Manager::USER_TYPE), $id);
+ 61:                 foreach ($fds as $fd) {
+ 62:                     if (!in_array($fd, $except) && $server->isEstablished($fd) && $server->exist($fd))
+ 63:                         $server->push((int)$fd, json_encode($data['data']));
+ 64:                 }
+ 65:             }
+ 66:         }
+ 67:     }
+ 68: 
+ 69:     /**
+ 70:      * //TODO 用户给客服发送消息
+ 71:      *
+ 72:      * @param array $data
+ 73:      * @author xaboy
+ 74:      * @day 2020/6/15
+ 75:      */
+ 76:     public function chatToService(array $data)
+ 77:     {
+ 78:         $flag = UserHandler::serviceOnline($data['uid'], $data['data']['uid']);
+ 79:         $serviceLogRepository = app()->make(StoreServiceLogRepository::class);
+ 80:         $lst = Cache::sMembers('m_chat' . $data['uid']) ?: [];
+ 81:         $server = app()->make(Server::class);
+ 82:         foreach ($lst as $item) {
+ 83:             [$fd, $merId, $toUid] = explode('/', $item);
+ 84:             if (!in_array($fd, $data['except'] ?? []) && $server->isEstablished($fd) && $server->exist($fd)) {
+ 85:                 $data['data']['is_get'] = 1;
+ 86:                 $server->push((int)$fd, json_encode(['type' => $toUid == $data['data']['uid'] ? 'chat' : 'back_chat', 'data' => $data['data']]));
+ 87:             }
+ 88:         }
+ 89:         if (!$flag) {
+ 90:             //TODO 客服消息提醒
+ 91:             $nickname = app()->make(UserRepository::class)->getUsername($data['data']['uid']);
+ 92:             Queue::push(SendNewsJob::class, [
+ 93:                 $data['uid'],
+ 94:                 [
+ 95:                     'title' => '收到用户【' . $nickname . '】的咨询消息，请及时查看',
+ 96:                     'description' => $data['data'],
+ 97:                     'url' => rtrim(systemConfig('site_url'), '/') . '/pages/chat/customer_list/chat?userId=' . $data['data']['uid'] . '&mer_id=' . $data['data']['mer_id'],
+ 98:                     'image' => rtrim(systemConfig('site_url'), '/') . '/static/service_wechat_msg.jpg'
+ 99:                 ]
+100:             ]);
+101:             //TODO 客服消息提醒
+102: //            $user = app()->make(UserRepository::class)->get($data['data']['uid']);
+103: //            $params = [
+104: //                'mer_id' => $data['data']['mer_id'],
+105: //                'keyword1' => date('Y-m-d H:i:s',time()),
+106: //                'keyword2' => $data['data']['msn'],
+107: //                'url' => '/pages/chat/customer_list/chat?userId=' . $data['data']['uid'] . '&mer_id=' . $data['data']['mer_id']
+108: //            ];
+109: //            Queue::push(SendSmsJob::class, ['tempId' => 'SERVER_NOTICE', 'id' => $data['uid'], 'params' => $params]);
+110:         }else{
+111:             $serviceLogRepository->serviceRead($data['data']['mer_id'], $data['data']['uid'], $data['data']['service_id']);
+112:             app()->make(StoreServiceUserRepository::class)->read($data['data']['mer_id'], $data['data']['uid'], true);
+113:         }
+114:         if ($data['data']['msn_type'] === 1) {
+115:             $serviceLogRepository = app()->make(StoreServiceLogRepository::class);
+116:             $reply = app()->make(StoreServiceReplyRepository::class)->keywordByValidData($data['data']['msn'], $data['data']['mer_id']);
+117:             if ($reply) {
+118:                 $log = null;
+119:                 if (($reply->type === 2 || $reply->type === 1) && $reply['content']) {
+120:                     $log = $serviceLogRepository->create([
+121:                         'mer_id' => $data['data']['mer_id'],
+122:                         'msn' => $reply['content'],
+123:                         'uid' => $data['data']['uid'],
+124:                         'service_id' => $data['data']['service_id'],
+125:                         'remind' => 1,
+126:                         'send_type' => 1,
+127:                         'msn_type' => $reply->type === 2 ? 3 : 1,
+128:                         'type' => 1,
+129:                         'service_type' => 0,
+130:                     ]);
+131:                 }
+132:                 if ($log) {
+133:                     $lst = Cache::sMembers('u_chat' . $data['data']['uid']) ?: [];
+134:                     $log->append(['service']);
+135:                     $server = app()->make(Server::class);
+136:                     foreach ($lst as $item) {
+137:                         [$fd, $merId] = explode('/', $item);
+138:                         if ($server->isEstablished($fd) && $server->exist($fd) && $merId == $data['data']['mer_id']) {
+139:                             $server->push((int)$fd, json_encode(['type' => 'chat', 'data' => $log->toArray()]));
+140:                         }
+141:                     }
+142:                     $lst = Cache::sMembers('m_chat' . $log->service->uid) ?: [];
+143:                     $server = app()->make(Server::class);
+144:                     foreach ($lst as $item) {
+145:                         [$fd, $merId, $toUid] = explode('/', $item);
+146:                         if ($server->isEstablished($fd) && $server->exist($fd) && $toUid == $data['data']['uid']) {
+147:                             $server->push((int)$fd, json_encode(['type' => 'chat', 'data' => $log->toArray()]));
+148:                         }
+149:                     }
+150:                 }
+151:             }
+152:         }
+153:     }
+154: 
+155:     /**
+156:      * //TODO 客服给用户发送消息
+157:      * @param array $data
+158:      * @author xaboy
+159:      * @day 2020/6/15
+160:      */
+161:     public function chatToUser(array $data)
+162:     {
+163:         $flag = UserHandler::userOnline($data['uid'], $data['data']['mer_id']);
+164:         if ($flag) {
+165:             $serviceLogRepository = app()->make(StoreServiceLogRepository::class);
+166:             $lst = Cache::sMembers('u_chat' . $data['uid']) ?: [];
+167:             $server = app()->make(Server::class);
+168:             foreach ($lst as $item) {
+169:                 [$fd, $merId] = explode('/', $item);
+170:                 if (!in_array($fd, $data['except'] ?? []) && $server->isEstablished($fd) && $server->exist($fd) && $merId == $data['data']['mer_id']) {
+171:                     $data['data']['is_get'] = 1;
+172:                     $server->push((int)$fd, json_encode(['type' => 'chat', 'data' => $data['data']]));
+173:                 }
+174:             }
+175:             $serviceLogRepository->userRead($data['data']['mer_id'], $data['data']['uid']);
+176:             app()->make(StoreServiceUserRepository::class)->read($data['data']['mer_id'], $data['data']['uid']);
+177:         } else {
+178:             //TODO 用户消息提醒
+179:             Queue::push(SendNewsJob::class, [
+180:                 $data['uid'],
+181:                 [
+182:                     'title' => '您收到新的消息，请及时查看',
+183:                     'description' => $data['data'],
+184:                     'url' => rtrim(systemConfig('site_url'), '/') . '/pages/chat/customer_list/chat?mer_id=' . $data['data']['mer_id'],
+185:                     'image' => rtrim(systemConfig('site_url'), '/') . '/static/service_wechat_msg.jpg'
+186:                 ]
+187:             ]);
+188:             //TODO 客服给用户发送消息
+189: //            $params = [
+190: //                'mer_id' => $data['data']['mer_id'],
+191: //                'keyword1' =>  date('Y-m-d H:i:s', time()),
+192: //                'keyword2' =>  $data['data']['msn'],
+193: //                'url' =>   '/pages/chat/customer_list/chat?mer_id=' . $data['data']['mer_id']
+194: //            ];
+195: //            Queue::push(SendSmsJob::class, ['id' => $data['uid'], 'tempId' => 'SERVER_NOTICE', 'params' => $params]);
+196:         }
+197:     }
+198: 
+199:     public function admin(array $data)
+200:     {
+201:         $this->message([
+202:                 'uid' => $data['uid'] ?? [],
+203:                 'type' => 'admin',
+204:                 'data' => $data['data']
+205:             ]
+206:         );
+207:     }
+208: 
+209:     public function merchant(array $data)
+210:     {
+211:         $this->message([
+212:                 'uid' => $data['uid'] ?? [],
+213:                 'mer_id' => $data['mer_id'],
+214:                 'type' => 'mer',
+215:                 'data' => $data['data']
+216:             ]
+217:         );
+218:     }
+219: 
+220:     public function visit(array $data)
+221:     {
+222:         /** @var UserVisitRepository $make */
+223:         $make = app()->make(UserVisitRepository::class);
+224:         $make->create($data);
+225:     }
+226: 
+227:     public function log(array $data)
+228:     {
+229:         app()->make(AdminLogRepository::class)->create($data['merId'], $data['result']);
+230:     }
+231: }
+</file>
+
+<file path="SwooleWorkerExitListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: 
+16: use crmeb\interfaces\ListenerInterface;
+17: use Swoole\Timer;
+18: 
+19: class SwooleWorkerExitListen implements ListenerInterface
+20: {
+21: 
+22:     public function handle($event): void
+23:     {
+24:         Timer::clearAll();
+25:     }
+26: }
+</file>
+
+<file path="SyncBroadcastStatusListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: 
+17: use app\common\repositories\store\broadcast\BroadcastGoodsRepository;
+18: use app\common\repositories\store\broadcast\BroadcastRoomRepository;
+19: use crmeb\interfaces\ListenerInterface;
+20: use crmeb\services\TimerService;
+21: use Swoole\Timer;
+22: use think\facade\Cache;
+23: use think\facade\Log;
+24: 
+25: class SyncBroadcastStatusListen extends TimerService implements ListenerInterface
+26: {
+27: 
+28:     public function handle($event): void
+29:     {
+30:         $this->tick(1000 * 60 * 5, function () {
+31:             $broadcastGoodsRepository = app()->make(BroadcastGoodsRepository::class);
+32:             try {
+33:                 $broadcastGoodsRepository->syncGoodStatus();
+34:             } catch (\Exception $e) {
+35:                 Log::error('同步直播商品:' . $e->getMessage());
+36:             }
+37:         });
+38: 
+39:         $this->tick(1000 * 60 * 5, function () {
+40:             if (Cache::has('_sys_break_b_room')) {
+41:                 return;
+42:             }
+43:             $broadcastRoomRepository = app()->make(BroadcastRoomRepository::class);
+44:             try {
+45:                 $broadcastRoomRepository->syncRoomStatus();
+46:             } catch (\Exception $e) {
+47:                 if ($e instanceof \EasyWeChat\Core\Exceptions\HttpException && $e->getCode() == '48001') {
+48:                     Cache::set('_sys_break_b_room', 1, 3600);
+49:                 }
+50:                 Log::error('同步直播间:' . $e->getMessage());
+51:             }
+52:         });
+53:     }
+54: }
+</file>
+
+<file path="SyncHotRankingListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: use crmeb\interfaces\ListenerInterface;
+16: use crmeb\jobs\SyncProductTopJob;
+17: use crmeb\services\TimerService;
+18: use think\facade\Log;
+19: use think\facade\Queue;
+20: 
+21: class SyncHotRankingListen extends TimerService implements ListenerInterface
+22: {
+23: 
+24:     public function handle($event): void
+25:     {
+26:         $hot = systemConfig('hot_ranking_switch');
+27:         if (!$hot)  return ;
+28:         $time = systemConfig('hot_ranking_time');
+29:         $time = ($time && $time > 1) ?: 1 ;
+30:         $this->tick(1000 * 60 * 60 * $time, function () {
+31:             request()->clearCache();
+32:             try{
+33:                 Queue::push(SyncProductTopJob::class, []);
+34:             }catch (\Exception $e) {
+35:                 Log::info('热卖排行错误：'.var_export([$e->getMessage()],1));
+36:             }
+37:         });
+38:     }
+39: }
+</file>
+
+<file path="SyncMerchantMarginStatusListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: use app\common\repositories\system\merchant\MerchantRepository;
+16: use crmeb\interfaces\ListenerInterface;
+17: use crmeb\services\TimerService;
+18: 
+19: class SyncMerchantMarginStatusListen extends TimerService implements ListenerInterface
+20: {
+21: 
+22:     public function handle($event): void
+23:     {
+24:         $this->tick(1000 * 60 * 30 , function () {
+25:             request()->clearCache();
+26:             app()->make(MerchantRepository::class)->changeMerchantStatus();
+27:         });
+28:     }
+29: }
+</file>
+
+<file path="SyncQueueStatusListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: 
+16: use app\common\repositories\user\UserRepository;
+17: use crmeb\interfaces\ListenerInterface;
+18: use crmeb\jobs\SyncQueueStatusJob;
+19: use crmeb\services\TimerService;
+20: use crmeb\services\YunxinSmsService;
+21: use Swoole\Timer;
+22: use think\facade\Queue;
+23: 
+24: class SyncQueueStatusListen extends TimerService implements ListenerInterface
+25: {
+26: 
+27:     public function handle($event): void
+28:     {
+29:         $this->tick(1000 * 60 * 5 , function () {
+30:             request()->clearCache();
+31:             Queue::push(SyncQueueStatusJob::class);
+32:         });
+33:     }
+34: }
+</file>
+
+<file path="SyncSmsResultCodeListen.php">
+ 1: <?php
+ 2: 
+ 3: // +----------------------------------------------------------------------
+ 4: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 5: // +----------------------------------------------------------------------
+ 6: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 7: // +----------------------------------------------------------------------
+ 8: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 9: // +----------------------------------------------------------------------
+10: // | Author: CRMEB Team <admin@crmeb.com>
+11: // +----------------------------------------------------------------------
+12: 
+13: 
+14: namespace crmeb\listens;
+15: 
+16: 
+17: use app\common\repositories\system\sms\SmsRecordRepository;
+18: use crmeb\interfaces\ListenerInterface;
+19: use crmeb\services\TimerService;
+20: use crmeb\services\YunxinSmsService;
+21: use Swoole\Timer;
+22: 
+23: class SyncSmsResultCodeListen extends TimerService implements ListenerInterface
+24: {
+25: 
+26:     public function handle($event): void
+27:     {
+28:         $this->tick(1000 * 60 * 5, function () {
+29:             $smsRecordRepository = app()->make(SmsRecordRepository::class);
+30:             $time = date('Y-m-d H:i:s', strtotime("- 10 minutes"));
+31:             $ids = $smsRecordRepository->getTimeOutIds($time);
+32:             if (count($ids)) return;
+33:             $list = (array)YunxinSmsService::create()->getStatus($ids);
+34:             foreach ($list as $item) {
+35:                 if (isset($item['id'])) {
+36:                     if ($item['resultcode'] == '' || $item['resultcode'] == null) $item['resultcode'] = 134;
+37:                     $smsRecordRepository->updateRecordStatus($item['id'], $item['resultcode']);
+38:                 }
+39:             }
+40:         });
+41:     }
+42: }
+</file>
+
+<file path="SyncSpreadStatusListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: 
+16: use app\common\repositories\user\UserRepository;
+17: use crmeb\interfaces\ListenerInterface;
+18: use crmeb\services\TimerService;
+19: use crmeb\services\YunxinSmsService;
+20: use Swoole\Timer;
+21: 
+22: class SyncSpreadStatusListen extends TimerService implements ListenerInterface
+23: {
+24: 
+25:     public function handle($event): void
+26:     {
+27:         $this->tick(1000 * 10, function () {
+28:             request()->clearCache();
+29:             app()->make(UserRepository::class)->syncSpreadStatus();
+30:         });
+31:     }
+32: }
+</file>
+
+<file path="SyncUserCountContentListen.php">
+ 1: <?php
+ 2: // +----------------------------------------------------------------------
+ 3: // | CRMEB [ CRMEB赋能开发者，助力企业发展 ]
+ 4: // +----------------------------------------------------------------------
+ 5: // | Copyright (c) 2016-2026 https://www.crmeb.com All rights reserved.
+ 6: // +----------------------------------------------------------------------
+ 7: // | Licensed CRMEB并不是自由软件，未经许可不能去掉CRMEB相关版权
+ 8: // +----------------------------------------------------------------------
+ 9: // | Author: CRMEB Team <admin@crmeb.com>
+10: // +----------------------------------------------------------------------
+11: 
+12: 
+13: namespace crmeb\listens;
+14: 
+15: 
+16: use app\common\repositories\user\UserRepository;
+17: use crmeb\interfaces\ListenerInterface;
+18: use crmeb\jobs\SyncQueueStatusJob;
+19: use crmeb\services\TimerService;
+20: use crmeb\services\YunxinSmsService;
+21: use Swoole\Timer;
+22: use think\facade\Queue;
+23: 
+24: class SyncUserCountContentListen extends TimerService implements ListenerInterface
+25: {
+26: 
+27:     public function handle($event): void
+28:     {
+29:         $this->tick(1000 * 60 * 60 * 4, function () {
+30:             app()->make(UserRepository::class)->syncUserCountContent();
+31:         });
+32:     }
+33: }
+</file>
+
+</files>
