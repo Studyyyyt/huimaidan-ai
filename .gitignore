@@ -1,0 +1,61 @@
+# 子仓库目录（由各子仓库独立管理，根仓库不跟踪）
+huimaidan/
+huimaidan-uniapp/
+CRMEB_MER_v3.4（20260328）_139633/
+deploy-wsl-php73-swoole4/
+
+# 客户原始数据与数据库备份（随包交付，但不纳入 Git 版本控制）
+data/
+
+# 开发过程输出与截图
+outputs/
+screenshots/
+
+# macOS
+.DS_Store
+
+# 本地 AI 工具配置
+.claude/
+.agents/
+skills-lock.json
+
+# 敏感配置文件（模板文件保留）
+.env
+key.md
+
+# 根目录 SQL 备份（data/ 目录下的归档除外）
+/*.sql
+
+# 压缩归档
+*.zip
+*.tar.gz
+*.rar
+
+# 依赖目录
+node_modules/
+vendor/
+
+# 构建产物
+dist/
+build/
+
+# 运行时数据与日志
+runtime/
+*.log
+logs/
+
+# Docker 运行时数据
+.docker/mysql/data/*
+!.docker/mysql/data/.gitkeep
+.docker/mysql/log/*
+!.docker/mysql/log/.gitkeep
+.docker/redis/data/*
+!.docker/redis/data/.gitkeep
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# 测试临时文件
+*.tmp
+*.temp
